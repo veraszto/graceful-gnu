@@ -1,0 +1,14 @@
+var_dump
+print_r
+include
+require
+__construct
+isset
+unset
+namespace
+preg_match
+preg_replace
+substring
+file_get_contents
+
+
