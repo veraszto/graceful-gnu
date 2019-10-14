@@ -11,11 +11,11 @@ collection=(
 0x0240009b #Extras2# touched at Thu Jul 18 06:54:31 -03 2019
 0x024000d3 #GIT# touched at Thu Jul 18 06:54:31 -03 2019
 0x02400103 #Yards# touched at Thu Jul 18 06:54:31 -03 2019
-0x03200001 #ChromeSearch# touched at Fri Oct 11 06:46:10 -03 2019
-0x03200006 #ChromeDocumentations# touched at Fri Oct 11 06:46:10 -03 2019
+0x02c00001 #ChromeSearch# touched at Mon Oct 14 06:59:19 -03 2019
+0x02c0000a #ChromeDocumentations# touched at Mon Oct 14 06:59:21 -03 2019
 0x03200008 ## touched at Fri Oct 11 06:46:10 -03 2019
-0x03200008 #ChromeDev# touched at Fri Oct 11 06:46:11 -03 2019
-0x01c00010 #FirefoxCover# touched at Fri Oct 11 06:46:11 -03 2019
+0x02c0000c #ChromeDev# touched at Mon Oct 14 06:59:21 -03 2019
+0x01c00010 #FirefoxCover# touched at Mon Oct 14 06:59:21 -03 2019
 0x02600044
 )
 

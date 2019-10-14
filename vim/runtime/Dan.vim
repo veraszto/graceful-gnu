@@ -2,23 +2,23 @@ function! BuildTabLine2()
 	let l:line = ""
 	for i in range(tabpagenr('$'))
 		let buf = tabpagewinnr(i + 1)
-		let focused = "  [Unamed]  "
+		let focused = " . "
 		if i + 1 == tabpagenr()
-			call settabvar(i + 1, "cur_buf_name", substitute(bufname(winbufnr(buf)), '^.*/', "", ""))
+			call settabvar(i + 1, "cur_buf_name", ExtractExtension( bufname( winbufnr(buf) ) )  )
 			let title = gettabvar(i + 1, "cur_buf_name")
 			if len(title) > 0
-				let focused = "%#Conceal#  " .  title . "  %0*"
+				let focused = "%#Conceal# " .  (title) . " %0*"
 			else
-				let focused = "%#Conceal#  [Unamed]  %0*"
+				let focused = "%#Conceal# . %0*"
 			endif
 		else
 			let other_title = gettabvar(i + 1, "cur_buf_name")
 			if len(other_title) > 0
-				let focused = "  " . other_title . "  "
+				let focused = " " . other_title . " "
 			endif
 
 		endif
-		let block = l:line .focused
+		let block = l:line . focused
 		let l:line = block
 	endfor
 	return l:line
