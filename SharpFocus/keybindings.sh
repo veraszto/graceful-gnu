@@ -11,12 +11,12 @@ collection=(
 0x0240009b #Extras2# touched at Thu Jul 18 06:54:31 -03 2019
 0x024000d3 #GIT# touched at Thu Jul 18 06:54:31 -03 2019
 0x02400103 #Yards# touched at Thu Jul 18 06:54:31 -03 2019
-0x02c00001 #ChromeSearch# touched at Mon Oct 14 06:59:19 -03 2019
-0x02c0000a #ChromeDocumentations# touched at Mon Oct 14 06:59:21 -03 2019
+0x02e00001 #ChromeSearch# touched at Mon Oct 28 06:48:33 -03 2019
+0x02e0000a #ChromeDocumentations# touched at Mon Oct 28 06:48:33 -03 2019
 0x03200008 ## touched at Fri Oct 11 06:46:10 -03 2019
-0x02c0000c #ChromeDev# touched at Mon Oct 14 06:59:21 -03 2019
-0x01c00010 #FirefoxCover# touched at Mon Oct 14 06:59:21 -03 2019
-0x02600044
+0x02e0000c #ChromeDev# touched at Mon Oct 28 06:48:34 -03 2019
+0x01c00010 #FirefoxCover# touched at Mon Oct 28 06:48:35 -03 2019
+0x02465624
 )
 
 action=$1
@@ -27,8 +27,8 @@ test $action -eq 1 -o $action -eq 2 -o $action -eq 3 -o $action -eq 0 &&
 {
 	tmux="tmux select-window -t 0:$action"
 	supplementary="screen -X -S Supplementary select $action"
-	$tmux
-	$supplementary
+#	$tmux
+#	$supplementary
 } || 
 {
 	test $action -eq 4 -o $action -eq 5 -o $action -eq 6 &&

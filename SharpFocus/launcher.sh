@@ -17,3 +17,5 @@ done
 
 echo And now one Firefox
 firefox &> /dev/null &
+
+~/git/GracefulGNU/SharpFocus/boost_browsers.sh ~/git/GracefulGNU/SharpFocus/keybindings.sh

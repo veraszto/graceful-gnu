@@ -123,14 +123,12 @@ function! AutoCommands()
 	aug mine
 		au!
 	aug END
-	autocmd  mine BufEnter * exe "call BoosterNavigation()"
+	autocmd  mine BufEnter * execute "call BoosterNavigation()"
 
 	"autocmd  mine BufWrite * 
 	"	\tabm0 | execute "normal \<C-W>H" | 
 	"	\execute "normal \<C-W>|" | normal zz
 	"
-	autocmd! buildlabels
-
 endfunction
 
 "\Sets
@@ -269,6 +267,8 @@ function! MarksNavigationCheckContainer()
 
 	if ! exists("b:marks")
 		let b:marks = []
+	endif
+	if ! exists("b:current_mark")
 		let b:current_mark = 0
 	endif
 
@@ -475,7 +475,7 @@ function! MakeMappings() "\Sample of a mark
 "	imap <S-Down> 	
 	
 "	map <C-S-Down> 	
-"	map <C-S-Up> 	
+	map <C-S-Up> 	
 "	imap <C-S-Down> 
 "	imap <C-S-Up> 	
 
