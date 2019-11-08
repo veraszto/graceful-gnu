@@ -154,8 +154,11 @@ function! Sets()
 	set backspace=2
 	set wrap
 	set comments=""
+"	set mouse=""
+"	set ttymouse=""
 	filetype indent off
 endfunction
+
 
 function! StartUp()
 
@@ -313,7 +316,7 @@ function! SlideThroughMarks(direction)
 
 			let b:current_mark -= 1
 	endif
-	let a:fixed_width = 28
+	let fixed_width = 28
 	for i in range(-1, 1)
 
 		let index = b:current_mark + i
@@ -327,17 +330,17 @@ function! SlideThroughMarks(direction)
 			let content = "<EmptySlot>"
 		endif
 
-		let remainder = (a:fixed_width - strlen(content)) / 2
+		let remainder = (fixed_width - strlen(content)) / 2
 
-		let a:padded_content = 
+		let padded_content = 
 			\repeat(" ", remainder) .
 			\index . ")" . content . 
 			\repeat(" ", remainder)
 		
 		if index < 0
 			let unaccessible = "Unaccessible"
-			let remainder = (a:fixed_width - strlen(unaccessible)) / 2
-			let a:padded_content = 
+			let remainder = (fixed_width - strlen(unaccessible)) / 2
+			let padded_content = 
 				\repeat(" ", remainder) .
 				\"-)" . unaccessible . 
 				\repeat(" ", remainder)
@@ -351,7 +354,7 @@ function! SlideThroughMarks(direction)
 			echohl EndOfBuffer
 		endif
 
-		echon a:padded_content
+		echon padded_content
 		echohl None
 
 	endfor
@@ -504,6 +507,10 @@ function! MakeMappings() "\Sample of a mark
 	map ;t :tabnew<CR>
 	map ;vn :vertical new<CR><C-W>\| 
 	map ;vs :vertical split<CR><C-W>\| 
+	map <PageUp> <C-I>
+	map <PageDown> <C-O>
+	imap <PageUp> <Esc><C-I>i
+	imap <PageDown> <Esc><C-O>i
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 	echo "Maps done!"

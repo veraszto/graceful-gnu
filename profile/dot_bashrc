@@ -11,9 +11,14 @@ fi
 
 clean_bash=${0#-}
 clean_bash=${clean_bash##*/}
-PS1="\u@$clean_bash\w\$ "
+#PS1="\u@$clean_bash\w\$ "
 unset PROMPT_COMMAND
 shopt -s autocd
+
+powerline-daemon -q
+POWERLINE_BASH_CONTINUATION=1
+POWERLINE_BASH_SELECT=1
+source /usr/share/powerline/bash/powerline.sh
 
 export TERM=xterm-256color
 #export PATH=${PATH}:~/git/MyStuff/BashScripts
