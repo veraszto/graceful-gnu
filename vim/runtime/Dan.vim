@@ -75,7 +75,7 @@ function! BuildStatusLine()
 	for w in range(1, winnr("$"))
 		let name = bufname(winbufnr(w))
 "		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
-		let stripped = matchstr( name, '[^/]\+/[[:alnum:]_.-]\+\(\.\?\w\+\)$' )
+		let stripped = "   " . matchstr( name, '[^/]\+/[[:alnum:]_.-]\+\(\.\?\w\+\)$' ) . "   "
 "		if  strlen(stripped) == 0 || matchstr(name, '\(\.\)\@<=\w\+$') != matchstr(bufname("%"), '\(\.\)\@<=\w\+$')
 "			continue
 "		endif
@@ -127,6 +127,7 @@ function! AutoCommands()
 	autocmd mine BufRead * call BoosterNavigation()
 	autocmd mine BufRead * clearjumps
 	autocmd mine BufEnter * echo expand("%")
+	autocmd mine BufEnter * normal zz
 
 	"autocmd  mine BufWrite * 
 	"	\tabm0 | execute "normal \<C-W>H" | 
@@ -376,21 +377,21 @@ function! CommitToMark()
 		let say = "Going through input v:count and v:count1, whose are " . v:count . " and " . v:count1
 	endif
 
-	let a:matter = get(b:marks, b:current_mark, -1)
+	let matter = get(b:marks, b:current_mark, -1)
 
-	if a:matter == -1
+	if matter == -1
 		echo "Out of bounds mark"
 		return
 	endif
 
-	let s = MakeSearch(a:matter)
+	let s = MakeSearch( matter )
 
 	normal j
 	if s != 0
 		execute "normal z\<Enter>\<End>"
-		let say .= " reaching " . a:matter
+		let say .= " reaching " . matter
 	else
-		let say .= ", however, " . a:matter . " has not been found"
+		let say .= ", however, " . matter . " has not been found"
 	endif
 	echo say
 
@@ -550,7 +551,7 @@ function! HiLight()
 		\ [ "Pmenu", 24, 214, "NONE" ],
 		\ [ "PmenuSel", "red", 24, "NONE" ],
 		\ [ "Visual", purple, 16, "reverse" ],
-		\ [ "TabLineSel", 16, 189, "NONE" ],
+		\ [ "TabLineSel", 235, 189, "NONE" ],
 		\ [ "TabLineFill", 240, 189, "NONE" ]
 	\]
 
