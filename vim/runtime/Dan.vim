@@ -56,11 +56,11 @@ endfunction
 
 function! WrapperOfStatusLine()
 	
-	setlocal statusline=
+	set statusline=
 		\[%{mode()}]
 		\%{ShowType()}%m[%P]%{BuildStatusLine()}
 		\%{b:status_line_assets[0]}
-		\%#PmenuSel#%{b:status_line_assets[1]}%*
+		\%#TabLineSel#%{b:status_line_assets[1]}%*
 		\%{b:status_line_assets[2]}
 "		\%{StatusLineNativeJumpList()} "getjumlist may not be available
 
@@ -81,7 +81,7 @@ function! BuildStatusLine()
 "		endif
 		if w == winnr()
 			let side_change = 1
-			call add(current, " [" . stripped . "] ")
+			call add(current, stripped)
 		else
 			if side_change == 0
 				call add(left, stripped)
@@ -91,7 +91,7 @@ function! BuildStatusLine()
 		endif
 	endfor
 
-	let b:status_line_assets = [join(left, " | "), join(current, ""), join(right, " | ")]
+	let b:status_line_assets = [join(left, "|"), "|" . join(current, "") . "|", join(right, "|")]
 
 	return ""
 
@@ -540,16 +540,18 @@ function! HiLight()
 	let assemble_83 = [ 8, 3 ]
 	let assemble_53 = [ 5, 3 ]
 
+	let purple = 55
+
 	let highlights =
 	\[
-		\ [ "StatusLine", 11, 233, "reverse" ],
-		\ [ "StatusLineNC", 11, 233, "NONE" ],
-		\ [ "VertSplit", "blue", "blue", "NONE" ],
-		\ [ "Pmenu", 55, 214, "NONE" ],
-		\ [ "PmenuSel", 233, 67, "NONE" ],
-		\ [ "Visual", 31, 55, "NONE" ],
-		\ [ "TabLineSel", 236, 31, "NONE" ],
-		\ [ "TabLineFill", 31, 236, "NONE" ]
+		\ [ "StatusLine", 189, 240, "reverse" ],
+		\ [ "StatusLineNC", 240, 159, "NONE" ],
+		\ [ "VertSplit", 16, 16, "NONE" ],
+		\ [ "Pmenu", 24, 214, "NONE" ],
+		\ [ "PmenuSel", "red", 24, "NONE" ],
+		\ [ "Visual", purple, 16, "reverse" ],
+		\ [ "TabLineSel", 16, 189, "NONE" ],
+		\ [ "TabLineFill", 240, 189, "NONE" ]
 	\]
 
 	call ClearHighlights( highlights )
@@ -557,7 +559,6 @@ function! HiLight()
 	for a in highlights
 		call MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
 	endfor
-
 
 endfunction
 
