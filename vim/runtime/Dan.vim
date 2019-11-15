@@ -6,13 +6,13 @@ function! BuildTabLine2()
 		if i + 1 == tabpagenr()
 			call settabvar(i + 1, "cur_buf_name", ExtractExtension( bufname( winbufnr(buf) ) )  )
 			let title = gettabvar(i + 1, "cur_buf_name")
-			if len(title) > 0
-				let focused = "%#Conceal# " .  (title) . " %0*"
+			if len( title ) > 0
+				let focused = "%#TabLineSel# " .  ( title ) . " %0*"
 			else
-				let focused = "%#Conceal# . %0*"
+				let focused = "%#TabLineSel# . %0*"
 			endif
 		else
-			let other_title = gettabvar(i + 1, "cur_buf_name")
+			let other_title = gettabvar( i + 1, "cur_buf_name")
 			if len(other_title) > 0
 				let focused = " " . other_title . " "
 			endif
@@ -60,7 +60,7 @@ function! WrapperOfStatusLine()
 		\[%{mode()}]
 		\%{ShowType()}%m[%P]%{BuildStatusLine()}
 		\%{b:status_line_assets[0]}
-		\%#FocusedMenu#%{b:status_line_assets[1]}%*
+		\%#PmenuSel#%{b:status_line_assets[1]}%*
 		\%{b:status_line_assets[2]}
 "		\%{StatusLineNativeJumpList()} "getjumlist may not be available
 
@@ -74,13 +74,14 @@ function! BuildStatusLine()
 	let side_change = 0
 	for w in range(1, winnr("$"))
 		let name = bufname(winbufnr(w))
-		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
+"		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
+		let stripped = matchstr( name, '[^/]\+/[[:alnum:]_.-]\+\(\.\?\w\+\)$' )
 "		if  strlen(stripped) == 0 || matchstr(name, '\(\.\)\@<=\w\+$') != matchstr(bufname("%"), '\(\.\)\@<=\w\+$')
 "			continue
 "		endif
 		if w == winnr()
 			let side_change = 1
-			call add(current, "[" . stripped . "]")
+			call add(current, " [" . stripped . "] ")
 		else
 			if side_change == 0
 				call add(left, stripped)
@@ -90,7 +91,7 @@ function! BuildStatusLine()
 		endif
 	endfor
 
-	let b:status_line_assets = [join(left, "|"), join(current, ""), join(right, "|")]
+	let b:status_line_assets = [join(left, " | "), join(current, ""), join(right, " | ")]
 
 	return ""
 
@@ -123,7 +124,9 @@ function! AutoCommands()
 	aug mine
 		au!
 	aug END
-	autocmd  mine BufEnter * execute "call BoosterNavigation()"
+	autocmd mine BufRead * call BoosterNavigation()
+	autocmd mine BufRead * clearjumps
+	autocmd mine BufEnter * echo expand("%")
 
 	"autocmd  mine BufWrite * 
 	"	\tabm0 | execute "normal \<C-W>H" | 
@@ -462,7 +465,7 @@ function! MakeMappings() "\Sample of a mark
 	map ;; :call StartUp()<CR>
 	map ;ma :call MakeAbbreviations()<CR>
 	map ;mm :call MakeMappings()<CR>
-	map m :call SaveMark()<CR>
+	map ;ms :call SaveMark()<CR>
 
 
 "	Easy save
@@ -495,8 +498,8 @@ function! MakeMappings() "\Sample of a mark
 	map F :call PopupShow()<CR>
 	map ;hi :call HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
+	map ;ju :jumps<CR>
 	map ;hs :split<CR><C-W>_ 
-	map ;j :call PopupShow()<CR>
 	map ;ks :keepjumps /
 	map ;l :lcd 
 	map ;p :pwd<CR>
@@ -507,10 +510,10 @@ function! MakeMappings() "\Sample of a mark
 	map ;t :tabnew<CR>
 	map ;vn :vertical new<CR><C-W>\| 
 	map ;vs :vertical split<CR><C-W>\| 
-	map <PageUp> <C-I>
-	map <PageDown> <C-O>
-	imap <PageUp> <Esc><C-I>i
-	imap <PageDown> <Esc><C-O>i
+"	map <PageUp> <C-I>
+"	map <PageDown> <C-O>
+"	imap <PageUp> <Esc><C-I>i
+"	imap <PageDown> <Esc><C-O>i
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 	echo "Maps done!"
@@ -533,13 +536,40 @@ endfunction
 function! HiLight()	
 
 	"Some colors customizations here
-	hi clear StatusLine
-	hi clear StatusLineNC
-	hi clear VertSplit
-	hi clear Conceal
-	hi StatusLine ctermbg=0 ctermfg=10
-	hi StatusLineNC ctermbg=0 ctermfg=2 
-	hi VertSplit ctermbg=0 ctermfg=0
+	
+	let assemble_83 = [ 8, 3 ]
+	let assemble_53 = [ 5, 3 ]
+
+	let highlights =
+	\[
+		\ [ "StatusLine", 11, 233, "reverse" ],
+		\ [ "StatusLineNC", 11, 233, "NONE" ],
+		\ [ "VertSplit", "blue", "blue", "NONE" ],
+		\ [ "Pmenu", 55, 214, "NONE" ],
+		\ [ "PmenuSel", 233, 67, "NONE" ],
+		\ [ "Visual", 31, 55, "NONE" ],
+		\ [ "TabLineSel", 236, 31, "NONE" ],
+		\ [ "TabLineFill", 31, 236, "NONE" ]
+	\]
+
+	call ClearHighlights( highlights )
+
+	for a in highlights
+		call MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
+	endfor
+
+
+endfunction
+
+function! MakeHighlight( highlight, ctermbg, ctermfg, cterm )
+	execute "highlight " . a:highlight . " ctermbg=" . a:ctermbg . " ctermfg=" . a:ctermfg . " cterm=" . a:cterm
+endfunction
+
+function! ClearHighlights( list )
+
+	for a in a:list
+		execute "highlight clear " . get( a , 0 )
+	endfor
 
 endfunction
 

@@ -1,0 +1,12 @@
+{
+	"ext": {
+		"shell": {
+			"colorscheme": "dan",
+			"theme": "dan"
+		},
+		"tmux": {
+			"colorscheme": "dan",
+			"theme": "dan"
+		}
+	}
+}
