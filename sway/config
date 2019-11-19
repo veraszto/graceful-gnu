@@ -23,7 +23,20 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-output * bg /usr/share/backgrounds/gnome/adwaita-night.jpg fill
+output *
+{
+	bg /usr/share/backgrounds/gnome/adwaita-night.jpg fill
+}
+
+output HDMI-A-2
+{
+	position 0 0
+}
+
+output DP-1
+{
+	position 1920 0
+}
 #
 # Example configuration:
 #
@@ -202,6 +215,7 @@ mode "resize" {
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
+
 bindsym $mod+r mode "resize"
 
 #
@@ -220,15 +234,18 @@ bar {
         background #323232
         inactive_workspace #32323200 #32323200 #5c5c5c
     }
+
 	workspace_buttons yes
 }
 
 
-set $main_left 29431.MainLeft
+set $main_left MainLeft
 
 default_border normal
 
 bindsym Ctrl+KP_0 workspace 0
+
+bindsym Ctrl+KP_Separator workspace RightScreen
 
 bindsym Ctrl+KP_1 
 {

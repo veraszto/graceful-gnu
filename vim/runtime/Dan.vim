@@ -126,7 +126,7 @@ function! AutoCommands()
 	aug END
 	autocmd mine BufRead * call BoosterNavigation()
 	autocmd mine BufRead * clearjumps
-	autocmd mine BufEnter * echo expand("%")
+"	autocmd mine BufEnter * echo expand("%")
 	autocmd mine BufEnter * normal zz
 
 	"autocmd  mine BufWrite * 
