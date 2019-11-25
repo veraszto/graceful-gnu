@@ -7,7 +7,7 @@
 ### Variables
 #
 # Logo key. Use Mod1 for Alt.
-set $mod Ctrl+Alt
+include /etc/sway/mod.sway
 # Home row direction keys, like vim
 set $left h
 set $down j
@@ -37,6 +37,9 @@ output DP-1
 {
 	position 1920 0
 }
+
+xwayland disable
+
 #
 # Example configuration:
 #
@@ -225,6 +228,8 @@ bindsym $mod+r mode "resize"
 bar {
     position top
 
+	id main
+
     # When the status_command prints a new line to stdout, swaybar updates.
     # The default just shows the current date and time.
     status_command while echo -en "Danilo G. Veraszto $(date +'%Y-%m-%d %l:%M')"; do sleep 1; done
@@ -235,9 +240,8 @@ bar {
         inactive_workspace #32323200 #32323200 #5c5c5c
     }
 
-	workspace_buttons yes
+	workspace_buttons no
 }
-
 
 set $main_left MainLeft
 

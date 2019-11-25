@@ -62,7 +62,7 @@ function! WrapperOfStatusLine()
 		\%{b:status_line_assets[0]}
 		\%#TabLineSel#%{b:status_line_assets[1]}%*
 		\%{b:status_line_assets[2]}
-"		\%{StatusLineNativeJumpList()} "getjumlist may not be available
+		\%<
 
 endfunction
 
@@ -75,7 +75,7 @@ function! BuildStatusLine()
 	for w in range(1, winnr("$"))
 		let name = bufname(winbufnr(w))
 "		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
-		let stripped = "   " . matchstr( name, '[^/]\+/[[:alnum:]_.-]\+\(\.\?\w\+\)$' ) . "   "
+		let stripped = "   " . matchstr( name, '[^/]\+/\?[[:alnum:]_.-]\+\(\.\?\w\+\)$' ) . "   "
 "		if  strlen(stripped) == 0 || matchstr(name, '\(\.\)\@<=\w\+$') != matchstr(bufname("%"), '\(\.\)\@<=\w\+$')
 "			continue
 "		endif
@@ -555,7 +555,13 @@ function! HiLight()
 		\ [ "TabLineFill", 240, 189, "NONE" ]
 	\]
 
-	call ClearHighlights( highlights )
+	colorscheme default
+
+	highlight clear
+"	call ClearHighlights( highlights )
+	highlight Special ctermfg=98
+	highlight PreProc ctermfg=98
+	highlight Comment ctermfg=244
 
 	for a in highlights
 		call MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
