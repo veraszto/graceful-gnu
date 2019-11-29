@@ -1,4 +1,13 @@
-# Default config for sway
+
+
+
+##### Hello, this config file is part/chunk of the whole config, 
+##### there are missing items, consider using the official one from Sway :)
+
+
+#
+#
+## Default config for sway
 #
 # Copy this to ~/.config/sway/config and edit it to your liking.
 #
@@ -15,7 +24,6 @@ set $up k
 set $right l
 # Your preferred terminal emulator
 # set $term urxvt256c-ml
-set $term gnome-terminal
 # Your preferred application launcher
 # Note: it's recommended that you pass the final command to sway
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
@@ -23,20 +31,7 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-output *
-{
-	bg /usr/share/backgrounds/gnome/adwaita-night.jpg fill
-}
 
-output HDMI-A-2
-{
-	position 0 0
-}
-
-output DP-1
-{
-	position 1920 0
-}
 
 xwayland disable
 
@@ -87,7 +82,6 @@ input *
 # Basics:
 #
     # start a terminal
-    bindsym $mod+Return exec $term
 
     # kill focused window
     bindsym $mod+Shift+q kill
