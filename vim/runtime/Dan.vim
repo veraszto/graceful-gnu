@@ -161,6 +161,7 @@ function! Sets()
 "	set mouse=""
 "	set ttymouse=""
 	filetype indent off
+	filetype plugin off
 endfunction
 
 
