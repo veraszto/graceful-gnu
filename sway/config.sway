@@ -32,8 +32,7 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
 
-
-xwayland disable
+#xwayland enable
 
 #
 # Example configuration:
@@ -219,7 +218,8 @@ bindsym $mod+r mode "resize"
 # Status Bar:
 #
 # Read `man 5 sway-bar` for more information about this section.
-bar {
+bar
+{
     position top
 
 	id main
@@ -228,12 +228,12 @@ bar {
     # The default just shows the current date and time.
     status_command while echo -en "Danilo G. Veraszto $(date +'%Y-%m-%d %l:%M')"; do sleep 1; done
 
-    colors {
+    colors 
+	{
         statusline #ffffff
         background #323232
         inactive_workspace #32323200 #32323200 #5c5c5c
     }
-
 	workspace_buttons no
 }
 

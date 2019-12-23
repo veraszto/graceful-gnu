@@ -4,7 +4,15 @@ function! BuildTabLine2()
 		let buf = tabpagewinnr(i + 1)
 		let focused = " . "
 		if i + 1 == tabpagenr()
-			call settabvar(i + 1, "cur_buf_name", ExtractExtension( bufname( winbufnr(buf) ) )  )
+
+			call
+				\ settabvar
+					\( 
+							\ i + 1, "cur_buf_name", 
+							\ LastDir( getcwd() ) . "/" . 
+							\ ExtractExtension( bufname( winbufnr(buf) ) ) 
+					\)
+
 			let title = gettabvar(i + 1, "cur_buf_name")
 			if len( title ) > 0
 				let focused = "%#TabLineSel# " .  ( title ) . " %0*"
@@ -53,6 +61,11 @@ function! ExtractExtension(from)
 	return 	matchstr(a:from, '\.\(\w\|[-?!]\)\+$', "gi")
 endfunction
 
+function! LastDir( matter )
+
+	return matchstr( a:matter,   '\(/[^/]\+\)\{1}$' ) 
+
+endfunction
 
 function! WrapperOfStatusLine()
 	
