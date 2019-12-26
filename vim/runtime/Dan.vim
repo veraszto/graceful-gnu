@@ -608,7 +608,8 @@ function! CopyRegisterToFileAndClipboard(register)
 	execute "let tmp = @" . a:register
 	let escaped = shellescape(tmp, 1)
 	silent execute "!echo " . escaped  . " | dd of=" . s:bridge_file
-	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
+"	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
+	silent execute "!echo " . escaped  . " | wl-copy"
 	redraw!
 
 endfunction
@@ -621,7 +622,7 @@ let s:acceptable_to_mark =
 
 let s:bridge_file = "/tmp/bridge"
 
-echo "Dan.vim has just been loaded, branch Overriding Marks"
+echo "Dan.vim has just been loaded"
 
 
 
