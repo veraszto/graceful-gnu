@@ -10,11 +10,11 @@ a part from some trivial customizations, there are the [SharpFocus](Bashcripts/S
 This was being used by me when i had the idea of not using alt+tab in order to move accross terminals, browsers and others,
 as it was not being straightforward as needed while using GNOME.
 
-I mapped Ctrl+[0-9] in gsettings to call (keybindings.sh)[Bashcripts/SharpFocus/keybindings.sh] passing as a parameter the number/symbol which Ctrl was pressed with.
+I mapped Ctrl+[0-9] in gsettings to call (keybindings.sh)[BashScripts/SharpFocus/keybindings.sh] passing as a parameter the number/symbol which Ctrl was pressed with.
 
 This number argument is a array index which points to a wmctrl window id, triggering in one turn the desired focus sharply.
 
-This array was previously built with the help of (launcher.sh)[Bashcripts/SharpFocus/launcher.sh] and (boost_browsers.sh)[Bashcripts/SharpFocus/boost_browsers.sh].
+This array was previously built with the help of (launcher.sh)[BashScripts/SharpFocus/launcher.sh] and (boost_browsers.sh)[BashScripts/SharpFocus/boost_browsers.sh].
 
 This works well, but then i became aware of the existence of Sway/Wayland, so i replaced SharpFocus with it and found out that
 
