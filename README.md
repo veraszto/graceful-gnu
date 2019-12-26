@@ -5,7 +5,7 @@
 These are to customize and enhance pretty ability thoughout my GNU/Linux daily usage,
 a part from some trivial customizations, there are the [SharpFocus](Bashcripts/SharpFocus) and [Dan.vim](vim/runtime/Dan.vim).
 
-##SharpFocus
+## SharpFocus
 
 This was being used by me when i had the idea of not using alt+tab in order to move accross terminals, browsers and others,
 as it was not being straightforward as needed while using GNOME.
@@ -21,7 +21,7 @@ This works well, but then i became aware of the existence of Sway/Wayland, so i 
 what i was trying to do was to logically organize my workspace, which Sway is further doing with excellence.
 
 
-##Dan.vim
+## Dan.vim
 
 This is a vim script which i have been customizing to tackle file editing/access to the best.
 
