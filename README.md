@@ -17,7 +17,6 @@ This number argument is a array index which points to a wmctrl window id, trigge
 This array was previously built with the help of [launcher.sh](BashScripts/SharpFocus/launcher.sh) and [boost_browsers.sh](BashScripts/SharpFocus/boost_browsers.sh).
 
 This works well, but then i became aware of the existence of Sway/Wayland, so i replaced SharpFocus with it and found out that
-
 what i was trying to do was to logically organize my workspace, which Sway is further doing with excellence.
 
 
