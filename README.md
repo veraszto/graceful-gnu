@@ -7,7 +7,7 @@ a part from some trivial customizations, there are the [SharpFocus](Bashcripts/S
 
 ## SharpFocus
 
-This was being used by me when i had the idea of not using alt+tab in order to move accross terminals, browsers and others,
+This was being used by me when i had the idea of not using alt+tab in order to move and focus accross terminals, browsers among workspaces,
 as it was not being straightforward as needed while using GNOME.
 
 I mapped Ctrl+[0-9] in gsettings to call [keybindings.sh](BashScripts/SharpFocus/keybindings.sh) passing as a parameter the number/symbol which Ctrl was pressed with.
@@ -22,10 +22,10 @@ what i was trying to do was to logically organize my workspace, which Sway is fu
 
 ## Dan.vim
 
-This is a vim script which i have been customizing to tackle file editing/access to the best.
+This is a vim script which i have been writting to tackle file editing/access to the best.
 
-It is intended to open buffers vertically in the same window whose are the same type/extension.
+It is intended to open buffers vertically in the same window whose type/extension are the same. Navigating with Ctrl+(Left|Right) arrows
 
-Navigation with a custom popup(normal F) and though arrows using Shift+(Left|Right) and down arrow to confirm while in normal mode
+Navigation with a custom popup(normal F) and though arrows using Shift+(Left|Right) arrows and down arrow to confirm while in normal mode
 
 ;ms in normal mode in a satisfied(search for acceptable_mark in Dan.vim, it is something like this //\ToMark) string to mark it into the popup
