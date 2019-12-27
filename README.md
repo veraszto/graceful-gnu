@@ -2,7 +2,7 @@
 
 ## Compact description
 
-These are to customize and enhance pretty ability thoughout my GNU/Linux daily usage,
+These are to customize and enhance pretty ability throughout my GNU/Linux daily usage,
 a part from some trivial customizations, there are the [SharpFocus](Bashcripts/SharpFocus) and [Dan.vim](vim/runtime/Dan.vim).
 
 ## SharpFocus
@@ -24,8 +24,12 @@ what i was trying to do was to logically organize my workspace, which Sway is fu
 
 This is a vim script which i have been writting to tackle file editing/access to the best.
 
-It is intended to open buffers vertically in the same window whose type/extension are the same. Navigating with Ctrl+(Left|Right) arrows
+It is intended to open buffers vertically in the same window whose type/extension are the same. Navigating with Ctrl+(Left|Right) arrows.
 
-Navigation with a custom popup(normal F) and though arrows using Shift+(Left|Right) arrows and down arrow to confirm while in normal mode
+Navigation with a custom popup(normal F) and though arrows using Shift+(Left|Right) arrows and down arrow to confirm while in normal mode.
 
-;ms in normal mode in a satisfied(search for acceptable_mark in Dan.vim, it is something like this //\ToMark) string to mark it into the popup
+;ms in normal mode in a satisfied(search for acceptable_mark in Dan.vim, it is something like this //\ToMark) string to mark it into the popup.
+
+
+##### Thank you.
+
