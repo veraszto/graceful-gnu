@@ -193,14 +193,20 @@ endfunction
 "\PopupTargetFile
 func! PopupTargetFile()
 	let path = PopupMakeDirectory()
-	let this_file = expand("%:p")
-	let sha = sha256(this_file)
-	return [this_file, sha, path . sha]
+	let this_file = expand("%:t")
+	let sha = sha256( this_file )
+	return 
+		\[ 
+			\this_file, 
+			\sha, 
+			\path . this_file . ".vim.shortcut" 
+		\]
+
 endfunction
 
 func! PopupMakeDirectory()
 
-	let path = expand("~/.vim/" . $USER . "_popup_marks/")
+	let path = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/")
 
 	if exists("b:has_already_created_popup_directory") &&
 		\b:has_already_created_popup_directory == v:true
@@ -235,7 +241,7 @@ func! PopupShow()
 
 	let list = PopupReadFile()
 	if len(list) == 0
-		echo "BMarks is empty, so is it the designated file"
+		echo "Marks' stack is empty, so is it the designated file"
 		return
 	endif
 	try
@@ -268,16 +274,12 @@ func! PopupChosen(index)
 	
 endfunction
 
-func! PopupAdd(what)
+func! PopupAdd()
 
 	let b:popup_is_dirty = v:true
 	let file = PopupTargetFile()
 	try
-		if len(findfile(file[2])) == 0
-			call writefile([a:what, file[0], file[1]], file[2])
-		else
-			call writefile(b:marks, file[2])
-		endif
+		call writefile( b:marks, file[2] )
 	catch
 		echo "Popup: could not write to file " . file[2] . ", " . v:exception
 	endtry
@@ -306,8 +308,8 @@ function! SaveMark()
 	while exists("s:acceptable_to_mark[" . counter . "]")
 		let match = matchstr(line, s:acceptable_to_mark[counter])
 		if len(match) > 0
-			call add(b:marks, match)
-			call PopupAdd(match)
+			call insert(b:marks, match)
+			call PopupAdd()
 			let tell .= match
 			break
 		endif
