@@ -32,7 +32,7 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
 
-#xwayland enable
+xwayland enable
 
 #
 # Example configuration:
@@ -239,7 +239,7 @@ bar
 
 set $main_left MainLeft
 
-default_border normal
+default_border none
 
 bindsym Ctrl+KP_0 workspace 0
 
