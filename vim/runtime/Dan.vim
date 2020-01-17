@@ -418,7 +418,7 @@ function! MakeSearch(matter)
 	let s = search
 	\(
 		\MakeEscape(a:matter), 
-		\"sce"
+		\"s"
 	\)
 	return s
 endfunction
