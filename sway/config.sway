@@ -15,8 +15,11 @@
 
 ### Variables
 #
-# Logo key. Use Mod1 for Alt.
+
+set $mod Alt
+
 include /etc/sway/mod.sway
+
 # Home row direction keys, like vim
 set $left h
 set $down j
