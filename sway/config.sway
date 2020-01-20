@@ -217,6 +217,8 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
+bindsym $mod+Return exec gnome-terminal
+
 #
 # Status Bar:
 #
@@ -240,7 +242,7 @@ bar
 	workspace_buttons no
 }
 
-set $main_left MainLeft
+set $main_left Wrapper.MainLeft
 
 default_border none
 
