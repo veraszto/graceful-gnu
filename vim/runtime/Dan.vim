@@ -171,6 +171,8 @@ function! Sets()
 	set backspace=2
 	set wrap
 	set comments=""
+	"Add minus sign
+	set iskeyword+=-
 "	set mouse=""
 "	set ttymouse=""
 	filetype indent off

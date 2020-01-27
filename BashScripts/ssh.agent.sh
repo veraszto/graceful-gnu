@@ -8,7 +8,10 @@ ssh_agent_name="$HOME/ssh.agent"
 #-z works well free of quotes but with content free from IFS
 create="ssh-agent -s -a $ssh_agent_name"
 test -z $ssh_agent && \
-	eval $($create) || \
+	{
+		rm $ssh_agent_name
+		eval $($create);
+	} || \
 	{
 		export SSH_AUTH_SOCK=~/ssh.agent				
 		export SSH_AGENT_PID=$ssh_agent
@@ -19,11 +22,16 @@ test -z $ssh_agent && \
 #on X display server one can use xclip instead of wl-paste
 
 echo -e "$(wl-paste)" > $1
+ls -l $1
 chmod 700 $1
 
 exec="ssh-add $1"
 echo $exec
 $exec
+
+#echo | wl-copy
+#test -f $1 && rm -rf $1
+
 exec="ssh-add -L"
 echo $exec
 $exec
