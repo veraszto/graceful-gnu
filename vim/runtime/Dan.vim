@@ -138,7 +138,7 @@ function! AutoCommands()
 		au!
 	aug END
 	autocmd mine BufRead * call BoosterNavigation()
-	autocmd mine BufRead * clearjumps
+"	autocmd mine BufRead * clearjumps
 "	autocmd mine BufEnter * echo expand("%")
 	autocmd mine BufEnter * normal zz
 
@@ -548,8 +548,9 @@ function! RefreshAll()
 			\ catch |
 				\ echohl Visual |
 				\ echo v:exception |
-				\ echohl None|
-			\ endtry
+				\ echohl None |
+			\ endtry |
+			\ vertical resize
 endfunction
 
 function! HiLight()	
