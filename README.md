@@ -3,7 +3,7 @@
 ## Compact description
 
 These are to customize and enhance pretty ability throughout my GNU/Linux daily usage,
-a part from some trivial customizations, there are the [SharpFocus](Bashcripts/SharpFocus) and [Dan.vim](vim/runtime/Dan.vim).
+a part from some trivial customizations, there are the [SharpFocus](BashScripts/SharpFocus), [Dan.vim](vim/runtime/Dan.vim) and [Build Workspace](BashScripts/build.workspace)
 
 ## SharpFocus
 
@@ -31,5 +31,9 @@ Navigation with a custom popup(normal F) and though arrows using Shift+(Left|Rig
 ;ms in normal mode in a satisfied(search for acceptable_mark in Dan.vim, it is something like this //\ToMark) string to mark it into the popup.
 
 
-##### Thank you.
+## Build Workspace
+
+These are some scripts to deploy instantly my Screen and Tmux sessions with theirs sways' workspaces as i need to get ready fast from any computer i am at.
+
+##### Thank you :)
 

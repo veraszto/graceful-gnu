@@ -29,6 +29,7 @@ set $right l
 # set $term urxvt256c-ml
 # Your preferred application launcher
 # Note: it's recommended that you pass the final command to sway
+
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
 
 ### Output configuration
@@ -84,6 +85,11 @@ input *
 # Basics:
 #
     # start a terminal
+	bindsym $mod+Return exec gnome-terminal
+
+	bindsym $mod+i exec $HOME/git/MyStuff/BashScripts/build.myworkspace/launcher.sh
+
+	bindsym $mod+r mode "resize"
 
     # kill focused window
     bindsym $mod+Shift+q kill
@@ -215,9 +221,6 @@ mode "resize" {
     bindsym Escape mode "default"
 }
 
-bindsym $mod+r mode "resize"
-
-bindsym $mod+Return exec gnome-terminal
 
 #
 # Status Bar:
@@ -239,7 +242,7 @@ bar
         background #323232
         inactive_workspace #32323200 #32323200 #5c5c5c
     }
-	workspace_buttons no
+	workspace_buttons yes
 }
 
 set $main_left Wrapper.MainLeft
@@ -303,6 +306,12 @@ bindsym Ctrl+1
 
 bindsym Ctrl+KP_Divide workspace LeftNonTerminal
 bindsym Ctrl+KP_Multiply workspace RightNonTerminal
+
+bindsym $mod+mod4+KP_0 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 0
+bindsym $mod+mod4+KP_1 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 1
+bindsym $mod+mod4+KP_2 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 2
+bindsym $mod+mod4+KP_3 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 3
+bindsym $mod+mod4+KP_4 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 4
 
 #bindcode $mod+0xff55 workspace prev
 #bindcode $mod+0xff56 workspace next
