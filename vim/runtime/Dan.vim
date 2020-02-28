@@ -160,6 +160,7 @@ function! Sets()
 	set nohlsearch
 	set number
 	set noshowmode
+	set nocompatible
 	set noincsearch
 	set autoread
 	set showcmd
@@ -177,6 +178,7 @@ function! Sets()
 "	set ttymouse=""
 	filetype indent off
 	filetype plugin off
+	syntax on
 endfunction
 
 

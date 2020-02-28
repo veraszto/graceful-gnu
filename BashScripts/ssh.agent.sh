@@ -1,7 +1,7 @@
 
 
 #!/bin/bash
-
+#This should be sourced
 ssh_agent=$(pgrep ssh-agent | head -n 1)
 ssh_agent_name="$HOME/ssh.agent"
 
