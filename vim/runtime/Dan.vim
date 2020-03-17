@@ -111,7 +111,7 @@ function! BuildStatusLine()
 endfunction
 
 function! MakeHTML()
-	let tag = matchstr(getline("."), '[a-z0-9]\+')
+	let tag = matchstr(getline("."), '[[:alnum:]\._-]\+')
 	let indent = matchstr(getline("."), '^\(\t\|\s\)\+')
 	call setline(".", indent . "<" . tag . ">")
 	call append(".", indent . "</" . tag . ">")
@@ -211,13 +211,10 @@ endfunction
 func! PopupMakeDirectory()
 
 	let path = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/")
-
-	if exists("b:has_already_created_popup_directory") &&
-		\b:has_already_created_popup_directory == v:true
+	if len( finddir( path ) ) > 0
 			return path
 	endif
 	call mkdir(path, "p")
-	let b:has_already_created_popup_directory = v:true
 	return path
 
 endfunction
@@ -469,9 +466,11 @@ function! MakeMappings() "\Sample of a mark
 	imap <S-C-RIGHT> <C-W>li
 
 
-"	Quick access to alternate file
-	map <S-Tab> :up <Bar> :e #<CR>
-	imap <S-Tab> <Esc>:up <Bar> :e #<CR>
+"	Buffer Navigation
+	map <S-Tab> :up <Bar> :e#<CR>
+
+	map <Bar> :bprevious<CR>
+	map Z :bnext<CR>
 
 
 "	Commenting and uncommenting
@@ -517,6 +516,8 @@ function! MakeMappings() "\Sample of a mark
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call RefreshAll()<CR>
 	map F :call PopupShow()<CR>
+	map L :buffers<CR>
+	map B :bu
 	map ;hi :call HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
 	map ;ju :jumps<CR>

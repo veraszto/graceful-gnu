@@ -15,4 +15,10 @@ tmux \
 	split-window \; select-layout even-vertical \; \
 	split-window \; select-layout even-vertical \; \
 	split-window \; select-layout even-vertical \; \
+	new-window \; \
+	split-window \; select-layout even-vertical \; \
+	split-window \; select-layout even-vertical \; \
+	split-window \; select-layout even-vertical \; \
+	split-window \; select-layout even-vertical \; \
+	split-window \; select-layout even-vertical \; \
 	select-pane -t:.1 \; resize-pane -Z
