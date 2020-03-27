@@ -288,17 +288,17 @@ bindsym Ctrl+KP_6
 bindsym Ctrl+KP_7 
 {
 	workspace 2;\
-	exec screen -S $main_left -X select 7
+	exec screen -S $main_left -X select 1
 }
 bindsym Ctrl+KP_8 
 {
 	workspace 2;\
-	exec screen -S $main_left -X select 8
+	exec screen -S $main_left -X select 2
 }
 bindsym Ctrl+KP_9 
 {
 	workspace 2;\
-	exec screen -S $main_left -X select 9
+	exec screen -S $main_left -X select 3
 }
 bindsym Ctrl+1 
 {
