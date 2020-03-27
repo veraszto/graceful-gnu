@@ -214,7 +214,8 @@ func! PopupMakeDirectory()
 	if len( finddir( path ) ) > 0
 			return path
 	endif
-	call mkdir(path, "p")
+	let path_one_level_up = matchstr( path, '.\+\(/.\+/\)\@=')
+	call mkdir( path_one_level_up, "p" )
 	return path
 
 endfunction
@@ -609,6 +610,7 @@ endfunction
 
 function! MakeAbbreviations()
 	"Some iabs here
+	iab ht <Esc>:call MakeHTML()<CR>A
 endfunction
 
 function! CopyRegisterToFileAndClipboard(register)
@@ -617,7 +619,7 @@ function! CopyRegisterToFileAndClipboard(register)
 	let escaped = shellescape(tmp, 1)
 	silent execute "!echo " . escaped  . " | dd of=" . s:bridge_file
 "	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
-	silent execute "!echo " . escaped  . " | wl-copy"
+	execute "!echo " . escaped  . " | wl-copy"
 	redraw!
 
 endfunction

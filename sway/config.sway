@@ -87,7 +87,7 @@ input *
     # start a terminal
 	bindsym $mod+Return exec gnome-terminal
 
-	bindsym $mod+i exec $HOME/git/MyStuff/BashScripts/build.myworkspace/launcher.sh
+	#bindsym $mod+i exec $HOME/git/MyStuff/BashScripts/build.myworkspace/launcher.sh
 
 	bindsym $mod+r mode "resize"
 
@@ -242,60 +242,62 @@ bar
         background #323232
         inactive_workspace #32323200 #32323200 #5c5c5c
     }
-	workspace_buttons no
+#	workspace_buttons no
 }
 
 set $main_left Wrapper.MainLeft
+set $main_right Wrapper.MainRight
 
 default_border none
 
 bindsym Ctrl+KP_0 workspace 0
 
-bindsym Ctrl+KP_Separator workspace RightScreen
+#bindsym Ctrl+KP_Separator workspace RightScreen
+bindsym Ctrl+KP_Separator workspace 1
 
 bindsym Ctrl+KP_1 
 {
 	workspace 1;\
-	exec screen -S $main_left -X select 1
+	exec screen -S $main_right -X select 1
 }
 bindsym Ctrl+KP_2 
 {
 	workspace 1;\
-	exec screen -S $main_left -X select 2
+	exec screen -S $main_right -X select 2
 }
 bindsym Ctrl+KP_3 
 {
 	workspace 1;\
-	exec screen -S $main_left -X select 3
+	exec screen -S $main_right -X select 3
 }
 bindsym Ctrl+KP_4 
 {
 	workspace 1;\
-	exec screen -S $main_left -X select 4
+	exec screen -S $main_right -X select 4
 }
 bindsym Ctrl+KP_5 
 {
 	workspace 1;\
-	exec screen -S $main_left -X select 5
+	exec screen -S $main_right -X select 5
 }
 bindsym Ctrl+KP_6 
 {
 	workspace 1;\
-	exec screen -S $main_left -X select 6
+	exec screen -S $main_right -X select 6
 }
 bindsym Ctrl+KP_7 
 {
-	workspace 1;\
+	workspace 2;\
 	exec screen -S $main_left -X select 7
 }
 bindsym Ctrl+KP_8 
 {
-	workspace 1;\
+	workspace 2;\
 	exec screen -S $main_left -X select 8
 }
 bindsym Ctrl+KP_9 
 {
-	workspace 1;\
+	workspace 2;\
 	exec screen -S $main_left -X select 9
 }
 bindsym Ctrl+1 
