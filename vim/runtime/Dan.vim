@@ -520,6 +520,7 @@ function! MakeMappings() "\Sample of a mark
 	map L :buffers<CR>
 	map B :bu<Space>
 	map E :e<CR>
+	map V EG
 	map ;hi :call HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
 	map ;ju :jumps<CR>
