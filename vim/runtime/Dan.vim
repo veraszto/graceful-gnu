@@ -518,7 +518,8 @@ function! MakeMappings() "\Sample of a mark
 	map ;ea :call RefreshAll()<CR>
 	map F :call PopupShow()<CR>
 	map L :buffers<CR>
-	map B :bu
+	map B :bu<Space>
+	map E :e<CR>
 	map ;hi :call HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
 	map ;ju :jumps<CR>
