@@ -189,7 +189,7 @@ function! StartUp()
 	call AutoCommands()
 	call HiLight()
 	call MakeAbbreviations()
-	call MakeMappings()
+	call <SID>MakeMappings()
 	echo "StartUp has been called"
 
 endfunction
@@ -437,7 +437,7 @@ func! MakeEscape(matter)
 endfunction
 
 "\MakeMappings
-function! MakeMappings() "\Sample of a mark
+function! <SID>MakeMappings() "\Sample of a mark
 
 	mapclear
 	imapclear
@@ -485,7 +485,7 @@ function! MakeMappings() "\Sample of a mark
 "	Instant reloads
 	map ;; :call StartUp()<CR>
 	map ;ma :call MakeAbbreviations()<CR>
-	map ;mm :call MakeMappings()<CR>
+	map ;mm :call <SID>MakeMappings()<CR>
 	map ;ms :call SaveMark()<CR>
 
 
