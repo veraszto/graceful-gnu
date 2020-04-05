@@ -1,4 +1,4 @@
-function! BuildTabLine2()
+function! <SID>BuildTabLine2()
 	let l:line = ""
 	for i in range(tabpagenr('$'))
 		let buf = tabpagewinnr(i + 1)
@@ -9,8 +9,8 @@ function! BuildTabLine2()
 				\ settabvar
 					\( 
 							\ i + 1, "cur_buf_name", 
-							\ LastDir( getcwd() ) . "/" . 
-							\ ExtractExtension( bufname( winbufnr(buf) ) ) 
+							\ <SID>LastDir( getcwd() ) . "/" . 
+							\ <SID>ExtractExtension( bufname( winbufnr(buf) ) ) 
 					\)
 
 			let title = gettabvar(i + 1, "cur_buf_name")
@@ -32,12 +32,12 @@ function! BuildTabLine2()
 	return l:line
 endfunction
 
-function! BoosterNavigation()
-	call WrapperOfStatusLine()
+function! <SID>BoosterNavigation()
+	call <SID>WrapperOfStatusLine()
 endfunction 
 
 "Jumplist cleaner and status
-function! StatusLineNativeJumpList()
+function! <SID>StatusLineNativeJumpList()
 	let list = getjumplist()
 	let pos = list[1]
 	let length = len(list[0])
@@ -49,37 +49,38 @@ function! StatusLineNativeJumpList()
 endfunction
 
 
-function! ShowType()
-	let type = ExtractExtension(@%) 
+function! <SID>ShowType()
+	let type = <SID>ExtractExtension(@%) 
 	if len(type) > 0
 		return "[" .type . "]"
 	endif
 	return "[CODE]"
 endfunction
 
-function! ExtractExtension(from)
+function! <SID>ExtractExtension(from)
 	return 	matchstr(a:from, '\.\(\w\|[-?!]\)\+$', "gi")
 endfunction
 
-function! LastDir( matter )
+function! <SID>LastDir( matter )
 
 	return matchstr( a:matter,   '\(/[^/]\+\)\{1}$' ) 
 
 endfunction
 
-function! WrapperOfStatusLine()
-	
-	set statusline=
-		\[%{mode()}]
-		\%{ShowType()}%m[%P]%{BuildStatusLine()}
-		\%{b:status_line_assets[0]}
-		\%#TabLineSel#%{b:status_line_assets[1]}%*
-		\%{b:status_line_assets[2]}
-		\%<
+function! <SID>WrapperOfStatusLine()
+
+	execute "set statusline=" .
+		\ "[%{mode()}]" .
+		\ "%{" . <SID>GetSNR() . "ShowType()}%m[%P]" .
+		\ "%{" . <SID>GetSNR() . "BuildStatusLine()}" .
+		\ "%{b:status_line_assets[0]}" .
+		\ "%#TabLineSel#%{b:status_line_assets[1]}%*" .
+		\ "%{b:status_line_assets[2]}" .
+		\ "%<"
 
 endfunction
 
-function! BuildStatusLine()
+function! <SID>BuildStatusLine()
 	let left = []
 	let right = []
 	let current = []
@@ -110,14 +111,14 @@ function! BuildStatusLine()
 
 endfunction
 
-function! MakeHTML()
+function! <SID>MakeHTML()
 	let tag = matchstr(getline("."), '[[:alnum:]\._-]\+')
 	let indent = matchstr(getline("."), '^\(\t\|\s\)\+')
 	call setline(".", indent . "<" . tag . ">")
 	call append(".", indent . "</" . tag . ">")
 endfunction
 
-function! CropAsYouWill(matter, replace, match)
+function! <SID>CropAsYouWill(matter, replace, match)
 	return 
 		\matchstr
 		\(
@@ -132,12 +133,12 @@ function! CropAsYouWill(matter, replace, match)
 		\)
 endfunction
 
-function! AutoCommands()
+function! <SID>AutoCommands()
 
 	aug mine
 		au!
 	aug END
-	autocmd mine BufRead * call BoosterNavigation()
+	autocmd mine BufRead * call <SID>BoosterNavigation()
 "	autocmd mine BufRead * clearjumps
 "	autocmd mine BufEnter * echo expand("%")
 	autocmd mine BufEnter * normal zz
@@ -149,7 +150,7 @@ function! AutoCommands()
 endfunction
 
 "\Sets
-function! Sets()
+function! <SID>Sets()
 	set autoindent
 	set smartindent
 	set title
@@ -168,7 +169,8 @@ function! Sets()
 	set laststatus=2
 	set wmh=0
 	set wmw=0
-	set tabline=%!BuildTabLine2()
+	execute "set tabline=%!" . s:GetSNR() . "BuildTabLine2()"
+"	set tabline=%!<SID>BuildTabLine2()
 	set backspace=2
 	set wrap
 	set comments=""
@@ -181,22 +183,27 @@ function! Sets()
 	syntax on
 endfunction
 
+function! s:GetSNR()
+	let snr = matchstr( expand("<sfile>"), '.SNR.\d\+')
+"	echo snr
+	return snr . "_"
+endfunction
 
-function! StartUp()
+function! <SID>StartUp()
 
-	call SetDict()
-	call Sets()	
-	call AutoCommands()
-	call HiLight()
-	call MakeAbbreviations()
+	call <SID>SetDict()
+	call <SID>Sets()	
+	call <SID>AutoCommands()
+	call <SID>HiLight()
+	call <SID>MakeAbbreviations()
 	call <SID>MakeMappings()
 	echo "StartUp has been called"
 
 endfunction
 
 "\PopupTargetFile
-func! PopupTargetFile()
-	let path = PopupMakeDirectory()
+func! <SID>PopupTargetFile()
+	let path = <SID>PopupMakeDirectory()
 	let this_file = expand("%:t")
 	let sha = sha256( this_file )
 	return 
@@ -208,7 +215,7 @@ func! PopupTargetFile()
 
 endfunction
 
-func! PopupMakeDirectory()
+func! <SID>PopupMakeDirectory()
 
 	let path = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/")
 	if len( finddir( path ) ) > 0
@@ -220,13 +227,13 @@ func! PopupMakeDirectory()
 
 endfunction
 
-func! PopupReadFile()
+func! <SID>PopupReadFile()
 
 	if exists("b:popup_is_dirty") &&
 		\b:popup_is_dirty == v:false
 		return b:marks
 	endif
-	let file = PopupTargetFile()
+	let file = <SID>PopupTargetFile()
 	try
 		let marks = readfile(file[2])
 		let b:marks = marks
@@ -239,9 +246,9 @@ func! PopupReadFile()
 
 endfunction
 
-func! PopupShow()
+func! <SID>PopupShow()
 
-	let list = PopupReadFile()
+	let list = <SID>PopupReadFile()
 	if len(list) == 0
 		echo "Marks' stack is empty, so is it the designated file"
 		return
@@ -255,8 +262,8 @@ func! PopupShow()
 	for a in b:marks
 
 		let to_execute = "nmenu mightynimble." 
-			\. MakeEscape(a) . 
-			\" :call PopupChosen(" . counter . ")<CR>"
+			\. <SID>MakeEscape(a) . 
+			\" :call <SID>PopupChosen(" . counter . ")<CR>"
 
 		execute to_execute
 		let counter += 1
@@ -266,20 +273,20 @@ func! PopupShow()
 endfunction
 
 "\PopupChosen
-func! PopupChosen(index)
+func! <SID>PopupChosen(index)
 			
 	let item = b:marks[a:index]
-	execute "call MakeSearch('" . item . "')"
+	execute "call <SID>MakeSearch('" . item . "')"
 	call remove(b:marks, a:index)
 	call insert(b:marks, item)
 	normal zz
 	
 endfunction
 
-func! PopupAdd()
+func! <SID>PopupAdd()
 
 	let b:popup_is_dirty = v:true
-	let file = PopupTargetFile()
+	let file = <SID>PopupTargetFile()
 	try
 		call writefile( b:marks, file[2] )
 	catch
@@ -288,7 +295,7 @@ func! PopupAdd()
 
 endfunction
 
-function! MarksNavigationCheckContainer()
+function! <SID>MarksNavigationCheckContainer()
 
 	if ! exists("b:marks")
 		let b:marks = []
@@ -299,9 +306,9 @@ function! MarksNavigationCheckContainer()
 
 endfunction
 
-function! SaveMark()
+function! <SID>SaveMark()
 
-	call MarksNavigationCheckContainer()	
+	call <SID>MarksNavigationCheckContainer()	
 
 	let line = getline(".")
 	let counter = 0
@@ -311,7 +318,7 @@ function! SaveMark()
 		let match = matchstr(line, s:acceptable_to_mark[counter])
 		if len(match) > 0
 			call insert(b:marks, match)
-			call PopupAdd()
+			call <SID>PopupAdd()
 			let tell .= match
 			break
 		endif
@@ -325,9 +332,9 @@ function! SaveMark()
 
 endfunction
 
-function! SlideThroughMarks(direction)
+function! <SID>SlideThroughMarks(direction)
 	
-	call MarksNavigationCheckContainer()	
+	call <SID>MarksNavigationCheckContainer()	
 	if 
 		\ a:direction =~? '^right$' &&
 		\ b:current_mark < (len(b:marks) - 1)
@@ -384,9 +391,9 @@ function! SlideThroughMarks(direction)
 endfunction
 
 "\Commit to mark
-function! CommitToMark() 
+function! <SID>CommitToMark() 
 
-	call MarksNavigationCheckContainer()	
+	call <SID>MarksNavigationCheckContainer()	
 
 	if v:count1 == 1 && v:count == 0
 		let say = "Going through arrows navigating"
@@ -402,7 +409,7 @@ function! CommitToMark()
 		return
 	endif
 
-	let s = MakeSearch( matter )
+	let s = <SID>MakeSearch( matter )
 
 	normal j
 	if s != 0
@@ -416,17 +423,17 @@ function! CommitToMark()
 endfunction
 
 "\MakeSearch
-function! MakeSearch(matter)
+function! <SID>MakeSearch(matter)
 	let s = search
 	\(
-		\MakeEscape(a:matter), 
+		\<SID>MakeEscape(a:matter), 
 		\"s"
 	\)
 	return s
 endfunction
 
 "\MakeEscape
-func! MakeEscape(matter)
+func! <SID>MakeEscape(matter)
 
 	return escape
 		\(
@@ -483,10 +490,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Instant reloads
-	map ;; :call StartUp()<CR>
-	map ;ma :call MakeAbbreviations()<CR>
+	map ;; :call <SID>StartUp()<CR>
+	map ;ma :call <SID>MakeAbbreviations()<CR>
 	map ;mm :call <SID>MakeMappings()<CR>
-	map ;ms :call SaveMark()<CR>
+	map ;ms :call <SID>SaveMark()<CR>
 
 
 "	Easy save
@@ -495,10 +502,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Fast moving
-	map <S-Down> 	:<C-U>call CommitToMark()<CR>
-	map <S-Left>	:call SlideThroughMarks("left")<CR>
-	map <S-Right>	:call SlideThroughMarks("right")<CR>
-	inoremap jh 	<Esc>:call PopupShow()<CR>a
+	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
+	map <S-Left>	:call <SID>SlideThroughMarks("left")<CR>
+	map <S-Right>	:call <SID>SlideThroughMarks("right")<CR>
+	inoremap jh 	<Esc>:call <SID>PopupShow()<CR>a
 "	imap <S-Down> 	
 	
 "	map <C-S-Down> 	
@@ -513,15 +520,15 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;bu :bu 
 	map ;ch :changes<CR>
 	map ;cj :clearjumps<CR>
-	map ;cp :call CopyRegisterToFileAndClipboard("t")<CR>
+	map ;cp :call <SID>CopyRegisterToFileAndClipboard("t")<CR>
 	map ;< <C-W>H<C-W>\|
-	map ;ea :call RefreshAll()<CR>
-	map F :call PopupShow()<CR>
+	map ;ea :call <SID>RefreshAll()<CR>
+	map F :call <SID>PopupShow()<CR>
 	map L :buffers<CR>
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
-	map ;hi :call HiLight()<CR>
+	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
 	map ;ju :jumps<CR>
 	map ;hs :split<CR><C-W>_ 
@@ -545,7 +552,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 endfunction
 
-function! RefreshAll()
+function! <SID>RefreshAll()
 	tabdo
 		\ windo 
 			\ echo buffer_name("%") |
@@ -559,7 +566,7 @@ function! RefreshAll()
 			\ vertical resize
 endfunction
 
-function! HiLight()	
+function! <SID>HiLight()	
 
 	"Some colors customizations here
 	
@@ -583,22 +590,22 @@ function! HiLight()
 	colorscheme default
 
 	highlight clear
-"	call ClearHighlights( highlights )
+"	call <SID>ClearHighlights( highlights )
 	highlight Special ctermfg=98
 	highlight PreProc ctermfg=98
 	highlight Comment ctermfg=244
 
 	for a in highlights
-		call MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
+		call <SID>MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
 	endfor
 
 endfunction
 
-function! MakeHighlight( highlight, ctermbg, ctermfg, cterm )
+function! <SID>MakeHighlight( highlight, ctermbg, ctermfg, cterm )
 	execute "highlight " . a:highlight . " ctermbg=" . a:ctermbg . " ctermfg=" . a:ctermfg . " cterm=" . a:cterm
 endfunction
 
-function! ClearHighlights( list )
+function! <SID>ClearHighlights( list )
 
 	for a in a:list
 		execute "highlight clear " . get( a , 0 )
@@ -606,16 +613,16 @@ function! ClearHighlights( list )
 
 endfunction
 
-function! SetDict()
+function! <SID>SetDict()
 	"Some dicitionaries targeting here
 endfunction
 
-function! MakeAbbreviations()
+function! <SID>MakeAbbreviations()
 	"Some iabs here
-	iab ht <Esc>:call MakeHTML()<CR>A
+	iab ht <Esc>:call <SID>MakeHTML()<CR>A
 endfunction
 
-function! CopyRegisterToFileAndClipboard(register)
+function! <SID>CopyRegisterToFileAndClipboard(register)
 
 	execute "let tmp = @" . a:register
 	let escaped = shellescape(tmp, 1)
@@ -635,6 +642,12 @@ let s:acceptable_to_mark =
 let s:bridge_file = "/tmp/bridge"
 
 echo "Dan.vim has just been loaded"
+
+if exists("s:this_has_been_loaded") == v:false
+	let s:this_has_been_loaded = v:true
+	echo "As its the first time for this instance, then we call StartUp"
+	call <SID>StartUp()
+endif
 
 
 
