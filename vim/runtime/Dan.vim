@@ -191,12 +191,14 @@ endfunction
 
 function! <SID>StartUp()
 
+	let s:base_path = expand("~/") . "/git" 
 	call <SID>SetDict()
 	call <SID>Sets()	
 	call <SID>AutoCommands()
 	call <SID>HiLight()
 	call <SID>MakeAbbreviations()
 	call <SID>MakeMappings()
+	call <SID>SetDict()
 	echo "StartUp has been called"
 
 endfunction
@@ -446,8 +448,8 @@ endfunction
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
-	mapclear
-	imapclear
+"	mapclear
+"	imapclear
 	mapclear <buffer>
 	imapclear <buffer>
 	echo "Maps cleared"
@@ -490,7 +492,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Instant reloads
-	map ;; :call <SID>StartUp()<CR>
+	map ;;g :echo "runtime Dan.vim" <Bar> runtime Dan.vim <Bar> call <SID>StartUp()<CR>
 	map ;ma :call <SID>MakeAbbreviations()<CR>
 	map ;mm :call <SID>MakeMappings()<CR>
 	map ;ms :call <SID>SaveMark()<CR>
@@ -542,6 +544,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;t :tabnew<CR>
 	map ;vn :vertical new<CR><C-W>\| 
 	map ;vs :vertical split<CR><C-W>\| 
+	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 "	map <PageUp> <C-I>
 "	map <PageDown> <C-O>
 "	imap <PageUp> <Esc><C-I>i
@@ -550,6 +553,28 @@ function! <SID>MakeMappings() "\Sample of a mark
 	noremap <expr> ;I ":vi " . expand("%")
 	echo "Maps done!"
 
+endfunction
+
+function! <SID>SetDict()
+	let set_dict = 
+		\"set dictionary=" . 
+		\join(expand(s:base_path . "/GracefulGNU/" . "vim/vim_dictionary/*", 0, 1), ",")
+	execute set_dict
+endfunction
+
+function! <SID>SourceCurrent_ifVim()
+	let l:extension = <SID>ExtractExtension( expand("%") )
+	if  l:extension == ".vim"
+		let l:this_file = expand( "%" )
+		try
+			echo "Sourcing " . l:this_file
+			execute "source " . l:this_file
+		catch
+			echo "Could not source, remember that this function cannot source Dan.vim," . v:exception
+		endtry
+	else
+		echo "Is this a vim script? it is stated as " . l:extension
+	endif
 endfunction
 
 function! <SID>RefreshAll()
@@ -641,6 +666,7 @@ let s:acceptable_to_mark =
 
 let s:bridge_file = "/tmp/bridge"
 
+
 echo "Dan.vim has just been loaded"
 
 if exists("s:this_has_been_loaded") == v:false
@@ -648,7 +674,6 @@ if exists("s:this_has_been_loaded") == v:false
 	echo "As its the first time for this instance, then we call StartUp"
 	call <SID>StartUp()
 endif
-
 
 
 
