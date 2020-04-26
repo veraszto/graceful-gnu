@@ -245,55 +245,80 @@ bar
 #	workspace_buttons no
 }
 
+default_border none
+
 set $main_left Wrapper.MainLeft
 set $main_right Wrapper.MainRight
 set $inner.readcalmly Inner.ReadCalmly
 set $inner.input Inner.Input
 set $inner.root Inner.Root
 
-default_border none
+set $lower.left {
+	workspace 0;\
+	exec screen -S $main_right -X select 1;\
+	exec screen -S $inner.readcalmly -X select 0
+}
+
+set $lower.middle
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 2;\
+	exec screen -S $inner.input -X select 0
+}
+
+set $lower.right
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 3;\
+	exec screen -S $inner.root -X select 0
+}
+
+set $upper.left
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 1;\
+	exec screen -S $inner.readcalmly -X select 1
+}
+
+set $upper.middle
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 2;\
+	exec screen -S $inner.input -X select 1
+}
+
+set $upper.right
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 3;\
+	exec screen -S $inner.root -X select 1
+}
+
 
 bindsym Ctrl+KP_0 workspace 0
 
 #bindsym Ctrl+KP_Separator workspace RightScreen
 bindsym Ctrl+KP_Separator workspace 1
 
-bindsym Ctrl+KP_1 
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 1;\
-	exec screen -S $inner.readcalmly -X select 0
-}
-bindsym Ctrl+KP_2 
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 2;\
-	exec screen -S $inner.input -X select 0
-}
-bindsym Ctrl+KP_3 
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 3;\
-	exec screen -S $inner.root -X select 0
-}
-bindsym Ctrl+KP_4 
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 1;\
-	exec screen -S $inner.readcalmly -X select 1
-}
-bindsym Ctrl+KP_5 
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 2;\
-	exec screen -S $inner.input -X select 1
-}
-bindsym Ctrl+KP_6 
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 3;\
-	exec screen -S $inner.root -X select 1
-}
+
+bindsym Ctrl+KP_1 $lower.left
+bindsym Mod1+Delete $lower.left
+
+bindsym Ctrl+KP_2 $lower.middle
+bindsym Mod1+End $lower.middle
+
+bindsym Ctrl+KP_3 $lower.right
+bindsym Mod1+Next $lower.right
+
+bindsym Ctrl+KP_4 $upper.left
+bindsym Mod1+Insert $upper.left
+
+bindsym Ctrl+KP_5 $upper.middle
+bindsym Mod1+Home $upper.middle
+
+bindsym Ctrl+KP_6 $upper.right
+bindsym Mod1+Prior $upper.right
+
 bindsym Ctrl+KP_7 
 {
 	workspace 2;\
