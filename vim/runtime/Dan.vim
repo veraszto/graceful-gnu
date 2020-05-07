@@ -392,6 +392,29 @@ function! <SID>SlideThroughMarks(direction)
 
 endfunction
 
+function! <SID>AddBufferUnderThisLine()
+
+	let this_line = getline(".")
+	let line_base = search('\cwe\s*are\s*here\s*:')
+	let dir = getline( line_base + 1 )
+
+	let built = trim( dir . this_line )
+
+	if len( trim( dir ) ) == 0 || len( trim( this_line ) ) == 0
+		echo "Cannot args " . built 
+		return
+	endif
+
+	let space = match( built, '[[:space:]]' )
+	if space > -1
+		echo "Cannot args " . built . ", there is a [[:space:]]"
+		return
+	endif
+	echo "Args this: " . built 
+	execute "args " . built
+
+endfunction
+
 "\Commit to mark
 function! <SID>CommitToMark() 
 
@@ -530,6 +553,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
+	map A :call <SID>AddBufferUnderThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
 	map ;ju :jumps<CR>
@@ -570,7 +594,10 @@ function! <SID>SourceCurrent_ifVim()
 			echo "Sourcing " . l:this_file
 			execute "source " . l:this_file
 		catch
-			echo "Could not source, remember that this function cannot source Dan.vim," . v:exception
+			echo "Could not source, remember that this function" .
+					\ " cannot source Dan.vim, " .
+					\ "as it will try to redefine an executing function ok? v:exception => " . 
+					\ v:exception
 		endtry
 	else
 		echo "Is this a vim script? it is stated as " . l:extension

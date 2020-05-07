@@ -247,6 +247,10 @@ bar
 
 default_border none
 
+workspace LeftNonTerminal
+workspace 0
+workspace 1
+
 set $main_left Wrapper.MainLeft
 set $main_right Wrapper.MainRight
 set $inner.readcalmly Inner.ReadCalmly
