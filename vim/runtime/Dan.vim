@@ -400,7 +400,7 @@ function! <SID>AddBufferUnderThisLine()
 
 	let built = trim( dir . this_line )
 
-	if len( trim( dir ) ) == 0 || len( trim( this_line ) ) == 0
+	if line_base == 0 || len( trim( this_line ) ) == 0
 		echo "Cannot args " . built 
 		return
 	endif
@@ -468,6 +468,17 @@ func! <SID>MakeEscape(matter)
 
 endfunction
 
+function! <SID>RuntimeAndDo( what )
+	
+	let l:this_file = expand("%") 
+	echo "Runtime " . l:this_file . ", and call " . a:what
+	
+	runtime l:this_file
+	let l:Function = function( "<SID>" . a:what )	
+	call l:Function()
+
+endfunction
+
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
@@ -515,9 +526,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Instant reloads
-	map ;;g :echo "runtime Dan.vim" <Bar> runtime Dan.vim <Bar> call <SID>StartUp()<CR>
-	map ;ma :call <SID>MakeAbbreviations()<CR>
-	map ;mm :call <SID>MakeMappings()<CR>
+	map ;;g :call <SID>RuntimeAndDo( "StartUp" )<CR>
+	map ;ma :call <SID>RuntimeAndDo( "MakeAbbreviations" )<CR>
+	map ;mm :call <SID>RuntimeAndDo( "MakeMappings" )<CR>
+
 	map ;ms :call <SID>SaveMark()<CR>
 
 
@@ -569,6 +581,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;vn :vertical new<CR><C-W>\| 
 	map ;vs :vertical split<CR><C-W>\| 
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
+	map ;sc :call <SID>ShowMeColors()<CR>
 "	map <PageUp> <C-I>
 "	map <PageDown> <C-O>
 "	imap <PageUp> <Esc><C-I>i
@@ -661,6 +674,24 @@ function! <SID>ClearHighlights( list )
 
 	for a in a:list
 		execute "highlight clear " . get( a , 0 )
+	endfor
+
+endfunction
+
+function! <SID>ShowMeColors()
+
+	let counter = 256 
+
+	for a in range( counter ) 
+
+		let inverse = counter - a
+		execute "highlight MyHighlight" .
+					\ " ctermfg=" . ( "white" ) . 
+					\ " ctermbg=" . a
+
+		echohl MyHighlight
+		echo "ctermbg:" . a . ",  Hello how are you?"
+		echohl None
 	endfor
 
 endfunction
