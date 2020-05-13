@@ -468,12 +468,12 @@ func! <SID>MakeEscape(matter)
 
 endfunction
 
-function! <SID>RuntimeAndDo( what )
+function! <SID>AfterRuntimeAndDo( what )
 	
-	let l:this_file = expand("%") 
+	let l:this_file = expand("%:t") 
 	echo "Runtime " . l:this_file . ", and call " . a:what
-	
-	runtime l:this_file
+	"This below would give an error, the one that cannot redefine a function while it is being called
+	"execute "runtime " . l:this_file
 	let l:Function = function( "<SID>" . a:what )	
 	call l:Function()
 
@@ -482,11 +482,11 @@ endfunction
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
-"	mapclear
-"	imapclear
+	"mapclear
+	"imapclear
 	mapclear <buffer>
 	imapclear <buffer>
-	echo "Maps cleared"
+	echo "Maps will be cleared now"
 	
 "	Avoiding insert/replace toggle
 	inoremap <Insert> <Esc>a
@@ -494,6 +494,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 "	Easing autocomplete
 	imap jj <C-X><C-N>
 	imap jk <C-X><C-K>
+	imap jl <C-X><C-V>
 
 "   Window Navigation
 	map <C-UP> <C-W>k<C-W>_
@@ -526,9 +527,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Instant reloads
-	map ;;g :call <SID>RuntimeAndDo( "StartUp" )<CR>
-	map ;ma :call <SID>RuntimeAndDo( "MakeAbbreviations" )<CR>
-	map ;mm :call <SID>RuntimeAndDo( "MakeMappings" )<CR>
+	map ;;g :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "StartUp" )<CR>
+	map ;ma :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeAbbreviations" )<CR>
+	map ;mm :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeMappings" )<CR>
 
 	map ;ms :call <SID>SaveMark()<CR>
 
@@ -578,10 +579,21 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;sm :marks<CR>
 	map ;, :tabm0<CR>
 	map ;t :tabnew<CR>
-	map ;vn :vertical new<CR><C-W>\| 
-	map ;vs :vertical split<CR><C-W>\| 
+	map ;vn :vertical new<CR><C-W>\|
+	map ;vs :vertical split<CR><C-W>\|
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 	map ;sc :call <SID>ShowMeColors()<CR>
+	map <Space> :buffer 1<CR>
+	map hh :buffer 1<CR>
+	map h1 :buffer 1<CR>
+	map h2 :buffer 2<CR>
+	map h3 :buffer 3<CR>
+	map h4 :buffer 4<CR>
+	map h5 :buffer 5<CR>
+	map h6 :buffer 6<CR>
+	map h7 :buffer 7<CR>
+	map h8 :buffer 8<CR>
+	map h9 :buffer 9<CR>
 "	map <PageUp> <C-I>
 "	map <PageDown> <C-O>
 "	imap <PageUp> <Esc><C-I>i
@@ -629,6 +641,9 @@ function! <SID>RefreshAll()
 				\ echohl None |
 			\ endtry |
 			\ vertical resize
+endfunction
+
+function! <SID>StartCyclingFromBuf1()
 endfunction
 
 function! <SID>HiLight()	
