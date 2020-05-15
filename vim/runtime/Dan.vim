@@ -392,7 +392,15 @@ function! <SID>SlideThroughMarks(direction)
 
 endfunction
 
-function! <SID>AddBufferUnderThisLine()
+function! <SID>LocalCDAtThisLine()
+
+	let to_lcd = getline(".")
+	execute "lcd " . to_lcd
+	echo "Current lcd is now " . to_lcd
+
+endfunction
+
+function! <SID>AddBufferAtThisLine()
 
 	let this_line = getline(".")
 	let line_base = search('\cwe\s*are\s*here\s*:')
@@ -471,9 +479,8 @@ endfunction
 function! <SID>AfterRuntimeAndDo( what )
 	
 	let l:this_file = expand("%:t") 
-	echo "Runtime " . l:this_file . ", and call " . a:what
+	echo "Calling " . a:what . ", with already runtimed Dan.vim expected"
 	"This below would give an error, the one that cannot redefine a function while it is being called
-	"execute "runtime " . l:this_file
 	let l:Function = function( "<SID>" . a:what )	
 	call l:Function()
 
@@ -493,8 +500,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 "	Easing autocomplete
 	imap jj <C-X><C-N>
+	imap jn <C-X><C-N>
 	imap jk <C-X><C-K>
-	imap jl <C-X><C-V>
+	imap jv <C-X><C-V>
+	imap jf <C-X><C-F>
 
 "   Window Navigation
 	map <C-UP> <C-W>k<C-W>_
@@ -566,13 +575,14 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
-	map A :call <SID>AddBufferUnderThisLine()<CR>
+	map A :call <SID>AddBufferAtThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_ 
 	map ;ju :jumps<CR>
 	map ;hs :split<CR><C-W>_ 
 	map ;ks :keepjumps /
 	map ;l :lcd 
+	map ;u :call <SID>LocalCDAtThisLine()<CR>
 	map ;p :pwd<CR>
 	map ;q :quit<CR>
 	map ;r :reg<CR>
@@ -583,21 +593,15 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;vs :vertical split<CR><C-W>\|
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 	map ;sc :call <SID>ShowMeColors()<CR>
-	map <Space> :buffer 1<CR>
-	map hh :buffer 1<CR>
-	map h1 :buffer 1<CR>
-	map h2 :buffer 2<CR>
-	map h3 :buffer 3<CR>
-	map h4 :buffer 4<CR>
-	map h5 :buffer 5<CR>
-	map h6 :buffer 6<CR>
-	map h7 :buffer 7<CR>
-	map h8 :buffer 8<CR>
-	map h9 :buffer 9<CR>
-"	map <PageUp> <C-I>
-"	map <PageDown> <C-O>
-"	imap <PageUp> <Esc><C-I>i
-"	imap <PageDown> <Esc><C-O>i
+	map <Space>1 :buffer 1<CR>
+	map <Space>2 :buffer 2<CR>
+	map <Space>3 :buffer 3<CR>
+	map <Space>4 :buffer 4<CR>
+	map <Space>5 :buffer 5<CR>
+	map <Space>6 :buffer 6<CR>
+	map <Space>7 :buffer 7<CR>
+	map <Space>8 :buffer 8<CR>
+	map <Space>9 :buffer 9<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 	echo "Maps done!"
