@@ -32,9 +32,7 @@ function! <SID>BuildTabLine2()
 	return l:line
 endfunction
 
-function! <SID>BoosterNavigation()
-	call <SID>WrapperOfStatusLine()
-endfunction 
+
 
 "Jumplist cleaner and status
 function! <SID>StatusLineNativeJumpList()
@@ -80,6 +78,10 @@ function! <SID>WrapperOfStatusLine()
 
 endfunction
 
+"function! <SID>BoosterNavigation()
+"	call <SID>WrapperOfStatusLine()
+"endfunction 
+
 function! <SID>BuildStatusLine()
 	let left = []
 	let right = []
@@ -111,6 +113,11 @@ function! <SID>BuildStatusLine()
 
 endfunction
 
+function! BuildStatusLine2()
+	return "%mbuffer: %#FileNamePrefix#%n%* / file:%#FileNamePrefix#%t%*%=byte:%B"
+endfunction
+
+
 function! <SID>MakeHTML()
 	let tag = matchstr(getline("."), '[[:alnum:]\._-]\+')
 	let indent = matchstr(getline("."), '^\(\t\|\s\)\+')
@@ -138,10 +145,10 @@ function! <SID>AutoCommands()
 	aug mine
 		au!
 	aug END
-	autocmd mine BufRead * call <SID>BoosterNavigation()
+"	autocmd mine BufRead * call <SID>BoosterNavigation()
 "	autocmd mine BufRead * clearjumps
 "	autocmd mine BufEnter * echo expand("%")
-	autocmd mine BufEnter * normal zz
+"	autocmd mine BufEnter * normal zz
 
 	"autocmd  mine BufWrite * 
 	"	\tabm0 | execute "normal \<C-W>H" | 
@@ -171,6 +178,7 @@ function! <SID>Sets()
 	set wmw=0
 	execute "set tabline=%!" . s:GetSNR() . "BuildTabLine2()"
 "	set tabline=%!<SID>BuildTabLine2()
+	set statusline=%!BuildStatusLine2()
 	set backspace=2
 	set wrap
 	set comments=""
@@ -192,7 +200,6 @@ endfunction
 function! <SID>StartUp()
 
 	let s:base_path = expand("~/") . "/git" 
-	call <SID>SetDict()
 	call <SID>Sets()	
 	call <SID>AutoCommands()
 	call <SID>HiLight()
@@ -539,6 +546,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;;g :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "StartUp" )<CR>
 	map ;ma :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeAbbreviations" )<CR>
 	map ;mm :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeMappings" )<CR>
+	map ;mt :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "Sets" )<CR>
+	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
 
 	map ;ms :call <SID>SaveMark()<CR>
 
@@ -549,10 +558,14 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Fast moving
-	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
-	map <S-Left>	:call <SID>SlideThroughMarks("left")<CR>
-	map <S-Right>	:call <SID>SlideThroughMarks("right")<CR>
+"	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
+"	map <S-Left>	:call <SID>SlideThroughMarks("left")<CR>
+"	map <S-Right>	:call <SID>SlideThroughMarks("right")<CR>
+
+	map <C-S-Left>	:previous<CR>
+	map <C-S-Right>	:next<CR>
 	inoremap jh 	<Esc>:call <SID>PopupShow()<CR>a
+
 "	imap <S-Down> 	
 	
 "	map <C-S-Down> 	
@@ -661,8 +674,8 @@ function! <SID>HiLight()
 
 	let highlights =
 	\[
-		\ [ "StatusLine", 189, 240, "reverse" ],
-		\ [ "StatusLineNC", 240, 159, "NONE" ],
+		\ [ "StatusLine", 237, 213, "NONE" ],
+		\ [ "StatusLineNC", 237, 40, "NONE" ],
 		\ [ "VertSplit", 16, 16, "NONE" ],
 		\ [ "Pmenu", 24, 214, "NONE" ],
 		\ [ "PmenuSel", "red", 24, "NONE" ],
@@ -678,10 +691,20 @@ function! <SID>HiLight()
 	highlight Special ctermfg=98
 	highlight PreProc ctermfg=98
 	highlight Comment ctermfg=244
+	
+	highligh MyCategory ctermfg=198 ctermbg=234
+	highligh MySeparator ctermfg=234 ctermbg=234
+	highligh Bars ctermfg=99 
+	highligh Extension ctermfg=198 
+	highligh WeAreHere ctermfg=63
+	highligh Any ctermfg=57
+	highligh Dirs ctermfg=111
+	highligh FileNamePrefix ctermfg=201
 
 	for a in highlights
 		call <SID>MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
 	endfor
+
 
 endfunction
 
@@ -713,10 +736,6 @@ function! <SID>ShowMeColors()
 		echohl None
 	endfor
 
-endfunction
-
-function! <SID>SetDict()
-	"Some dicitionaries targeting here
 endfunction
 
 function! <SID>MakeAbbreviations()
