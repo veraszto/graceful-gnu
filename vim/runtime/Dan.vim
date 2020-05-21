@@ -65,56 +65,9 @@ function! <SID>LastDir( matter )
 
 endfunction
 
-function! <SID>WrapperOfStatusLine()
-
-	execute "set statusline=" .
-		\ "[%{mode()}]" .
-		\ "%{" . <SID>GetSNR() . "ShowType()}%m[%P]" .
-		\ "%{" . <SID>GetSNR() . "BuildStatusLine()}" .
-		\ "%{b:status_line_assets[0]}" .
-		\ "%#TabLineSel#%{b:status_line_assets[1]}%*" .
-		\ "%{b:status_line_assets[2]}" .
-		\ "%<"
-
-endfunction
-
-"function! <SID>BoosterNavigation()
-"	call <SID>WrapperOfStatusLine()
-"endfunction 
-
-function! <SID>BuildStatusLine()
-	let left = []
-	let right = []
-	let current = []
-"	let w:surroundings = []
-	let side_change = 0
-	for w in range(1, winnr("$"))
-		let name = bufname(winbufnr(w))
-"		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
-		let stripped = "   " . matchstr( name, '[^/]\+/\?[[:alnum:]_.-]\+\(\.\?\w\+\)$' ) . "   "
-"		if  strlen(stripped) == 0 || matchstr(name, '\(\.\)\@<=\w\+$') != matchstr(bufname("%"), '\(\.\)\@<=\w\+$')
-"			continue
-"		endif
-		if w == winnr()
-			let side_change = 1
-			call add(current, stripped)
-		else
-			if side_change == 0
-				call add(left, stripped)
-			else
-				call add(right, stripped)
-			endif
-		endif
-	endfor
-
-	let b:status_line_assets = [join(left, "|"), "|" . join(current, "") . "|", join(right, "|")]
-
-	return ""
-
-endfunction
 
 function! BuildStatusLine2()
-	return "%mbuffer: %#FileNamePrefix#%n%* / file:%#FileNamePrefix#%t%*%=byte:%B"
+	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*%=byte:%B"
 endfunction
 
 
@@ -145,6 +98,7 @@ function! <SID>AutoCommands()
 	aug mine
 		au!
 	aug END
+
 "	autocmd mine BufRead * call <SID>BoosterNavigation()
 "	autocmd mine BufRead * clearjumps
 "	autocmd mine BufEnter * echo expand("%")
@@ -210,87 +164,507 @@ function! <SID>StartUp()
 
 endfunction
 
-"\PopupTargetFile
-func! <SID>PopupTargetFile()
-	let path = <SID>PopupMakeDirectory()
-	let this_file = expand("%:t")
-	let sha = sha256( this_file )
-	return 
-		\[ 
-			\this_file, 
-			\sha, 
-			\path . this_file . ".vim.shortcut" 
-		\]
-
-endfunction
-
-func! <SID>PopupMakeDirectory()
-
-	let path = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/")
-	if len( finddir( path ) ) > 0
-			return path
-	endif
-	let path_one_level_up = matchstr( path, '.\+\(/.\+/\)\@=')
-	call mkdir( path_one_level_up, "p" )
-	return path
-
-endfunction
-
-func! <SID>PopupReadFile()
-
-	if exists("b:popup_is_dirty") &&
-		\b:popup_is_dirty == v:false
-		return b:marks
-	endif
-	let file = <SID>PopupTargetFile()
+function! WriteToFile( content, file )
 	try
-		let marks = readfile(file[2])
-		let b:marks = marks
-		let b:popup_is_dirty = v:false
-		return marks
+		return writefile( a:content, a:file )
 	catch
-		echo "Popup: could not read file " . file[2]
+		echo "Could not write to file, " . file . ", " . v:exception
+		return []
 	endtry
+endfunction
+
+function! <SID>ReadFromFile( file, create )
+	try
+		return readfile( a:file )
+	catch
+		echo "Could not read from file, " . a:file . ", " . v:exception
+	endtry
+
+	if a:create == 1
+		echo "Creating " . a:file
+		call WriteToFile( [], a:file )
+	endif
 	return []
 
 endfunction
 
-func! <SID>PopupShow()
+function! <SID>PopupBuffers()
 
-	let list = <SID>PopupReadFile()
-	if len(list) == 0
-		echo "Marks' stack is empty, so is it the designated file"
+	let buffers = getbufinfo()
+	try
+		nunme buffers
+	catch
+	endtry
+
+	for buffer in buffers
+		if len( get( buffer, "name") ) == 0 ||
+			\ get( buffer, "listed" ) == 0
+
+			continue
+		endif
+		execute "nmenu buffers." . <SID>MakeEscape( <SID>BuildBufferPopupItem( buffer ) ) . 
+			\ " :buffer" . get(buffer, "bufnr")  . "<CR>"
+	endfor
+	popup buffers
+
+endfunction
+
+function! <SID>BuildBufferPopupItem( buffer )
+
+	let label = get(a:buffer, "bufnr") . ") " . matchstr( get(a:buffer, "name"), '[.[:alnum:]-]\+$' )
+	return label
+
+endfunction
+
+function! <SID>GetThisFilePopupMark()
+	let file = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/") . expand("%:t") . ".vim.shortcut"
+	echo "GetThisFilePopupMark: " . file
+	return file 
+endfunction
+
+func! <SID>PopupMarksShow()
+
+	if !exists("b:marks")
+
+		let b:marks = 
+			\ <SID>ReadFromFile
+			\ ( 
+				\ <SID>GetThisFilePopupMark(), 
+				\ v:true 
+			\ )
+
+	endif
+
+	if len( b:marks ) == 0
+		echo "Marks' empty"
 		return
 	endif
+
 	try
 		nunme mightynimble
 	catch
 	endtry
-
+	
+	let jump = v:false	
+	let there_is_a_menu = v:false		
 	let counter = 0
-	for a in b:marks
 
-		let to_execute = "nmenu mightynimble." 
-			\. <SID>MakeEscape(a) . 
-			\" :call <SID>PopupChosen(" . counter . ")<CR>"
+	for each_label in b:marks
+
+		let search_for = get( b:marks, counter + 1 )
+
+		let len_each_label = len( trim( each_label ) )
+		let len_search_for = len( trim( search_for ) )
+"		echo each_label . "(" . len_each_label  . "): " . search_for . "(" . len_search_for . ")"
+
+		if jump == v:true ||
+				\ len_each_label == 0 || 
+				\ len_search_for == 0 
+
+			let counter += 1
+			let jump = v:false
+			continue
+
+		endif
+		
+		let jump = v:true
+
+		let to_execute = "nmenu mightynimble." . 
+			\ <SID>MakeEscape( each_label . " < " . search_for ) .
+			\ " :call <SID>PopupChosen(" . ( counter + 1 ) . ")<CR>"
 
 		execute to_execute
 		let counter += 1
-
+		let there_is_a_menu = v:true		
 	endfor
-	popup mightynimble
+
+	if there_is_a_menu == v:true
+		popup mightynimble
+	else
+		echo "Not showing this empty content -> " . b:marks->join("//")
+	endif
+
 endfunction
 
 "\PopupChosen
-func! <SID>PopupChosen(index)
+func! <SID>PopupChosen( index )
 			
 	let item = b:marks[a:index]
-	execute "call <SID>MakeSearch('" . item . "')"
-	call remove(b:marks, a:index)
-	call insert(b:marks, item)
+	echo item
+	execute "call search('" . item . "')"
+	let removed = remove(b:marks, a:index - 1, a:index ) 
+
+	let len_removed = len( removed )
+
+	for a in range( len_removed )
+		call insert( b:marks, removed[ len_removed - 1 - a ] )
+	endfor
+
 	normal zz
+
+	call WriteToFile( b:marks, <SID>GetThisFilePopupMark() )
 	
 endfunction
+
+
+
+function! <SID>LocalCDAtThisLine()
+
+	let to_lcd = getline(".")
+	execute "lcd " . to_lcd
+	echo "Current lcd is now " . to_lcd
+
+endfunction
+
+function! <SID>AddBufferAtThisLine()
+
+	let this_line = getline(".")
+	let line_base = search('\cwe\s*are\s*here\s*:')
+	let dir = getline( line_base + 1 )
+
+	let built = trim( dir . this_line )
+
+	if line_base == 0 || len( trim( this_line ) ) == 0
+		echo "Cannot args " . built 
+		return
+	endif
+
+	let space = match( built, '[[:space:]]' )
+	if space > -1
+		echo "Cannot args " . built . ", there is a [[:space:]]"
+		return
+	endif
+	echo "Args this: " . built 
+	execute "args " . built
+
+endfunction
+
+
+
+"\MakeSearch
+function! <SID>MakeSearch(matter)
+	let s = search
+	\(
+		\<SID>MakeEscape(a:matter), 
+		\"s"
+	\)
+	return s
+endfunction
+
+"\MakeEscape
+func! <SID>MakeEscape(matter)
+
+	return escape
+		\(
+			\a:matter, 
+			\'\"$ .'
+		\)
+
+endfunction
+
+function! <SID>AfterRuntimeAndDo( what )
+	
+	let l:this_file = expand("%:t") 
+	echo "Calling " . a:what . ", with already runtimed Dan.vim expected"
+	"This below would give an error, the one that cannot redefine a function while it is being called
+	let l:Function = function( "<SID>" . a:what )	
+	call l:Function()
+
+endfunction
+
+"\MakeMappings
+function! <SID>MakeMappings() "\Sample of a mark
+
+	"mapclear
+	"imapclear
+	mapclear <buffer>
+	imapclear <buffer>
+	echo "Maps will be cleared now"
+	
+"	Avoiding insert/replace toggle
+	inoremap <Insert> <Esc>a
+
+"	Easing autocomplete
+	imap jj <C-X><C-N>
+	imap jn <C-X><C-N>
+	imap jk <C-X><C-K>
+	imap jv <C-X><C-V>
+	imap jf <C-X><C-F>
+
+"   Window Navigation
+	map <C-UP> <C-W>k<C-W>_
+	map <C-DOWN> <C-W>j<C-W>_
+	map <C-LEFT> <C-W>h<C-W><Bar>
+	map <C-RIGHT> <C-W>l<C-W><Bar>
+	map <S-C-LEFT> <C-W>h
+	map <S-C-RIGHT> <C-W>l
+	imap <C-UP> <Esc><C-W>k<C-W>_i
+	imap <C-DOWN> <Esc><C-W>j<C-W>_i
+	imap <C-LEFT> <Esc><C-W>h<C-W><Bar>i
+	imap <C-RIGHT> <Esc><C-W>l<C-W><Bar>i
+	imap <S-C-LEFT> <Esc><C-W>hi
+	imap <S-C-RIGHT> <C-W>li
+
+
+"	Buffer Navigation
+	map <S-Tab> :up <Bar> :e#<CR>
+
+	map <Bar> :bprevious<CR>
+	map Z :bnext<CR>
+
+
+"	Commenting and uncommenting
+	map cc :s/^/\/\//<CR>
+	map ccc :s/^/\/*/<CR>:s/$/*\//<CR>
+	map cccc :s/\(\w\\|<\)\@=/<!--/<CR>:s/$/-->/<CR>
+"	map cd :s/\/\*\\|\/\/\\|\*\/\\|<!--\\|-->\\|^\(\s\\|\t\)*#//g<CR>
+	map cd :execute ':s/\/\*\\|\*\/\\|<!--\\|-->\\|^\(\s\\|\t\)*\/\///g'<CR>
+
+
+"	Instant reloads
+	map ;;g :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "StartUp" )<CR>
+	map ;ma :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeAbbreviations" )<CR>
+	map ;mm :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeMappings" )<CR>
+	map ;mt :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "Sets" )<CR>
+	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
+
+"	map ;ms :call <SID>SaveMark()<CR>
+
+
+"	Easy save
+	imap 	<S-Up> <Esc>:wa<CR>
+	map 	<S-Up> :wa<CR>
+
+
+"	Fast moving
+"	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
+"	map <S-Left>	:call <SID>SlideThroughMarks("left")<CR>
+"	map <S-Right>	:call <SID>SlideThroughMarks("right")<CR>
+
+	map <C-S-Left>	:previous<CR>
+	map <C-S-Right>	:next<CR>
+	inoremap jh 	<Esc>:call <SID>PopupMarksShow()<CR>a
+
+"	imap <S-Down> 	
+	
+"	map <C-S-Down> 	
+	map <C-S-Up> 	
+"	imap <C-S-Down> 
+"	imap <C-S-Up> 	
+
+
+"	Shortcuts
+	map ;a :ab<CR>
+	map ;bl :ls<CR>
+	map ;bu :bu 
+	map ;ch :changes<CR>
+	map ;cj :clearjumps<CR>
+	map ;cp :call <SID>CopyRegisterToFileAndClipboard("t")<CR>
+	map ;< <C-W>H<C-W>\|
+	map ;ea :call <SID>RefreshAll()<CR>
+	map F :call <SID>PopupMarksShow()<CR>
+	map L :call <SID>PopupBuffers()<CR>
+	map B :bu<Space>
+	map E :e<CR>
+	map V EG
+	map A :call <SID>AddBufferAtThisLine()<CR>
+	map ;hi :call <SID>HiLight()<CR>
+	map ;hn :new<CR><C-W>_ 
+	map ;ju :jumps<CR>
+	map ;hs :split<CR><C-W>_ 
+	map ;ks :keepjumps /
+	map ;l :lcd 
+	map ;u :call <SID>LocalCDAtThisLine()<CR>
+	map ;pw :pwd<CR>
+	map ;pt :call <SID>GetThisFilePopupMark()<CR>
+	map ;q :quit<CR>
+	map ;r :reg<CR>
+	map ;sm :marks<CR>
+	map ;, :tabm0<CR>
+	map ;t :tabnew<CR>
+	map ;vn :vertical new<CR><C-W>\|
+	map ;vs :vertical split<CR><C-W>\|
+	map ;so :call <SID>SourceCurrent_ifVim()<CR>
+	map ;sc :call <SID>ShowMeColors()<CR>
+	map <Space>1 :buffer 1<CR>
+	map <Space>2 :buffer 2<CR>
+	map <Space>3 :buffer 3<CR>
+	map <Space>4 :buffer 4<CR>
+	map <Space>5 :buffer 5<CR>
+	map <Space>6 :buffer 6<CR>
+	map <Space>7 :buffer 7<CR>
+	map <Space>8 :buffer 8<CR>
+	map <Space>9 :buffer 9<CR>
+	noremap <expr> ;i ":vi " . getcwd() . "/"
+	noremap <expr> ;I ":vi " . expand("%")
+	echo "Maps done!"
+
+endfunction
+
+function! <SID>SetDict()
+	let set_dict = 
+		\"set dictionary=" . 
+		\join(expand(s:base_path . "/GracefulGNU/" . "vim/vim_dictionary/*", 0, 1), ",")
+	execute set_dict
+endfunction
+
+function! <SID>SourceCurrent_ifVim()
+	let l:extension = <SID>ExtractExtension( expand("%") )
+	if  l:extension == ".vim"
+		let l:this_file = expand( "%" )
+		try
+			echo "Sourcing " . l:this_file
+			execute "source " . l:this_file
+		catch
+			echo "Could not source, remember that this function" .
+					\ " cannot source Dan.vim, " .
+					\ "as it will try to redefine an executing function ok? v:exception => " . 
+					\ v:exception
+		endtry
+	else
+		echo "Is this a vim script? it is stated as " . l:extension
+	endif
+endfunction
+
+function! <SID>RefreshAll()
+	tabdo
+		\ windo 
+			\ echo buffer_name("%") |
+			\ try |
+				\ :e |
+			\ catch |
+				\ echohl Visual |
+				\ echo v:exception |
+				\ echohl None |
+			\ endtry |
+			\ vertical resize
+endfunction
+
+function! <SID>StartCyclingFromBuf1()
+endfunction
+
+function! <SID>HiLight()	
+
+	"Some colors customizations here
+	
+	let purple = 55
+	let status_line_background = 237
+
+	let highlights =
+	\[
+		\ [ "StatusLine", status_line_background, 213, "NONE" ],
+		\ [ "StatusLineNC", status_line_background, 40, "NONE" ],
+		\ [ "VertSplit", 16, 16, "NONE" ],
+		\ [ "Visual", purple, 207, "NONE" ],
+		\ [ "TabLineSel", 235, 189, "NONE" ],
+		\ [ "TabLineFill", 240, 189, "NONE" ]
+	\]
+
+	colorscheme default
+
+	highlight clear
+"	call <SID>ClearHighlights( highlights )
+"	highlight Special ctermfg=98
+"	highlight PreProc ctermfg=98
+"	highlight Comment ctermfg=244
+	
+	highligh MyCategory ctermfg=198 ctermbg=234
+	highligh MySeparator ctermfg=234 ctermbg=234
+	highligh Bars ctermfg=99 
+	highligh Extension ctermfg=198 
+	execute "highligh SameAsExtensionToStatusLine ctermfg=198 ctermbg=" . status_line_background
+	highligh WeAreHere ctermfg=63
+	highligh Any ctermfg=57
+	highligh Dirs ctermfg=111
+	highligh FileNamePrefix ctermfg=201
+
+	call <SID>MakeMarksPopupHiLight()
+"	highlight default Pmenu 
+"	highlight default PmenuSel
+
+	for a in highlights
+		call <SID>MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
+	endfor
+
+
+endfunction
+
+function! <SID>MakeMarksPopupHiLight()
+	highlight Pmenu ctermbg=24 ctermfg=214
+	highlight PmenuSel ctermbg=red ctermfg=24
+endfunction
+
+function! <SID>MakeBuffersPopupHiLight()
+	highlight Pmenu ctermbg=8 ctermfg=213
+	highlight PmenuSel ctermbg=black ctermfg=213
+endfunction
+
+function! <SID>MakeHighlight( highlight, ctermbg, ctermfg, cterm )
+	execute "highlight " . a:highlight . " ctermbg=" . a:ctermbg . " ctermfg=" . a:ctermfg . " cterm=" . a:cterm
+endfunction
+
+function! <SID>ClearHighlights( list )
+
+	for a in a:list
+		execute "highlight clear " . get( a , 0 )
+	endfor
+
+endfunction
+
+function! <SID>ShowMeColors()
+
+	let counter = 0xFF 
+
+	for a in range( counter ) 
+
+		let inverse = counter - a
+		execute "highlight MyHighlight" .
+					\ " ctermfg=" . ( "white" ) . 
+					\ " ctermbg=" . a
+
+		echohl MyHighlight
+		echo "ctermbg:" . a . ",  Hello how are you?"
+		echohl None
+	endfor
+
+endfunction
+
+function! <SID>MakeAbbreviations()
+	"Some iabs here
+	iab ht <Esc>:call <SID>MakeHTML()<CR>A
+endfunction
+
+function! <SID>CopyRegisterToFileAndClipboard(register)
+
+	execute "let tmp = @" . a:register
+	let escaped = shellescape(tmp, 1)
+	silent execute "!echo " . escaped  . " | dd of=" . s:bridge_file
+"	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
+	execute "!echo " . escaped  . " | wl-copy"
+	redraw!
+
+endfunction
+
+
+let s:bridge_file = "/tmp/bridge"
+
+echo "Dan.vim has just been loaded"
+
+if exists("s:this_has_been_loaded") == v:false
+	let s:this_has_been_loaded = v:true
+	echo "As its the first time for this instance, then we call StartUp"
+	call <SID>StartUp()
+endif
+
+
+"Parked funcs from here below on, that i have used for more than a year, currently not used or superseeded
+"****************************************************************************************************
+
+" Acceptable to mark
+let s:acceptable_to_mark = 
+\[
+	\'\(\(\s\|\t\)*\)\@<=\\\([-[:alnum:]_.,?!]\+[[:space:]]\{,2}\)\{1,}'
+\]
 
 func! <SID>PopupAdd()
 
@@ -399,34 +773,51 @@ function! <SID>SlideThroughMarks(direction)
 
 endfunction
 
-function! <SID>LocalCDAtThisLine()
+function! <SID>WrapperOfStatusLine()
 
-	let to_lcd = getline(".")
-	execute "lcd " . to_lcd
-	echo "Current lcd is now " . to_lcd
+	execute "set statusline=" .
+		\ "[%{mode()}]" .
+		\ "%{" . <SID>GetSNR() . "ShowType()}%m[%P]" .
+		\ "%{" . <SID>GetSNR() . "BuildStatusLine()}" .
+		\ "%{b:status_line_assets[0]}" .
+		\ "%#TabLineSel#%{b:status_line_assets[1]}%*" .
+		\ "%{b:status_line_assets[2]}" .
+		\ "%<"
 
 endfunction
 
-function! <SID>AddBufferAtThisLine()
+"function! <SID>BoosterNavigation()
+"	call <SID>WrapperOfStatusLine()
+"endfunction 
 
-	let this_line = getline(".")
-	let line_base = search('\cwe\s*are\s*here\s*:')
-	let dir = getline( line_base + 1 )
+function! <SID>BuildStatusLine()
+	let left = []
+	let right = []
+	let current = []
+"	let w:surroundings = []
+	let side_change = 0
+	for w in range(1, winnr("$"))
+		let name = bufname(winbufnr(w))
+"		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
+		let stripped = "   " . matchstr( name, '[^/]\+/\?[[:alnum:]_.-]\+\(\.\?\w\+\)$' ) . "   "
+"		if  strlen(stripped) == 0 || matchstr(name, '\(\.\)\@<=\w\+$') != matchstr(bufname("%"), '\(\.\)\@<=\w\+$')
+"			continue
+"		endif
+		if w == winnr()
+			let side_change = 1
+			call add(current, stripped)
+		else
+			if side_change == 0
+				call add(left, stripped)
+			else
+				call add(right, stripped)
+			endif
+		endif
+	endfor
 
-	let built = trim( dir . this_line )
+	let b:status_line_assets = [join(left, "|"), "|" . join(current, "") . "|", join(right, "|")]
 
-	if line_base == 0 || len( trim( this_line ) ) == 0
-		echo "Cannot args " . built 
-		return
-	endif
-
-	let space = match( built, '[[:space:]]' )
-	if space > -1
-		echo "Cannot args " . built . ", there is a [[:space:]]"
-		return
-	endif
-	echo "Args this: " . built 
-	execute "args " . built
+	return ""
 
 endfunction
 
@@ -462,318 +853,15 @@ function! <SID>CommitToMark()
 
 endfunction
 
-"\MakeSearch
-function! <SID>MakeSearch(matter)
-	let s = search
-	\(
-		\<SID>MakeEscape(a:matter), 
-		\"s"
-	\)
-	return s
-endfunction
-
-"\MakeEscape
-func! <SID>MakeEscape(matter)
-
-	return escape
-		\(
-			\a:matter, 
-			\'\"$ .'
-		\)
-
-endfunction
-
-function! <SID>AfterRuntimeAndDo( what )
-	
-	let l:this_file = expand("%:t") 
-	echo "Calling " . a:what . ", with already runtimed Dan.vim expected"
-	"This below would give an error, the one that cannot redefine a function while it is being called
-	let l:Function = function( "<SID>" . a:what )	
-	call l:Function()
-
-endfunction
-
-"\MakeMappings
-function! <SID>MakeMappings() "\Sample of a mark
-
-	"mapclear
-	"imapclear
-	mapclear <buffer>
-	imapclear <buffer>
-	echo "Maps will be cleared now"
-	
-"	Avoiding insert/replace toggle
-	inoremap <Insert> <Esc>a
-
-"	Easing autocomplete
-	imap jj <C-X><C-N>
-	imap jn <C-X><C-N>
-	imap jk <C-X><C-K>
-	imap jv <C-X><C-V>
-	imap jf <C-X><C-F>
-
-"   Window Navigation
-	map <C-UP> <C-W>k<C-W>_
-	map <C-DOWN> <C-W>j<C-W>_
-	map <C-LEFT> <C-W>h<C-W><Bar>
-	map <C-RIGHT> <C-W>l<C-W><Bar>
-	map <S-C-LEFT> <C-W>h
-	map <S-C-RIGHT> <C-W>l
-	imap <C-UP> <Esc><C-W>k<C-W>_i
-	imap <C-DOWN> <Esc><C-W>j<C-W>_i
-	imap <C-LEFT> <Esc><C-W>h<C-W><Bar>i
-	imap <C-RIGHT> <Esc><C-W>l<C-W><Bar>i
-	imap <S-C-LEFT> <Esc><C-W>hi
-	imap <S-C-RIGHT> <C-W>li
-
-
-"	Buffer Navigation
-	map <S-Tab> :up <Bar> :e#<CR>
-
-	map <Bar> :bprevious<CR>
-	map Z :bnext<CR>
-
-
-"	Commenting and uncommenting
-	map cc :s/^/\/\//<CR>
-	map ccc :s/^/\/*/<CR>:s/$/*\//<CR>
-	map cccc :s/\(\w\\|<\)\@=/<!--/<CR>:s/$/-->/<CR>
-"	map cd :s/\/\*\\|\/\/\\|\*\/\\|<!--\\|-->\\|^\(\s\\|\t\)*#//g<CR>
-	map cd :execute ':s/\/\*\\|\*\/\\|<!--\\|-->\\|^\(\s\\|\t\)*\/\///g'<CR>
-
-
-"	Instant reloads
-	map ;;g :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "StartUp" )<CR>
-	map ;ma :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeAbbreviations" )<CR>
-	map ;mm :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeMappings" )<CR>
-	map ;mt :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "Sets" )<CR>
-	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
-
-	map ;ms :call <SID>SaveMark()<CR>
-
-
-"	Easy save
-	imap 	<S-Up> <Esc>:wa<CR>
-	map 	<S-Up> :wa<CR>
-
-
-"	Fast moving
-"	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
-"	map <S-Left>	:call <SID>SlideThroughMarks("left")<CR>
-"	map <S-Right>	:call <SID>SlideThroughMarks("right")<CR>
-
-	map <C-S-Left>	:previous<CR>
-	map <C-S-Right>	:next<CR>
-	inoremap jh 	<Esc>:call <SID>PopupShow()<CR>a
-
-"	imap <S-Down> 	
-	
-"	map <C-S-Down> 	
-	map <C-S-Up> 	
-"	imap <C-S-Down> 
-"	imap <C-S-Up> 	
-
-
-"	Shortcuts
-	map ;a :ab<CR>
-	map ;bl :ls<CR>
-	map ;bu :bu 
-	map ;ch :changes<CR>
-	map ;cj :clearjumps<CR>
-	map ;cp :call <SID>CopyRegisterToFileAndClipboard("t")<CR>
-	map ;< <C-W>H<C-W>\|
-	map ;ea :call <SID>RefreshAll()<CR>
-	map F :call <SID>PopupShow()<CR>
-	map L :buffers<CR>
-	map B :bu<Space>
-	map E :e<CR>
-	map V EG
-	map A :call <SID>AddBufferAtThisLine()<CR>
-	map ;hi :call <SID>HiLight()<CR>
-	map ;hn :new<CR><C-W>_ 
-	map ;ju :jumps<CR>
-	map ;hs :split<CR><C-W>_ 
-	map ;ks :keepjumps /
-	map ;l :lcd 
-	map ;u :call <SID>LocalCDAtThisLine()<CR>
-	map ;p :pwd<CR>
-	map ;q :quit<CR>
-	map ;r :reg<CR>
-	map ;sm :marks<CR>
-	map ;, :tabm0<CR>
-	map ;t :tabnew<CR>
-	map ;vn :vertical new<CR><C-W>\|
-	map ;vs :vertical split<CR><C-W>\|
-	map ;so :call <SID>SourceCurrent_ifVim()<CR>
-	map ;sc :call <SID>ShowMeColors()<CR>
-	map <Space>1 :buffer 1<CR>
-	map <Space>2 :buffer 2<CR>
-	map <Space>3 :buffer 3<CR>
-	map <Space>4 :buffer 4<CR>
-	map <Space>5 :buffer 5<CR>
-	map <Space>6 :buffer 6<CR>
-	map <Space>7 :buffer 7<CR>
-	map <Space>8 :buffer 8<CR>
-	map <Space>9 :buffer 9<CR>
-	noremap <expr> ;i ":vi " . getcwd() . "/"
-	noremap <expr> ;I ":vi " . expand("%")
-	echo "Maps done!"
-
-endfunction
-
-function! <SID>SetDict()
-	let set_dict = 
-		\"set dictionary=" . 
-		\join(expand(s:base_path . "/GracefulGNU/" . "vim/vim_dictionary/*", 0, 1), ",")
-	execute set_dict
-endfunction
-
-function! <SID>SourceCurrent_ifVim()
-	let l:extension = <SID>ExtractExtension( expand("%") )
-	if  l:extension == ".vim"
-		let l:this_file = expand( "%" )
-		try
-			echo "Sourcing " . l:this_file
-			execute "source " . l:this_file
-		catch
-			echo "Could not source, remember that this function" .
-					\ " cannot source Dan.vim, " .
-					\ "as it will try to redefine an executing function ok? v:exception => " . 
-					\ v:exception
-		endtry
-	else
-		echo "Is this a vim script? it is stated as " . l:extension
-	endif
-endfunction
-
-function! <SID>RefreshAll()
-	tabdo
-		\ windo 
-			\ echo buffer_name("%") |
-			\ try |
-				\ :e |
-			\ catch |
-				\ echohl Visual |
-				\ echo v:exception |
-				\ echohl None |
-			\ endtry |
-			\ vertical resize
-endfunction
-
-function! <SID>StartCyclingFromBuf1()
-endfunction
-
-function! <SID>HiLight()	
-
-	"Some colors customizations here
-	
-	let assemble_83 = [ 8, 3 ]
-	let assemble_53 = [ 5, 3 ]
-
-	let purple = 55
-
-	let highlights =
-	\[
-		\ [ "StatusLine", 237, 213, "NONE" ],
-		\ [ "StatusLineNC", 237, 40, "NONE" ],
-		\ [ "VertSplit", 16, 16, "NONE" ],
-		\ [ "Pmenu", 24, 214, "NONE" ],
-		\ [ "PmenuSel", "red", 24, "NONE" ],
-		\ [ "Visual", purple, 16, "reverse" ],
-		\ [ "TabLineSel", 235, 189, "NONE" ],
-		\ [ "TabLineFill", 240, 189, "NONE" ]
-	\]
-
-	colorscheme default
-
-	highlight clear
-"	call <SID>ClearHighlights( highlights )
-	highlight Special ctermfg=98
-	highlight PreProc ctermfg=98
-	highlight Comment ctermfg=244
-	
-	highligh MyCategory ctermfg=198 ctermbg=234
-	highligh MySeparator ctermfg=234 ctermbg=234
-	highligh Bars ctermfg=99 
-	highligh Extension ctermfg=198 
-	highligh WeAreHere ctermfg=63
-	highligh Any ctermfg=57
-	highligh Dirs ctermfg=111
-	highligh FileNamePrefix ctermfg=201
-
-	for a in highlights
-		call <SID>MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
-	endfor
-
-
-endfunction
-
-function! <SID>MakeHighlight( highlight, ctermbg, ctermfg, cterm )
-	execute "highlight " . a:highlight . " ctermbg=" . a:ctermbg . " ctermfg=" . a:ctermfg . " cterm=" . a:cterm
-endfunction
-
-function! <SID>ClearHighlights( list )
-
-	for a in a:list
-		execute "highlight clear " . get( a , 0 )
-	endfor
-
-endfunction
-
-function! <SID>ShowMeColors()
-
-	let counter = 256 
-
-	for a in range( counter ) 
-
-		let inverse = counter - a
-		execute "highlight MyHighlight" .
-					\ " ctermfg=" . ( "white" ) . 
-					\ " ctermbg=" . a
-
-		echohl MyHighlight
-		echo "ctermbg:" . a . ",  Hello how are you?"
-		echohl None
-	endfor
-
-endfunction
-
-function! <SID>MakeAbbreviations()
-	"Some iabs here
-	iab ht <Esc>:call <SID>MakeHTML()<CR>A
-endfunction
-
-function! <SID>CopyRegisterToFileAndClipboard(register)
-
-	execute "let tmp = @" . a:register
-	let escaped = shellescape(tmp, 1)
-	silent execute "!echo " . escaped  . " | dd of=" . s:bridge_file
-"	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
-	execute "!echo " . escaped  . " | wl-copy"
-	redraw!
-
-endfunction
-
-" Acceptable to mark
-let s:acceptable_to_mark = 
-\[
-	\'\(\(\s\|\t\)*\)\@<=\\\([-[:alnum:]_.,?!]\+[[:space:]]\{,2}\)\{1,}'
-\]
-
-let s:bridge_file = "/tmp/bridge"
-
-
-echo "Dan.vim has just been loaded"
-
-if exists("s:this_has_been_loaded") == v:false
-	let s:this_has_been_loaded = v:true
-	echo "As its the first time for this instance, then we call StartUp"
-	call <SID>StartUp()
-endif
 
 
 
 
-	
-	
-	
+
+
+
+
+
+
+
+
