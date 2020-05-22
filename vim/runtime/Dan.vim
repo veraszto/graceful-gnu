@@ -67,7 +67,7 @@ endfunction
 
 
 function! BuildStatusLine2()
-	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*%=byte:%B"
+	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*%=(%l/%L) byte:%B"
 endfunction
 
 
@@ -98,6 +98,18 @@ function! <SID>AutoCommands()
 	aug mine
 		au!
 	aug END
+
+	aug fedora
+		au!
+	aug END
+
+	au! BufRead *
+	au! filetypedetect BufRead *
+
+	autocmd BufReadPost *
+      \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+      \ |   exe "normal! g`\""
+      \ | endif
 
 "	autocmd mine BufRead * call <SID>BoosterNavigation()
 "	autocmd mine BufRead * clearjumps
@@ -164,7 +176,7 @@ function! <SID>StartUp()
 
 endfunction
 
-function! WriteToFile( content, file )
+function! <SID>WriteToFile( content, file )
 	try
 		return writefile( a:content, a:file )
 	catch
@@ -182,20 +194,80 @@ function! <SID>ReadFromFile( file, create )
 
 	if a:create == 1
 		echo "Creating " . a:file
-		call WriteToFile( [], a:file )
+		call <SID>WriteToFile( [], a:file )
 	endif
 	return []
+
+endfunction
+
+function! <SID>StrPad( what, with, upto )
+
+	let padded = a:what
+
+	while len( padded ) < a:upto
+		let padded .= a:with
+	endwhile
+
+	return padded
+
+endfunction
+
+function! <SID>PopupJumps()
+	
+	try
+		nunme jumps
+	catch
+	endtry
+
+	let do_not_repeat = [ bufnr() ]
+	let jumps = getjumplist()[0]
+	let length = len( jumps ) - 1
+	let i = length
+
+	while i >= 0
+
+		let jump = get( jumps, i )
+		let bufnr = jump["bufnr"]
+		let bufinfo = getbufinfo( bufnr )[0]
+		if count( do_not_repeat, bufnr ) > 0 ||
+				\ len( bufinfo["name"] ) == 0
+			let i -= 1
+			continue
+		endif
+		call add( do_not_repeat, bufnr )	
+
+		execute "nmenu jumps." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
+			\ ":buffer " . jump["bufnr"]  . "<CR>"
+
+		let i -= 1
+	endwhile
+
+	if i < length
+		popup jumps
+	else
+		echo "No jumps to fill the list popup"
+	endif
+
+endfunction
+
+function! <SID>MakeJump( jump )
+
+	let built = "jbuf: " . 
+		\ <SID>StrPad( a:jump["bufnr"], " ", 3 ) . 
+		\ matchstr( bufname( a:jump["bufnr"] ), s:tail_file )
+	return built
 
 endfunction
 
 function! <SID>PopupBuffers()
 
 	let buffers = getbufinfo()
+
 	try
 		nunme buffers
 	catch
 	endtry
-
+	let counter = 0
 	for buffer in buffers
 		if len( get( buffer, "name") ) == 0 ||
 			\ get( buffer, "listed" ) == 0
@@ -204,14 +276,22 @@ function! <SID>PopupBuffers()
 		endif
 		execute "nmenu buffers." . <SID>MakeEscape( <SID>BuildBufferPopupItem( buffer ) ) . 
 			\ " :buffer" . get(buffer, "bufnr")  . "<CR>"
+		let counter += 1
 	endfor
-	popup buffers
+	if counter > 0
+		popup buffers
+	else
+		echo "No eligible buffers to fill the list popup"
+	endif
 
 endfunction
 
 function! <SID>BuildBufferPopupItem( buffer )
 
-	let label = get(a:buffer, "bufnr") . ") " . matchstr( get(a:buffer, "name"), '[.[:alnum:]-]\+$' )
+	let label = "buf: " . 
+		\ <SID>StrPad( get(a:buffer, "bufnr"), " ", 3 ) . 
+		\ matchstr( get(a:buffer, "name"), s:tail_file )
+
 	return label
 
 endfunction
@@ -220,6 +300,10 @@ function! <SID>GetThisFilePopupMark()
 	let file = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/") . expand("%:t") . ".vim.shortcut"
 	echo "GetThisFilePopupMark: " . file
 	return file 
+endfunction
+
+function! <SID>EditMarksFile()
+	execute "vi " . <SID>GetThisFilePopupMark()
 endfunction
 
 func! <SID>PopupMarksShow()
@@ -302,7 +386,7 @@ func! <SID>PopupChosen( index )
 
 	normal zz
 
-	call WriteToFile( b:marks, <SID>GetThisFilePopupMark() )
+	call <SID>WriteToFile( b:marks, <SID>GetThisFilePopupMark() )
 	
 endfunction
 
@@ -319,23 +403,37 @@ endfunction
 function! <SID>AddBufferAtThisLine()
 
 	let this_line = getline(".")
-	let line_base = search('\cwe\s*are\s*here\s*:')
-	let dir = getline( line_base + 1 )
+	let line_base = search('\cwe\s*are\s*here\s*:', "n")
+	if line_base == 0
+		let dir = getcwd()
+		echo "The \"We are here:\" to set base dir was not found, using: " . dir
+	else
+		let dir = getline( line_base + 1 )
+	endif
 
 	let built = trim( dir . this_line )
 
-	if line_base == 0 || len( trim( this_line ) ) == 0
+	if len( trim( this_line ) ) == 0
 		echo "Cannot args " . built 
 		return
 	endif
+
 
 	let space = match( built, '[[:space:]]' )
 	if space > -1
 		echo "Cannot args " . built . ", there is a [[:space:]]"
 		return
 	endif
-	echo "Args this: " . built 
-	execute "args " . built
+
+	echo "argadd this: " . built 
+
+	argglobal
+	if argc() > 0
+		argd *
+	endif
+	execute "argadd " . built
+	execute "buffer " . argv()[0]
+	arglocal
 
 endfunction
 
@@ -427,6 +525,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;mm :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeMappings" )<CR>
 	map ;mt :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "Sets" )<CR>
 	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
+	map ;mc :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "AutoCommands" )<CR>
 
 "	map ;ms :call <SID>SaveMark()<CR>
 
@@ -462,8 +561,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;cp :call <SID>CopyRegisterToFileAndClipboard("t")<CR>
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call <SID>RefreshAll()<CR>
+	map ;em :call <SID>EditMarksFile()<CR>
 	map F :call <SID>PopupMarksShow()<CR>
 	map L :call <SID>PopupBuffers()<CR>
+	map , :call <SID>PopupJumps()<CR>
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
@@ -631,7 +732,7 @@ endfunction
 
 function! <SID>MakeAbbreviations()
 	"Some iabs here
-	iab ht <Esc>:call <SID>MakeHTML()<CR>A
+	iab ht <Esc>:call <SID>MakeHTML()<CR>i
 endfunction
 
 function! <SID>CopyRegisterToFileAndClipboard(register)
@@ -647,6 +748,7 @@ endfunction
 
 
 let s:bridge_file = "/tmp/bridge"
+let s:tail_file = '[.[:alnum:]-]\+$'
 
 echo "Dan.vim has just been loaded"
 
