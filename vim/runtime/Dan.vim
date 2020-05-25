@@ -534,6 +534,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap 	<S-Up> <Esc>:wa<CR>
 	map 	<S-Up> :wa<CR>
 
+"	ChangeList
+	map <S-Left>	g;
+	map <S-Right>	g,
+	
 
 "	Fast moving
 "	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
@@ -650,6 +654,8 @@ function! <SID>HiLight()
 	
 	let purple = 55
 	let status_line_background = 237
+	let choose_separator_color = 235
+	let date_color = 99
 
 	let highlights =
 	\[
@@ -664,10 +670,22 @@ function! <SID>HiLight()
 	colorscheme default
 
 	highlight clear
+
 "	call <SID>ClearHighlights( highlights )
 "	highlight Special ctermfg=98
 "	highlight PreProc ctermfg=98
 "	highlight Comment ctermfg=244
+
+	
+	execute "highlight DiaryDivisorDate ctermbg=" . choose_separator_color . " ctermfg=" . date_color
+	execute "highlight DiaryDivisor ctermbg=" . choose_separator_color . " ctermfg=" . choose_separator_color
+	highlight MyActivities ctermfg=177
+	highlight CompanyActivities ctermfg=165
+	highlight BeAware ctermfg=219
+	highlight SubItemHelpers ctermfg=202
+	highlight MyDone ctermfg=46
+	highlight MyStarted ctermfg=75
+	highlight MyContinue ctermfg=75
 	
 	highligh MyCategory ctermfg=198 ctermbg=234
 	highligh MySeparator ctermfg=234 ctermbg=234
@@ -759,7 +777,7 @@ if exists("s:this_has_been_loaded") == v:false
 endif
 
 
-"Parked funcs from here below on, that i have used for more than a year, currently not used or superseeded
+"Parked code from here below on, that have not been used lately, superseeded
 "****************************************************************************************************
 
 " Acceptable to mark
