@@ -764,6 +764,27 @@ function! <SID>CopyRegisterToFileAndClipboard(register)
 
 endfunction
 
+function! <SID>SayHello( msg )
+
+	call popup_create
+		\(
+			\ a:msg,
+			\ #{
+				\ time: 15000,
+				\ line:6,
+				\ highlight: "Extension",
+				\ padding: [ 2, 2, 1, 2 ],
+				\ border: [ 0, 0, 1, 0],
+				\ borderchars: ["_", "", "_", ""]
+			\ }
+		\)
+
+endfunction
+
+function! PopupCreate()
+	"
+endfunction
+
 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[.[:alnum:]-]\+$'
@@ -774,6 +795,8 @@ if exists("s:this_has_been_loaded") == v:false
 	let s:this_has_been_loaded = v:true
 	echo "As its the first time for this instance, then we call StartUp"
 	call <SID>StartUp()
+	call <SID>SayHello(["Hello are you good?", "What are you up to today?", "Great!"])
+"	call <SID>SayHello("Hello!")
 endif
 
 
