@@ -686,6 +686,7 @@ function! <SID>HiLight()
 	highlight MyDone ctermfg=46
 	highlight MyStarted ctermfg=75
 	highlight MyContinue ctermfg=75
+	highlight MyContinued ctermfg=87
 	
 	highligh MyCategory ctermfg=198 ctermbg=234
 	highligh MySeparator ctermfg=234 ctermbg=234
