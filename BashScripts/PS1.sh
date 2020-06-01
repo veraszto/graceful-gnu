@@ -66,3 +66,5 @@ function reloadPrompt
 
 reloadPrompt
 PROMPT_COMMAND="reloadPrompt"
+
+

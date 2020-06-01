@@ -403,7 +403,7 @@ endfunction
 function! <SID>AddBufferAtThisLine()
 
 	let this_line = getline(".")
-	let line_base = search('\cwe\s*are\s*here\s*:', "n")
+	let line_base = search('\cwe\s*are\s*here\s*:', "bn")
 	if line_base == 0
 		let dir = getcwd()
 		echo "The \"We are here:\" to set base dir was not found, using: " . dir
