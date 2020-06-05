@@ -40,7 +40,8 @@ function replacePWD
 		echoEscaped ${home}
 		return
 	fi
-	
+	bars_counter=$(echo -n $pwd | tr "/" "\n" | wc -l)
+#	echo $bars_counter 1>&2
 	for (( i=0; i<${#pwd}; i++ ))
 	do
 		current=${pwd:$i:1}

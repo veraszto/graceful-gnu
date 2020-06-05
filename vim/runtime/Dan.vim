@@ -66,7 +66,7 @@ function! <SID>LastDir( matter )
 endfunction
 
 
-function! BuildStatusLine2()
+function! <SID>BuildStatusLine2()
 	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*%=(%l/%L) byte:%B"
 endfunction
 
@@ -144,7 +144,7 @@ function! <SID>Sets()
 	set wmw=0
 	execute "set tabline=%!" . s:GetSNR() . "BuildTabLine2()"
 "	set tabline=%!<SID>BuildTabLine2()
-	set statusline=%!BuildStatusLine2()
+	execute "set statusline=%!" . s:GetSNR() . "BuildStatusLine2()"
 	set backspace=2
 	set wrap
 	set comments=""
@@ -400,10 +400,10 @@ function! <SID>LocalCDAtThisLine()
 
 endfunction
 
-function! <SID>AddBufferAtThisLine()
+function! <SID>AddBufferAtThisLine( )
 
 	let this_line = getline(".")
-	let line_base = search('\cwe\s*are\s*here\s*:', "bn")
+	let line_base = search('^\(\s\|\t\)*\cwe\s*are\s*here\s*:', "bnW")
 	if line_base == 0
 		let dir = getcwd()
 		echo "The \"We are here:\" to set base dir was not found, using: " . dir
@@ -418,6 +418,10 @@ function! <SID>AddBufferAtThisLine()
 		return
 	endif
 
+	let pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
+	let pattern_prefix = matchstr( built, pattern )	
+	let remove_pattern_prefix = substitute( built, pattern, "", "")
+	let built = remove_pattern_prefix
 
 	let space = match( built, '[[:space:]]' )
 	if space > -1
@@ -432,7 +436,15 @@ function! <SID>AddBufferAtThisLine()
 		argd *
 	endif
 	execute "argadd " . built
-	execute "buffer " . argv()[0]
+	let first_file = argv()[0]
+	let to_execute = "buffer " . pattern_prefix . first_file 
+	"echo to_execute
+	try
+		execute to_execute 
+	catch
+		echo "Could not " .  to_execute . ", because: " . v:exception . 
+				\ ", so trying to just buffer the asked file " . first_file
+	endtry
 	arglocal
 
 endfunction
@@ -473,8 +485,8 @@ endfunction
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
-	"mapclear
-	"imapclear
+	mapclear
+	imapclear
 	mapclear <buffer>
 	imapclear <buffer>
 	echo "Maps will be cleared now"
@@ -572,17 +584,17 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
-	map A :call <SID>AddBufferAtThisLine()<CR>
+	map <Space> :call <SID>AddBufferAtThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
-	map ;hn :new<CR><C-W>_ 
+	map ;hn :new<CR><C-W>_
 	map ;ju :jumps<CR>
-	map ;hs :split<CR><C-W>_ 
+	map ;hs :split<CR><C-W>_
 	map ;ks :keepjumps /
 	map ;l :lcd 
 	map ;u :call <SID>LocalCDAtThisLine()<CR>
 	map ;pw :pwd<CR>
 	map ;pt :call <SID>GetThisFilePopupMark()<CR>
-	map ;q :quit<CR>
+	map ;q :quit<CR><C-W>_
 	map ;r :reg<CR>
 	map ;sm :marks<CR>
 	map ;, :tabm0<CR>
@@ -591,17 +603,11 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;vs :vertical split<CR><C-W>\|
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 	map ;sc :call <SID>ShowMeColors()<CR>
-	map <Space>1 :buffer 1<CR>
-	map <Space>2 :buffer 2<CR>
-	map <Space>3 :buffer 3<CR>
-	map <Space>4 :buffer 4<CR>
-	map <Space>5 :buffer 5<CR>
-	map <Space>6 :buffer 6<CR>
-	map <Space>7 :buffer 7<CR>
-	map <Space>8 :buffer 8<CR>
-	map <Space>9 :buffer 9<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
+
+	call <SID>PushRuntimeFlow( "Stash.vim" )
+
 	echo "Maps done!"
 
 endfunction
@@ -689,6 +695,7 @@ function! <SID>HiLight()
 	highlight MyContinued ctermfg=87
 	
 	highligh MyCategory ctermfg=198 ctermbg=234
+	highligh MySubCategory ctermfg=75 ctermbg=234
 	highligh MySeparator ctermfg=234 ctermbg=234
 	highligh Bars ctermfg=99 
 	highligh Extension ctermfg=198 
@@ -751,7 +758,16 @@ endfunction
 
 function! <SID>MakeAbbreviations()
 	"Some iabs here
+	iabc
+	iabc <buffer>
 	iab ht <Esc>:call <SID>MakeHTML()<CR>i
+	call <SID>PushRuntimeFlow( "Stash.vim" )
+endfunction
+
+function! <SID>PushRuntimeFlow( flow )
+	let g:open_signal = v:true
+	execute "runtime " . a:flow
+	unlet g:open_signal
 endfunction
 
 function! <SID>CopyRegisterToFileAndClipboard(register)
