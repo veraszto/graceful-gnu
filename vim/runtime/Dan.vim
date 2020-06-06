@@ -439,6 +439,7 @@ function! <SID>AddBufferAtThisLine( )
 	let first_file = argv()[0]
 	let to_execute = "buffer " . pattern_prefix . first_file 
 	"echo to_execute
+	split
 	try
 		execute to_execute 
 	catch
@@ -584,7 +585,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
-	map <Space> :call <SID>AddBufferAtThisLine()<CR>
+	map <Space> :call <SID>AddBufferAtThisLine()<CR><C-W>_
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_
 	map ;ju :jumps<CR>
