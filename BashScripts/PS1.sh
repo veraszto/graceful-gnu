@@ -15,14 +15,22 @@ orange="\[\033[38;5;209m\]"
 finish="\[\033[0m\]"
 
 lion="\xF0\x9F\xA6\x81"
-teddybear="\xF0\x9F\xA7\xB8"
+teddybear="@"
+#teddybear="\xF0\x9F\xA7\xB8"
 dollar="\xF0\x9F\x92\xB2"
-home="\xF0\x9F\x8F\xA0"
-horse="\xF0\x9F\x90\xB4"
+home="~"
+#home="\xF0\x9F\x8F\xA0"
+horse="@"
+#horse="\xF0\x9F\x90\xB4"
 
 function echoEscaped
 {
 	echo -en "$1"
+}
+
+function echoNonEscaped
+{
+	echo -n "$1"
 }
 
 function replacePWD
@@ -34,34 +42,47 @@ function replacePWD
 	if [ ${#nohome} -gt 0 ]
 	then
 		pwd=${nohome}
-		echoEscaped ${home}
+		echoNonEscaped ${home}
 	elif [ $HOME = $PWD ]
 	then
-		echoEscaped ${home}
+		echoNonEscaped ${home}
 		return
 	fi
 	bars_counter=$(echo -n $pwd | tr "/" "\n" | wc -l)
 #	echo $bars_counter 1>&2
+	switch=1
 	for (( i=0; i<${#pwd}; i++ ))
 	do
 		current=${pwd:$i:1}
-		if [ $current = "/" ]
+		if [ $current = "/" -a $i -eq 0 ]
 		then
-			echoEscaped "$1${current}$finish"
+			echoNonEscaped "$1${current}"
+			switch=1
+		elif [ $current = "/" ]
+		then
+			echoNonEscaped "${finish}$1${current}"
+			switch=1
+		elif [ $switch -eq 1 ]
+		then
+			echoNonEscaped "$finish"
+			echoNonEscaped "$2"
+			echoNonEscaped "$current"
+			switch=0
 		else
-			echoEscaped "$2${current}$finish"
+			echoNonEscaped "$current"
 		fi
 
 	done
+	echoNonEscaped "$finish"
 }
 
 function reloadPrompt
 {
 	if [ $USER = "root" ]
 	then	
-		PS1="${red}\u${finish}$(echoEscaped $horse)$(replacePWD $red $green)\\$ "
+		PS1="${red}\u${finish}$(echoNonEscaped $horse)$(replacePWD $red $green)\\$ "
 	else
-		PS1="${pink1}\u${finish}$(echoEscaped $teddybear)$(replacePWD $pink1 $green)\\$ "
+		PS1="${pink1}\u${finish}$(echoNonEscaped $teddybear)$(replacePWD $pink1 $green)\\$ "
 	fi
 }
 
