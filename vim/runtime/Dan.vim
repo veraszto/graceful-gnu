@@ -406,7 +406,7 @@ function! <SID>AddBufferAtThisLine( )
 	let line_base = search('^\(\s\|\t\)*\cwe\s*are\s*here\s*:', "bnW")
 	if line_base == 0
 		let dir = getcwd()
-		echo "The \"We are here:\" to set base dir was not found, using: " . dir
+		echon "The \"We are here:\" to set base dir was not found, using: " . dir
 	else
 		let dir = getline( line_base + 1 )
 	endif
@@ -414,7 +414,7 @@ function! <SID>AddBufferAtThisLine( )
 	let built = trim( dir . this_line )
 
 	if len( trim( this_line ) ) == 0
-		echo "Cannot args " . built 
+		echon "Cannot args " . built 
 		return
 	endif
 
@@ -425,11 +425,11 @@ function! <SID>AddBufferAtThisLine( )
 
 	let space = match( built, '[[:space:]]' )
 	if space > -1
-		echo "Cannot args " . built . ", there is a [[:space:]]"
+		echon "Cannot args " . built . ", there is a [[:space:]]"
 		return
 	endif
 
-	echo "argadd this: " . built 
+	echon "argadd this: " . built 
 
 	argglobal
 	if argc() > 0
@@ -439,11 +439,10 @@ function! <SID>AddBufferAtThisLine( )
 	let first_file = argv()[0]
 	let to_execute = "buffer " . pattern_prefix . first_file 
 	"echo to_execute
-	split
 	try
 		execute to_execute 
 	catch
-		echo "Could not " .  to_execute . ", because: " . v:exception . 
+		echon "Could not " .  to_execute . ", because: " . v:exception . 
 				\ ", so trying to just buffer the asked file " . first_file
 	endtry
 	arglocal
@@ -486,11 +485,12 @@ endfunction
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
-	mapclear
-	imapclear
+"	Avoid clearing other mappings beyond this function
+"	echo "Maps will be cleared now"
+"	mapclear
+"	imapclear
 	mapclear <buffer>
 	imapclear <buffer>
-	echo "Maps will be cleared now"
 	
 "	Avoiding insert/replace toggle
 	inoremap <Insert> <Esc>a
@@ -606,8 +606,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;sc :call <SID>ShowMeColors()<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
-
-	call <SID>PushRuntimeFlow( "Stash.vim" )
 
 	echo "Maps done!"
 
@@ -762,13 +760,6 @@ function! <SID>MakeAbbreviations()
 	iabc
 	iabc <buffer>
 	iab ht <Esc>:call <SID>MakeHTML()<CR>i
-	call <SID>PushRuntimeFlow( "Stash.vim" )
-endfunction
-
-function! <SID>PushRuntimeFlow( flow )
-	let g:open_signal = v:true
-	execute "runtime " . a:flow
-	unlet g:open_signal
 endfunction
 
 function! <SID>CopyRegisterToFileAndClipboard(register)
