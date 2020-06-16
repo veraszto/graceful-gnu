@@ -406,7 +406,7 @@ function! <SID>AddBufferAtThisLine( )
 	let line_base = search('^\(\s\|\t\)*\cwe\s*are\s*here\s*:', "bnW")
 	if line_base == 0
 		let dir = getcwd()
-		echon "The \"We are here:\" to set base dir was not found, using: " . dir
+		echo "The \"We are here:\" to set base dir was not found, using: " . dir
 	else
 		let dir = getline( line_base + 1 )
 	endif
@@ -414,7 +414,7 @@ function! <SID>AddBufferAtThisLine( )
 	let built = trim( dir . this_line )
 
 	if len( trim( this_line ) ) == 0
-		echon "Cannot args " . built 
+		echo "Cannot args " . built 
 		return
 	endif
 
@@ -425,7 +425,7 @@ function! <SID>AddBufferAtThisLine( )
 
 	let space = match( built, '[[:space:]]' )
 	if space > -1
-		echon "Cannot args " . built . ", there is a [[:space:]]"
+		echo "Cannot args " . built . ", there is a [[:space:]]"
 		return
 	endif
 
@@ -442,7 +442,7 @@ function! <SID>AddBufferAtThisLine( )
 	try
 		execute to_execute 
 	catch
-		echon "Could not " .  to_execute . ", because: " . v:exception . 
+		echo "Could not " .  to_execute . ", because: " . v:exception . 
 				\ ", so trying to just buffer the asked file " . first_file
 	endtry
 	arglocal
@@ -581,11 +581,11 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;em :call <SID>EditMarksFile()<CR>
 	map F :call <SID>PopupMarksShow()<CR>
 	map L :call <SID>PopupBuffers()<CR>
-	map , :call <SID>PopupJumps()<CR>
+	map <S-Down> :call <SID>PopupJumps()<CR>
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
-	map <Space> :call <SID>AddBufferAtThisLine()<CR><C-W>_
+	map <Space> :call <SID>AddBufferAtThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_
 	map ;ju :jumps<CR>
