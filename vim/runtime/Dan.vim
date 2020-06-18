@@ -579,9 +579,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call <SID>RefreshAll()<CR>
 	map ;em :call <SID>EditMarksFile()<CR>
-	map F :call <SID>PopupMarksShow()<CR>
-	map L :call <SID>PopupBuffers()<CR>
-	map <S-Down> :call <SID>PopupJumps()<CR>
+	map { :call <SID>PopupMarksShow()<CR>
+	map } :call <SID>PopupBuffers()<CR>
+	map ] :call <SID>PopupJumps()<CR>
+	map [ :call <SID>ViInitialWorkspace()<CR>
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
@@ -609,6 +610,15 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	echo "Maps done!"
 
+endfunction
+
+function! <SID>ViInitialWorkspace()
+	try
+		execute "vi" . " " . s:initial_workspace
+	catch
+		echo "Could not jump to initial workspace, " .
+			\ "maybe you need to save first, vim says: " . v:exception
+	endtry
 endfunction
 
 function! <SID>SetDict()
@@ -808,6 +818,7 @@ if exists("s:this_has_been_loaded") == v:false
 "	call <SID>SayHello("Hello!")
 endif
 
+let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 
 "Parked code from here below on, that have not been used lately, superseeded
 "****************************************************************************************************
