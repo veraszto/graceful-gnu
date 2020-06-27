@@ -237,8 +237,8 @@ function! <SID>PopupJumps()
 		call add( do_not_repeat, bufnr )	
 
 		execute "nmenu jumps." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
-			\ ":buffer " . jump["bufnr"]  . "<CR>"
-
+			\ ":try <Bar> buffer " . jump["bufnr"]  . " " . 
+			\ "<Bar> catch <Bar> echo \"Could not buf:\" . v:exception <Bar> endtry<CR>" 
 		let i -= 1
 	endwhile
 
