@@ -806,7 +806,7 @@ endfunction
 
 
 let s:bridge_file = "/tmp/bridge"
-let s:tail_file = '[.[:alnum:]-]\+$'
+let s:tail_file = '[._[:alnum:]-]\+$'
 
 echo "Dan.vim has just been loaded"
 
