@@ -65,7 +65,6 @@ function! <SID>LastDir( matter )
 
 endfunction
 
-
 function! <SID>BuildStatusLine2()
 	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*%=(%l/%L) byte:%B"
 endfunction
@@ -212,17 +211,13 @@ function! <SID>StrPad( what, with, upto )
 
 endfunction
 
-function! <SID>PopupJumps()
-	
-	try
-		nunme jumps
-	catch
-	endtry
+function! <SID>CollectPertinentJumps( limit )
 
 	let do_not_repeat = [ bufnr() ]
 	let jumps = getjumplist()[0]
 	let length = len( jumps ) - 1
 	let i = length
+	let jumps_togo = []
 
 	while i >= 0
 
@@ -238,21 +233,54 @@ function! <SID>PopupJumps()
 		\)
 			let i -= 1
 			continue
+
 		endif
 
 		call add( do_not_repeat, bufnr )	
+		call add( jumps_togo, jump )
+
+		if len( jumps_togo ) == a:limit
+			break
+		endif
+		
+		let i -= 1
+
+	endwhile
+
+	return jumps_togo 
+
+endfunction
+
+function! <SID>PopupJumps( )
+	
+	try
+		nunme jumps
+	catch
+	endtry
+
+	let jumps = <SID>CollectPertinentJumps( -1 )
+
+	for jump in jumps
 
 		execute "nmenu jumps." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
 			\ ":try <Bar> buffer " . jump["bufnr"]  . " " . 
 			\ "<Bar> catch <Bar> echo \"Could not buf:\" . v:exception <Bar> endtry<CR>" 
-		let i -= 1
-	endwhile
 
-	if i < length
+	endfor
+
+	if len( jumps ) > 0
 		popup jumps
 	else
 		echo "No jumps to fill the list popup"
 	endif
+
+endfunction
+
+function! <SID>ShortcutToNthPertinentJump( which )
+
+	let jumps = <SID>CollectPertinentJumps( a:which )
+	execute "try | buffer " . jumps[ a:which - 1 ]["bufnr"] . 
+				\ " | catch | echo \"Could not buf:\" . v:exception | endtry" 
 
 endfunction
 
@@ -381,7 +409,7 @@ func! <SID>PopupMarksShow()
 		let jump = v:true
 
 		let to_execute = "nmenu mightynimble." . 
-			\ <SID>MakeEscape( each_label . " < " . search_for ) .
+			\ <SID>MakeEscape( <SID>StrPad( each_label, " ", 50 ) . search_for ) .
 			\ " :call <SID>PopupChosen(" . ( counter + 1 ) . ")<CR>"
 
 		execute to_execute
@@ -530,18 +558,17 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap jf <C-X><C-F>
 
 "   Window Navigation
-	map <C-UP> <C-W>k<C-W>_
-	map <C-DOWN> <C-W>j<C-W>_
-	map <C-LEFT> <C-W>h<C-W><Bar>
-	map <C-RIGHT> <C-W>l<C-W><Bar>
-	map <S-C-LEFT> <C-W>h
-	map <S-C-RIGHT> <C-W>l
-	imap <C-UP> <Esc><C-W>k<C-W>_i
-	imap <C-DOWN> <Esc><C-W>j<C-W>_i
-	imap <C-LEFT> <Esc><C-W>h<C-W><Bar>i
-	imap <C-RIGHT> <Esc><C-W>l<C-W><Bar>i
-	imap <S-C-LEFT> <Esc><C-W>hi
-	imap <S-C-RIGHT> <C-W>li
+	map <C-Up> <C-W>k<C-W>_
+	map <C-Down> <C-W>j<C-W>_
+	map <C-Left> <C-W>h<C-W><Bar>
+	map <C-Right> <C-W>l<C-W><Bar>
+	imap <C-Up> <Esc><C-W>k<C-W>_i
+	imap <C-Down> <Esc><C-W>j<C-W>_i
+	imap <C-Left> <Esc><C-W>h<C-W><Bar>i
+	imap <C-Right> <Esc><C-W>l<C-W><Bar>i
+	
+"	imap <S-C-Left> <Esc><C-W>hi
+"	imap <S-C-Right> <C-W>li
 
 
 "	Buffer Navigation
@@ -568,7 +595,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;mc :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "AutoCommands" )<CR>
 
 "	map ;ms :call <SID>SaveMark()<CR>
-
 
 "	Easy save
 	imap 	<S-Up> <Esc>:wa<CR>
@@ -609,6 +635,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <S-Left> :call <SID>PopupMarksShow()<CR>
 	map <S-Right> :call <SID>PopupBuffers()<CR>
 	map <S-Down> :call <SID>PopupJumps()<CR>
+	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1 )<CR>
+	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2 )<CR>
 	map [ :call <SID>ViInitialWorkspace()<CR>
 	map ] :call <SID>CycleLastTwoExcluded()<CR>
 	map B :bu<Space>
@@ -850,7 +878,7 @@ endif
 
 
 "Parked code from here below on, that have not been used lately, superseeded
-"****************************************************************************************************
+"********************************************************************************************************************************************
 
 " Acceptable to mark
 let s:acceptable_to_mark = 
