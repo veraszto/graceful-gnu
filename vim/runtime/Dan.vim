@@ -229,11 +229,17 @@ function! <SID>PopupJumps()
 		let jump = get( jumps, i )
 		let bufnr = jump["bufnr"]
 		let bufinfo = getbufinfo( bufnr )[0]
-		if count( do_not_repeat, bufnr ) > 0 ||
-				\ len( bufinfo["name"] ) == 0
+
+		if
+		\(
+			\ count( do_not_repeat, bufnr ) > 0 ||
+			\ len( bufinfo["name"] ) == 0 ||
+			\ match( bufinfo["name"], s:exclude_from_jbufs ) > -1
+		\)
 			let i -= 1
 			continue
 		endif
+
 		call add( do_not_repeat, bufnr )	
 
 		execute "nmenu jumps." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
@@ -247,6 +253,27 @@ function! <SID>PopupJumps()
 	else
 		echo "No jumps to fill the list popup"
 	endif
+
+endfunction
+
+function! <SID>CycleLastTwoExcluded()
+
+	let jumps = getjumplist()[0]
+	let length = len( jumps )
+	let i = length - 1
+
+	while i >= 0
+		let jump = jumps[ i ]
+		let bufnr = get( jump, "bufnr")
+		let bufname = get( getbufinfo( bufnr )[0], "name" )
+
+		if match( bufname, s:exclude_from_jbufs ) > -1 && bufnr != bufnr()
+			execute "try | buffer " . bufnr . " | catch | echo \"Could not buf:\" . v:exception | endtry" 
+			break
+		endif
+
+		let i -= 1
+	endwhile
 
 endfunction
 
@@ -375,7 +402,7 @@ func! <SID>PopupChosen( index )
 			
 	let item = b:marks[a:index]
 	echo item
-	execute "call search('" . item . "')"
+	execute "call search('" . item . "', \"sw\")"
 	let removed = remove(b:marks, a:index - 1, a:index ) 
 
 	let len_removed = len( removed )
@@ -548,8 +575,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map 	<S-Up> :wa<CR>
 
 "	ChangeList
-	map <S-Left>	g;
-	map <S-Right>	g,
+	map { g;
+	map } g,
 	
 
 "	Fast moving
@@ -579,10 +606,11 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call <SID>RefreshAll()<CR>
 	map ;em :call <SID>EditMarksFile()<CR>
-	map { :call <SID>PopupMarksShow()<CR>
-	map } :call <SID>PopupBuffers()<CR>
-	map ] :call <SID>PopupJumps()<CR>
+	map <S-Left> :call <SID>PopupMarksShow()<CR>
+	map <S-Right> :call <SID>PopupBuffers()<CR>
+	map <S-Down> :call <SID>PopupJumps()<CR>
 	map [ :call <SID>ViInitialWorkspace()<CR>
+	map ] :call <SID>CycleLastTwoExcluded()<CR>
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
@@ -807,6 +835,8 @@ endfunction
 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
+let s:exclude_from_jbufs = '\.workspaces$'
+let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 
 echo "Dan.vim has just been loaded"
 
@@ -818,7 +848,6 @@ if exists("s:this_has_been_loaded") == v:false
 "	call <SID>SayHello("Hello!")
 endif
 
-let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 
 "Parked code from here below on, that have not been used lately, superseeded
 "****************************************************************************************************
