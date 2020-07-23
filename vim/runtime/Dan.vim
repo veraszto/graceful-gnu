@@ -279,7 +279,12 @@ endfunction
 function! <SID>ShortcutToNthPertinentJump( which )
 
 	let jumps = <SID>CollectPertinentJumps( a:which )
-	execute "try | buffer " . jumps[ a:which - 1 ]["bufnr"] . 
+	let jump = get( jumps, a:which - 1, {} )
+	if jump == {} 
+		echo "JBufs did not reach length of " . a:which
+		return
+	endif
+	execute "try | buffer " . jump["bufnr"] . 
 				\ " | catch | echo \"Could not buf:\" . v:exception | endtry" 
 
 endfunction
