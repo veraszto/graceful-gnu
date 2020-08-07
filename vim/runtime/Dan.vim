@@ -730,7 +730,7 @@ function! <SID>HiLight()
 	
 	let purple = 55
 	let status_line_background = 237
-	let choose_separator_color = 235
+	let choose_separator_color = 237
 	let date_color = 99
 
 	let highlights =
