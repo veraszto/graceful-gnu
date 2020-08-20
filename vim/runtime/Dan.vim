@@ -66,7 +66,8 @@ function! <SID>LastDir( matter )
 endfunction
 
 function! <SID>BuildStatusLine2()
-	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*%=(%l/%L) byte:%B"
+	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*" . 
+		\ " / %#SameAsExtensionToStatusLine#%{". s:GetSNR() ."getStamp()}%*%=(%c/%l/%L) byte:%B"
 endfunction
 
 
@@ -211,6 +212,21 @@ function! <SID>StrPad( what, with, upto )
 
 endfunction
 
+function! <SID>IsMatched( matter )
+
+	for check in s:exclude_from_jbufs
+
+		let matched = match( a:matter, check )
+		if matched > - 1 
+			return matched
+		endif
+
+	endfor
+
+	return -1
+
+endfunction
+
 function! <SID>CollectPertinentJumps( limit )
 
 	let do_not_repeat = [ bufnr() ]
@@ -229,7 +245,7 @@ function! <SID>CollectPertinentJumps( limit )
 		\(
 			\ count( do_not_repeat, bufnr ) > 0 ||
 			\ len( bufinfo["name"] ) == 0 ||
-			\ match( bufinfo["name"], s:exclude_from_jbufs ) > -1
+			\ <SID>IsMatched( bufinfo["name"] ) > -1
 		\)
 			let i -= 1
 			continue
@@ -300,7 +316,7 @@ function! <SID>CycleLastTwoExcluded()
 		let bufnr = get( jump, "bufnr")
 		let bufname = get( getbufinfo( bufnr )[0], "name" )
 
-		if match( bufname, s:exclude_from_jbufs ) > -1 && bufnr != bufnr()
+		if match( bufname, s:workspaces_pattern ) > -1 && bufnr != bufnr()
 			execute "try | buffer " . bufnr . " | catch | echo \"Could not buf:\" . v:exception | endtry" 
 			break
 		endif
@@ -435,7 +451,7 @@ func! <SID>PopupChosen( index )
 			
 	let item = b:marks[a:index]
 	echo item
-	execute "call search('" . item . "', \"sw\")"
+	call <SID>MakeSearchNoEscape( item, "sw" )
 	let removed = remove(b:marks, a:index - 1, a:index ) 
 
 	let len_removed = len( removed )
@@ -460,9 +476,16 @@ function! <SID>LocalCDAtThisLine()
 
 endfunction
 
-function! <SID>AddBufferAtThisLine( )
+function! <SID>LocalCDAtFirstRoof()
 
-	let this_line = getline(".")
+	let to_lcd = <SID>GetRoofDir()
+	execute "lcd " . to_lcd
+	echo "Current lcd is now " . to_lcd
+
+endfunction
+
+function! <SID>GetRoofDir()
+
 	let line_base = search('^\(\s\|\t\)*\cwe\s*are\s*here\s*:', "bnW")
 	if line_base == 0
 		let dir = getcwd()
@@ -470,6 +493,16 @@ function! <SID>AddBufferAtThisLine( )
 	else
 		let dir = getline( line_base + 1 )
 	endif
+
+	return dir
+
+endfunction
+
+function! <SID>AddBufferAtThisLine( )
+
+	let this_line = getline(".")
+	
+	let dir = <SID>GetRoofDir()
 
 	let built = trim( dir . this_line )
 
@@ -510,15 +543,21 @@ function! <SID>AddBufferAtThisLine( )
 endfunction
 
 
+function! <SID>MakeSearchNoEscape( matter, search_flags )
 
-"\MakeSearch
-function! <SID>MakeSearch(matter)
-	let s = search
-	\(
-		\<SID>MakeEscape(a:matter), 
-		\"s"
-	\)
-	return s
+	call search( a:matter, a:search_flags )
+	
+endfunction
+
+function! <SID>StampThisTypeToStatusLine()
+	let w:stamp_name = <SID>ShowType()
+endfunction
+
+function! <SID>getStamp()
+	if exists("w:stamp_name")
+		return w:stamp_name
+	endif
+	return ""
 endfunction
 
 "\MakeEscape
@@ -527,7 +566,7 @@ func! <SID>MakeEscape(matter)
 	return escape
 		\(
 			\a:matter, 
-			\'\"$ .'
+			\'\" .'
 		\)
 
 endfunction
@@ -654,12 +693,14 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;hs :split<CR><C-W>_
 	map ;ks :keepjumps /
 	map ;l :lcd 
-	map ;u :call <SID>LocalCDAtThisLine()<CR>
+	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
 	map ;pw :pwd<CR>
 	map ;pt :call <SID>GetThisFilePopupMark()<CR>
 	map ;q :quit<CR><C-W>_
 	map ;r :reg<CR>
 	map ;sm :marks<CR>
+	map ;std :call <SID>StampThisTypeToStatusLine()<CR>
+	map ;stc :try <Bar> unlet w:stamp_name <Bar> catch <Bar> echo "Already unstamped" <Bar> endtry<CR>
 	map ;, :tabm0<CR>
 	map ;t :tabnew<CR>
 	map ;vn :vertical new<CR><C-W>\|
@@ -721,9 +762,6 @@ function! <SID>RefreshAll()
 			\ vertical resize
 endfunction
 
-function! <SID>StartCyclingFromBuf1()
-endfunction
-
 function! <SID>HiLight()	
 
 	"Some colors customizations here
@@ -764,8 +802,8 @@ function! <SID>HiLight()
 	highlight MyContinue ctermfg=75
 	highlight MyContinued ctermfg=87
 	
-	highligh MyCategory ctermfg=198 ctermbg=234
-	highligh MySubCategory ctermfg=75 ctermbg=234
+	highligh MyCategory ctermfg=201 ctermbg=234
+	highligh MySubCategory ctermfg=198 ctermbg=234
 	highligh MySeparator ctermfg=234 ctermbg=234
 	highligh Bars ctermfg=99 
 	highligh Extension ctermfg=198 
@@ -868,7 +906,8 @@ endfunction
 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
-let s:exclude_from_jbufs = '\.workspaces$'
+let s:workspaces_pattern = '\.workspaces$'
+let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 
 echo "Dan.vim has just been loaded"
@@ -1078,7 +1117,15 @@ function! <SID>CommitToMark()
 
 endfunction
 
-
+"\MakeSearch
+function! <SID>MakeSearch(matter)
+	let s = search
+	\(
+		\<SID>MakeEscape(a:matter), 
+		\"s"
+	\)
+	return s
+endfunction
 
 
 
