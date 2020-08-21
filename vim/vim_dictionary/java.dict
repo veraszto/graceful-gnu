@@ -3,23 +3,23 @@ import
 
 springframework
 LocationManager
+Exception
+dependency
+dependencies
 
 
+com.google.gson.reflect.TypeToken;
+com.google.gson.Gson;
+java.lang.reflect.Type;
+java.util.Arrays;
+java.util.List;
+org.slf4j.Logger;
+org.slf4j.LoggerFactory;
+org.springframework.beans.factory.annotation.Autowired;
 org.springframework.context.annotation.Bean;
 org.springframework.web.servlet.config.annotation.CorsRegistry;
 org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
-org.slf4j.Logger;
-org.slf4j.LoggerFactory;
 
-java.util.Arrays;
-java.util.List;
 
-org.springframework.beans.factory.annotation.Autowired;
-
-Exception
-
-dependency
-
-dependencies

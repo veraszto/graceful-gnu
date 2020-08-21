@@ -110,6 +110,8 @@ function! <SID>AutoCommands()
       \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
       \ |   exe "normal! g`\""
       \ | endif
+	
+	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
 "	autocmd mine BufRead * call <SID>BoosterNavigation()
 "	autocmd mine BufRead * clearjumps
@@ -120,6 +122,14 @@ function! <SID>AutoCommands()
 	"	\tabm0 | execute "normal \<C-W>H" | 
 	"	\execute "normal \<C-W>|" | normal zz
 	"
+endfunction
+
+function! <SID>InsMenuSelected()
+
+	if complete_info()["mode"] =~ "^dictionary$"  
+		set iskeyword-=.
+	endif
+
 endfunction
 
 "\Sets
@@ -597,7 +607,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 "	Easing autocomplete
 	imap jj <C-X><C-N>
 	imap jn <C-X><C-N>
-	imap jk <C-X><C-K>
+"	iskeyword is put back with -=. at AutoCommand
+	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
 	imap jv <C-X><C-V>
 	imap jf <C-X><C-F>
 
