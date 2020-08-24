@@ -222,6 +222,20 @@ function! <SID>StrPad( what, with, upto )
 
 endfunction
 
+function! <SID>IsMatchedWithStamp( matter )
+
+	if ! exists("w:stamp_name")
+		return 1
+	endif
+
+	if w:stamp_name != <SID>ExtractExtension( a:matter )
+		return -1
+	endif
+
+	return 1
+
+endfunction
+
 function! <SID>IsMatched( matter )
 
 	for check in s:exclude_from_jbufs
@@ -253,9 +267,10 @@ function! <SID>CollectPertinentJumps( limit )
 
 		if
 		\(
-			\ count( do_not_repeat, bufnr ) > 0 ||
-			\ len( bufinfo["name"] ) == 0 ||
-			\ <SID>IsMatched( bufinfo["name"] ) > -1
+				\ count( do_not_repeat, bufnr ) > 0 ||
+				\ len( bufinfo["name"] ) == 0 ||
+				\ <SID>IsMatched( bufinfo["name"] ) > -1 ||
+				\ <SID>IsMatchedWithStamp( bufinfo["name"] ) < 0
 		\)
 			let i -= 1
 			continue
@@ -560,7 +575,7 @@ function! <SID>MakeSearchNoEscape( matter, search_flags )
 endfunction
 
 function! <SID>StampThisTypeToStatusLine()
-	let w:stamp_name = <SID>ShowType()
+	let w:stamp_name = <SID>ExtractExtension( @% )
 endfunction
 
 function! <SID>getStamp()
@@ -918,7 +933,7 @@ endfunction
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
 let s:workspaces_pattern = '\.workspaces$'
-let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts' ]
+let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts$' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 
 echo "Dan.vim has just been loaded"
