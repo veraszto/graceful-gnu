@@ -77,6 +77,8 @@ input *
 	repeat_rate 60
 	xkb_numlock enabled 
 }
+
+
 # You can get the names of your inputs by running: swaymsg -t get_inputs
 # Read `man 5 sway-input` for more information about this section.
 
@@ -247,10 +249,6 @@ bar
 
 default_border none
 
-workspace LeftNonTerminal
-workspace 0
-workspace 1
-
 set $main_left Wrapper.MainLeft
 set $main_right Wrapper.MainRight
 set $inner.readcalmly Inner.ReadCalmly
@@ -298,6 +296,18 @@ set $upper.right
 	exec screen -S $inner.root -X select 1
 }
 
+set $docker1
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 4
+}
+
+set $docker2
+{
+	workspace 0;\
+	exec screen -S $main_right -X select 5
+}
+
 
 bindsym Ctrl+KP_0 workspace 0
 
@@ -323,29 +333,28 @@ bindsym Mod1+Home $upper.middle
 bindsym Ctrl+KP_6 $upper.right
 bindsym Mod1+Prior $upper.right
 
+bindcode Ctrl+86 $docker1
+bindcode Ctrl+129 $docker2
+
 bindsym Ctrl+KP_7 
 {
-	workspace 2;\
-	exec screen -S $main_left -X select 1
+	workspace WithDeveloperTools 
 }
 bindsym Ctrl+KP_8 
 {
-	workspace 2;\
-	exec screen -S $main_left -X select 2
+	
 }
 bindsym Ctrl+KP_9 
 {
-	workspace 2;\
-	exec screen -S $main_left -X select 3
-}
-bindsym Ctrl+1 
-{
-	exec swaynag -m "Hi";\
-	exec swaynag -m "how are you?";
+	workspace DeveloperTools
 }
 
-bindsym Ctrl+KP_Divide workspace LeftNonTerminal
-bindsym Ctrl+KP_Multiply workspace RightNonTerminal
+bindsym Ctrl+1 
+{
+}
+
+bindsym Ctrl+KP_Divide workspace MainNonTerminals
+bindsym Ctrl+KP_Multiply workspace Reading
 
 bindsym $mod+mod4+KP_0 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 0
 bindsym $mod+mod4+KP_1 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 1

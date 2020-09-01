@@ -839,6 +839,8 @@ function! <SID>HiLight()
 	highligh Dirs ctermfg=111
 	highligh FileNamePrefix ctermfg=201
 
+"	highlight! link Comment Extension
+
 	call <SID>MakeMarksPopupHiLight()
 "	highlight default Pmenu 
 "	highlight default PmenuSel
