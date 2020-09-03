@@ -511,15 +511,55 @@ endfunction
 
 function! <SID>GetRoofDir()
 
-	let line_base = search('^\(\s\|\t\)*\cwe\s*are\s*here\s*:', "bnW")
+	let line_base = search( s:we_are_here, "bnW")
 	if line_base == 0
 		let dir = getcwd()
-		echo "The \"We are here:\" to set base dir was not found, using: " . dir
+		echo "The '" . s:we_are_here . "' to set base dir was not found, using: " . dir
 	else
 		let dir = getline( line_base + 1 )
 	endif
 
 	return dir
+
+endfunction
+
+function! <SID>SearchOrAddBufferAtThisLine( )
+	
+	let should_search = match
+	\ ( 
+		\ getline( line(".") - 1 ),
+		\ s:search_by_basic_regex 
+	\ )
+
+	if should_search < 0
+		call <SID>AddBufferAtThisLine( )
+	else
+		call <SID>ItsASearch(  )
+	endif
+
+endfunction
+
+function! <SID>ItsASearch( )
+
+	let this_line = getline(".")
+	let roof = expand( <SID>GetRoofDir() )
+	let build_find = 
+			\ "find " 
+			\ . roof . 
+			\ " | grep \"" . this_line  . "\""
+
+	echo build_find
+
+	let files = systemlist( build_find ) 
+
+	if len( files ) > s:max_file_search
+		echo "Result for " . this_line . 
+				\ " has gone through the limit of " . s:max_file_search .
+				\ " please tune your search better"
+		return
+	endif
+
+	echo files
 
 endfunction
 
@@ -712,7 +752,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
-	map <Space> :call <SID>AddBufferAtThisLine()<CR>
+	map <Space> :call <SID>SearchOrAddBufferAtThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_
 	map ;ju :jumps<CR>
@@ -834,7 +874,10 @@ function! <SID>HiLight()
 	highligh Bars ctermfg=99 
 	highligh Extension ctermfg=198 
 	execute "highligh SameAsExtensionToStatusLine ctermfg=198 ctermbg=" . status_line_background
-	highligh WeAreHere ctermfg=63
+"	highligh WeAreHere ctermfg=63
+	highligh WeAreHere ctermfg=39
+	highligh link SearchFromInside WeAreHere
+	highligh link Regex String
 	highligh Any ctermfg=57
 	highligh Dirs ctermfg=111
 	highligh FileNamePrefix ctermfg=201
@@ -937,6 +980,9 @@ let s:tail_file = '[._[:alnum:]-]\+$'
 let s:workspaces_pattern = '\.workspaces$'
 let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts$' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
+let s:max_file_search = 36
+let s:we_are_here = '^\cwe.are.here:'
+let s:search_by_basic_regex = '^\c.bre.search.{'
 
 echo "Dan.vim has just been loaded"
 
