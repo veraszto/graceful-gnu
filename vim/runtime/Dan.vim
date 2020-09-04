@@ -113,6 +113,9 @@ function! <SID>AutoCommands()
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
+"	autocmd mine TextChangedI,TextChangedP,MenuPopup,CompleteChanged,CompleteDone,CompleteDonePre * 
+"		\ call <SID>StudyAu( deepcopy( v:event ) )
+
 "	autocmd mine BufRead * call <SID>BoosterNavigation()
 "	autocmd mine BufRead * clearjumps
 "	autocmd mine BufEnter * echo expand("%")
@@ -123,6 +126,17 @@ function! <SID>AutoCommands()
 	"	\execute "normal \<C-W>|" | normal zz
 	"
 endfunction
+
+function! <SID>StudyAu( event )
+
+	if ! exists("b:menu")
+		let b:menu = []
+	endif
+
+	call add( b:menu, a:event )
+
+endfunction
+
 
 function! <SID>InsMenuSelected()
 
@@ -511,12 +525,19 @@ endfunction
 
 function! <SID>GetRoofDir()
 
+	let current_dir = getcwd() . "/"
 	let line_base = search( s:we_are_here, "bnW")
 	if line_base == 0
-		let dir = getcwd()
+		let dir = current_dir 
 		echo "The '" . s:we_are_here . "' to set base dir was not found, using: " . dir
 	else
 		let dir = getline( line_base + 1 )
+	endif
+
+	if match( dir, '.\+/$' ) < 0
+		echo dir . " does not seem to be a valid dir, remember to finish with a \"/\" ok?"
+				\ "By now current dir(". current_dir .") is being used"
+		return current_dir 
 	endif
 
 	return dir
@@ -546,11 +567,16 @@ function! <SID>ItsASearch( )
 	let build_find = 
 			\ "find " 
 			\ . roof . 
-			\ " | grep \"" . this_line  . "\""
+			\ " | grep " . this_line
 
 	echo build_find
 
 	let files = systemlist( build_find ) 
+	let b:search_result = []
+	for a in files
+		call add( b:search_result, substitute( a, roof, "", "" ) )
+	endfor
+
 
 	if len( files ) > s:max_file_search
 		echo "Result for " . this_line . 
@@ -559,7 +585,54 @@ function! <SID>ItsASearch( )
 		return
 	endif
 
-	echo files
+	call <SID>BuildSearchMenu( this_line, roof )
+	
+
+endfunction
+
+function! <SID>BuildSearchMenu( is_searching, where )
+	
+	try
+		nunme searchfilesmenu 
+	catch
+	endtry
+
+	for search_file in b:search_result
+
+		let prefix = "(N)"
+		let has_already_been_stamped = search( search_file, "wn")
+		if has_already_been_stamped > 0
+			let prefix = "(A:" . has_already_been_stamped . ")"
+		endif
+
+		let to_execute = 
+			\ "nmenu <silent> searchfilesmenu." . <SID>MakeEscape( prefix . search_file ) . " " . 
+			\ ":try <Bar> call <SID>SearchFileAction(\"" . search_file . "\", \"" . prefix . "\") <Bar> " .
+			\ "catch <Bar> echo \"Could not stamp file\" . v:exception <Bar> endtry<CR>"
+
+		execute to_execute
+
+	endfor
+
+	if len( b:search_result ) > 0
+		popup searchfilesmenu
+	else
+		echo "The search to " . a:is_searching . " in the folder: " . a:where . ","
+				\ "did not return any elligible files"
+	endif
+
+endfunction
+
+function! <SID>SearchFileAction( filename_to_stamp, prefix )
+
+	if match( a:prefix, '.a:\c') > -1
+		let line = matchstr( a:prefix, '\d\+')
+		execute "normal gg" . ( line - 1 ) . "jzz"
+	else
+		let @" = "\n" . a:filename_to_stamp
+		echo a:filename_to_stamp . " has copied to @\", just p in normal mode to paste"
+"		call setline(".", a:filename_to_stamp)
+	endif
 
 endfunction
 
@@ -877,7 +950,8 @@ function! <SID>HiLight()
 "	highligh WeAreHere ctermfg=63
 	highligh WeAreHere ctermfg=39
 	highligh link SearchFromInside WeAreHere
-	highligh link Regex String
+	highligh Regex ctermfg=196
+	highligh RegexWithIn ctermfg=141
 	highligh Any ctermfg=57
 	highligh Dirs ctermfg=111
 	highligh FileNamePrefix ctermfg=201
@@ -981,8 +1055,8 @@ let s:workspaces_pattern = '\.workspaces$'
 let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts$' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
-let s:we_are_here = '^\cwe.are.here:'
-let s:search_by_basic_regex = '^\c.bre.search.{'
+let s:we_are_here = '^\cwe.are.here'
+let s:search_by_basic_regex = '^\c.bre.search'
 
 echo "Dan.vim has just been loaded"
 
