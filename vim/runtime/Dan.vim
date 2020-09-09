@@ -629,12 +629,13 @@ function! <SID>SearchFileAction( filename_to_stamp, prefix )
 		let line = matchstr( a:prefix, '\d\+')
 		execute "normal gg" . ( line - 1 ) . "jzz"
 	else
-		let @" = "\n" . a:filename_to_stamp
+		let @" = a:filename_to_stamp . "\n"
 		echo a:filename_to_stamp . " has copied to @\", just p in normal mode to paste"
 "		call setline(".", a:filename_to_stamp)
 	endif
 
 endfunction
+
 
 function! <SID>AddBufferAtThisLine( )
 
