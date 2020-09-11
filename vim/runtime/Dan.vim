@@ -282,6 +282,7 @@ function! <SID>CollectPertinentJumps( limit )
 		if
 		\(
 				\ count( do_not_repeat, bufnr ) > 0 ||
+				\ bufnr == 0 || 
 				\ len( bufinfo["name"] ) == 0 ||
 				\ <SID>IsMatched( bufinfo["name"] ) > -1 ||
 				\ <SID>IsMatchedWithStamp( bufinfo["name"] ) < 0
@@ -710,6 +711,42 @@ func! <SID>MakeEscape(matter)
 
 endfunction
 
+function! <SID>OpenWorkspace()
+
+	let this_file = expand("%")
+	let is_workspace = match( this_file, s:workspaces_pattern ) 
+	if is_workspace < 0
+		echo "We are not in a workspace file " . s:workspaces_pattern
+		return
+	endif
+	
+	let this_line = line(".")
+
+	let files = []
+
+	normal gg
+
+	let open = search( '^{', "Wn" )
+
+	while 0
+		if open == 0
+			echo "No curly braces to build workspace"
+			break
+		endif
+		let file_line = open + 1
+		while match( getline( file_line ), '^}' ) < 0
+			let a_file = getline( file_line )
+			let ext = match( a_file, s:tail_file )
+			if ! exists( "files[ ext ]" )
+				let files[ ext ] = 
+			endif
+		endwhile
+	endwhile
+
+
+
+endfunction
+
 function! <SID>AfterRuntimeAndDo( what )
 	
 	let l:this_file = expand("%:t") 
@@ -847,6 +884,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;vs :vertical split<CR><C-W>\|
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 	map ;sc :call <SID>ShowMeColors()<CR>
+	map ;o :call <SID>OpenWorkspace()<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 
