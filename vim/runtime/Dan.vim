@@ -56,7 +56,9 @@ function! <SID>ShowType()
 endfunction
 
 function! <SID>ExtractExtension(from)
-	return 	matchstr(a:from, '\.\(\w\|[-?!]\)\+$', "gi")
+
+	return 	matchstr(a:from, s:file_extension )
+
 endfunction
 
 function! <SID>LastDir( matter )
@@ -690,7 +692,9 @@ function! <SID>MakeSearchNoEscape( matter, search_flags )
 endfunction
 
 function! <SID>StampThisTypeToStatusLine()
+
 	let w:stamp_name = <SID>ExtractExtension( @% )
+
 endfunction
 
 function! <SID>getStamp()
@@ -713,37 +717,74 @@ endfunction
 
 function! <SID>OpenWorkspace()
 
+"	let files_to_buffer = <SID>WorkspacesFilesToBuffer()
+	execute 1 . " wincmd k"
+	echo w:stamp_name
+
+endfunction
+
+function! <SID>WorkspacesFilesToBuffer()
+
 	let this_file = expand("%")
 	let is_workspace = match( this_file, s:workspaces_pattern ) 
 	if is_workspace < 0
 		echo "We are not in a workspace file " . s:workspaces_pattern
-		return
+			return
 	endif
-	
+
 	let this_line = line(".")
+	let files = {}
+	call cursor(1, 1)
+	let last_line = line("$")
 
-	let files = []
+	while 1
 
-	normal gg
+		let open = search( '^{', "W" )
 
-	let open = search( '^{', "Wn" )
-
-	while 0
 		if open == 0
-			echo "No curly braces to build workspace"
+			echo "No more curly braces found"
 			break
 		endif
-		let file_line = open + 1
-		while match( getline( file_line ), '^}' ) < 0
-			let a_file = getline( file_line )
-			let ext = match( a_file, s:tail_file )
-			if ! exists( "files[ ext ]" )
-				let files[ ext ] = 
+		
+		let roof = <SID>GetRoofDir()
+
+		let content_line_number = open + 1
+		let content_line_content = getline( content_line_number )
+
+		while 1
+
+			if
+				\ match( content_line_content, '^}' ) >= 0 ||
+				\ content_line_number > last_line
+				break
 			endif
+
+			let ext = <SID>ExtractExtension( content_line_content )
+
+			if len( ext ) == 0
+				let ext = ".ext.less"
+			endif
+
+			if match( ext, s:workspaces_pattern ) > -1
+				let content_line_number += 1
+				let content_line_content = getline( content_line_number )
+				continue
+			endif
+
+			if ! exists( "files[ ext ]" )
+				let files[ ext ] = []
+			endif
+
+			call add( files[ ext ], roof . content_line_content )
+			
+			let content_line_number += 1
+			let content_line_content = getline( content_line_number )
+
+
 		endwhile
 	endwhile
 
-
+	return files
 
 endfunction
 
@@ -1090,6 +1131,7 @@ endfunction
 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
+let s:file_extension = '\.[^./\\]\+$'
 let s:workspaces_pattern = '\.workspaces$'
 let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts$' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
