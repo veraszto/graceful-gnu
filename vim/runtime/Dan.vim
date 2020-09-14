@@ -57,7 +57,7 @@ endfunction
 
 function! <SID>ExtractExtension(from)
 
-	return 	matchstr(a:from, s:file_extension )
+	return 	trim( matchstr(a:from, s:file_extension ) )
 
 endfunction
 
@@ -143,7 +143,7 @@ endfunction
 function! <SID>InsMenuSelected()
 
 	if complete_info()["mode"] =~ "^dictionary$"  
-		set iskeyword-=.
+		set iskeyword-=.,=,\",:,/
 	endif
 
 endfunction
@@ -717,9 +717,81 @@ endfunction
 
 function! <SID>OpenWorkspace()
 
-"	let files_to_buffer = <SID>WorkspacesFilesToBuffer()
-	execute 1 . " wincmd k"
-	echo w:stamp_name
+	let files_to_buffer = <SID>WorkspacesFilesToBuffer()
+
+	if files_to_buffer == {}
+		return
+	endif
+	
+
+	let already_stamped = []
+	let non_stamped = []
+
+	for a in range( 1, winnr("$") )
+		let stamp = getwinvar( a, "stamp_name", -1)
+		if  stamp > -1
+			call add( already_stamped, [ a, win_getid( a ), stamp ] )
+		else
+			call add( non_stamped, [ a, win_getid( a ) ] )
+		endif
+	endfor
+
+
+	for a in already_stamped
+
+		let keys_files_to_buffer = keys( files_to_buffer ) 
+
+		for b in keys_files_to_buffer 
+
+			let files = files_to_buffer[ b ]
+			if b == a[ 2 ]
+				call win_gotoid( a[ 1 ] )
+				for c in files
+					execute "vi " . c
+				endfor
+				call remove( files_to_buffer, b )
+				break
+			endif
+
+		endfor
+
+	endfor
+	
+
+	for a in non_stamped
+
+		let files_groups = keys( files_to_buffer )
+
+		if len( files_groups ) == 0
+			break
+		endif
+
+		let a_key_group = files_groups[ 0 ]
+
+		let files = files_to_buffer[ a_key_group ]
+		call win_gotoid( a[ 1 ] )
+		for c in files
+			execute "vi " . c
+		endfor
+
+		call remove( files_to_buffer, a_key_group )
+
+		call <SID>StampThisTypeToStatusLine()
+
+	endfor
+	
+	let keys_files_to_buffer = keys( files_to_buffer ) 
+
+	for b in keys_files_to_buffer
+		let files = files_to_buffer[ b ]
+		split
+		for c in files
+			execute "vi " . c
+		endfor
+		call <SID>StampThisTypeToStatusLine()
+	endfor
+
+	wincmd _
 
 endfunction
 
@@ -729,22 +801,25 @@ function! <SID>WorkspacesFilesToBuffer()
 	let is_workspace = match( this_file, s:workspaces_pattern ) 
 	if is_workspace < 0
 		echo "We are not in a workspace file " . s:workspaces_pattern
-			return
+			return {}
 	endif
 
 	let this_line = line(".")
 	let files = {}
 	call cursor(1, 1)
 	let last_line = line("$")
+	let curly_groups_found = 0
 
 	while 1
 
 		let open = search( '^{', "W" )
 
 		if open == 0
-			echo "No more curly braces found"
+			echo "Opened " . curly_groups_found . " curly groups of files"
 			break
 		endif
+
+		let curly_groups_found += 1
 		
 		let roof = <SID>GetRoofDir()
 
@@ -765,10 +840,13 @@ function! <SID>WorkspacesFilesToBuffer()
 				let ext = ".ext.less"
 			endif
 
-			if match( ext, s:workspaces_pattern ) > -1
-				let content_line_number += 1
-				let content_line_content = getline( content_line_number )
-				continue
+			if 
+				\ match( ext, s:workspaces_pattern ) > -1 ||
+				\ len( trim( content_line_content  )  ) == 0
+
+					let content_line_number += 1
+					let content_line_content = getline( content_line_number )
+					continue
 			endif
 
 			if ! exists( "files[ ext ]" )
@@ -815,7 +893,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap jj <C-X><C-N>
 	imap jn <C-X><C-N>
 "	iskeyword is put back with -=. at AutoCommand
-	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
+	imap jk <Esc>:set iskeyword+=.,=,\",:,/<CR>a<C-X><C-K>
 	imap jv <C-X><C-V>
 	imap jf <C-X><C-F>
 
@@ -920,7 +998,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;std :call <SID>StampThisTypeToStatusLine()<CR>
 	map ;stc :try <Bar> unlet w:stamp_name <Bar> catch <Bar> echo "Already unstamped" <Bar> endtry<CR>
 	map ;, :tabm0<CR>
-	map ;t :tabnew<CR>
+	map ;t :tabnew \| clearjumps<CR>
 	map ;vn :vertical new<CR><C-W>\|
 	map ;vs :vertical split<CR><C-W>\|
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
