@@ -168,6 +168,7 @@ function! <SID>Sets()
 	set laststatus=2
 	set wmh=0
 	set wmw=0
+	set winheight=999
 	execute "set tabline=%!" . s:GetSNR() . "BuildTabLine2()"
 "	set tabline=%!<SID>BuildTabLine2()
 	execute "set statusline=%!" . s:GetSNR() . "BuildStatusLine2()"
@@ -866,6 +867,31 @@ function! <SID>WorkspacesFilesToBuffer()
 
 endfunction
 
+function! <SID>MoveTo( direction )
+
+	let this_win = winnr()
+	let last_win = winnr("$")
+
+
+	if ( a:direction =~ "^up$" )
+		if this_win > 1
+			wincmd k
+		else
+			wincmd b
+		endif
+	else
+		if this_win < last_win
+			wincmd j
+		else
+			wincmd t
+		endif
+	endif
+
+" As winheight is 999, the option below is not necessary
+"	wincmd _
+
+endfunction
+
 function! <SID>AfterRuntimeAndDo( what )
 	
 	let l:this_file = expand("%:t") 
@@ -898,18 +924,15 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap jf <C-X><C-F>
 
 "   Window Navigation
-	map <C-Up> <C-W>k<C-W>_
-	map <C-Down> <C-W>j<C-W>_
-	map <C-Left> <C-W>h<C-W><Bar>
-	map <C-Right> <C-W>l<C-W><Bar>
-	imap <C-Up> <Esc><C-W>k<C-W>_i
-	imap <C-Down> <Esc><C-W>j<C-W>_i
-	imap <C-Left> <Esc><C-W>h<C-W><Bar>i
-	imap <C-Right> <Esc><C-W>l<C-W><Bar>i
+	map <silent> <C-Up> :call <SID>MoveTo("up")<CR>
+	map <silent> <C-Down> :call <SID>MoveTo("down")<CR>
+	map <C-Left> <C-W>h
+	map <C-Right> <C-W>l
+	imap <silent> <C-Up> <Esc>:call MoveTo("up")<CR>
+	imap <silent> <C-Down> <Esc>:call MoveTo("down")<CR>
+	imap <C-Left> <Esc><C-W>hi
+	imap <C-Right> <Esc><C-W>li
 	
-"	imap <S-C-Left> <Esc><C-W>hi
-"	imap <S-C-Right> <C-W>li
-
 
 "	Buffer Navigation
 	map <S-Tab> :up <Bar> :e#<CR>
