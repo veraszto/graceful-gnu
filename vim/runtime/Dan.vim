@@ -544,7 +544,7 @@ function! <SID>GetRoofDir()
 		return current_dir 
 	endif
 
-	return dir
+	return trim( dir ) 
 
 endfunction
 
@@ -643,14 +643,14 @@ endfunction
 
 function! <SID>AddBufferAtThisLine( )
 
-	let this_line = getline(".")
+	let this_line = trim( getline(".") )
 	
 	let dir = <SID>GetRoofDir()
 
-	let built = trim( dir . this_line )
+	let built = dir . this_line
 
 	if len( trim( this_line ) ) == 0
-		echo "Cannot args " . built 
+		echo "Cannot args an empty line with the roof " . dir
 		return
 	endif
 
@@ -668,11 +668,13 @@ function! <SID>AddBufferAtThisLine( )
 	echon "argadd this: " . built 
 
 	argglobal
+
 	if argc() > 0
 		argd *
 	endif
 	execute "argadd " . built
 	let first_file = argv()[0]
+	wa
 	let to_execute = "buffer " . pattern_prefix . first_file 
 	"echo to_execute
 	try
