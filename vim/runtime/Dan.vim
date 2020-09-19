@@ -143,7 +143,7 @@ endfunction
 function! <SID>InsMenuSelected()
 
 	if complete_info()["mode"] =~ "^dictionary$"  
-		set iskeyword-=.,=,\",:,/
+		set iskeyword-=.
 	endif
 
 endfunction
@@ -921,7 +921,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap jj <C-X><C-N>
 	imap jn <C-X><C-N>
 "	iskeyword is put back with -=. at AutoCommand
-	imap jk <Esc>:set iskeyword+=.,=,\",:,/<CR>a<C-X><C-K>
+"	imap jk <Esc>:set iskeyword+=.,=,\",:,/<CR>a<C-X><C-K>
+	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
 	imap jv <C-X><C-V>
 	imap jf <C-X><C-F>
 
@@ -930,8 +931,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <silent> <C-Down> :call <SID>MoveTo("down")<CR>
 	map <C-Left> <C-W>h
 	map <C-Right> <C-W>l
-	imap <silent> <C-Up> <Esc>:call MoveTo("up")<CR>
-	imap <silent> <C-Down> <Esc>:call MoveTo("down")<CR>
+	imap <silent> <C-Up> <Esc>:call <SID>MoveTo("up")<CR>a
+	imap <silent> <C-Down> <Esc>:call <SID>MoveTo("down")<CR>a
 	imap <C-Left> <Esc><C-W>hi
 	imap <C-Right> <Esc><C-W>li
 	
