@@ -249,26 +249,47 @@ function! <SID>IsMatchedWithStamp( matter )
 		return -1
 	endif
 
-	return 1
+	return 0
 
 endfunction
 
-function! <SID>IsMatched( matter )
+function! <SID>IsMatchedWithExcludeFromTraditionalJBufs( matter )
+
+	let matches = [ 0, -1 ]
+	let counter = 0
 
 	for check in s:exclude_from_jbufs
 
 		let matched = match( a:matter, check )
 		if matched > - 1 
-			return matched
+			let	matches[ 0 ] = 1
+			let	matches[ 1 ] = counter
+			break
 		endif
+
+		let counter += 1
 
 	endfor
 
-	return -1
+	retur matches
 
 endfunction
 
-function! <SID>CollectPertinentJumps( limit )
+
+function! <SID>TraditionalPertinentJumps( bufinfo )
+
+	return <SID>IsMatchedWithExcludeFromTraditionalJBufs( a:bufinfo["name"] )[ 0 ] > 0 ||
+				\ <SID>IsMatchedWithStamp( a:bufinfo["name"] ) < 0
+
+endfunction
+
+function! <SID>WorkspacesPertinentJumps( bufinfo )
+
+	return ! ( <SID>IsMatchedWithExcludeFromTraditionalJBufs( a:bufinfo["name"] )[ 1 ] == 0 )
+
+endfunction
+
+function! <SID>CollectPertinentJumps( limit, what_is_pertinent )
 
 	let do_not_repeat = [ bufnr() ]
 	let jumps = getjumplist()[0]
@@ -287,8 +308,7 @@ function! <SID>CollectPertinentJumps( limit )
 				\ count( do_not_repeat, bufnr ) > 0 ||
 				\ bufnr == 0 || 
 				\ len( bufinfo["name"] ) == 0 ||
-				\ <SID>IsMatched( bufinfo["name"] ) > -1 ||
-				\ <SID>IsMatchedWithStamp( bufinfo["name"] ) < 0
+				\ <SID>{a:what_is_pertinent}PertinentJumps( bufinfo ) == v:true
 		\)
 			let i -= 1
 			continue
@@ -317,7 +337,7 @@ function! <SID>PopupJumps( )
 	catch
 	endtry
 
-	let jumps = <SID>CollectPertinentJumps( -1 )
+	let jumps = <SID>CollectPertinentJumps( -1, "Traditional" )
 
 	for jump in jumps
 
@@ -335,9 +355,34 @@ function! <SID>PopupJumps( )
 
 endfunction
 
+function! <SID>PopupWorkspaces( )
+	
+	try
+		nunme workspaces
+	catch
+	endtry
+
+	let jumps = <SID>CollectPertinentJumps( -1, "Workspaces" )
+
+	for jump in jumps
+
+		execute "nmenu workspaces." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
+			\ ":try <Bar> buffer " . jump["bufnr"]  . " " . 
+			\ "<Bar> catch <Bar> echo \"Could not buf:\" . v:exception <Bar> endtry<CR>" 
+
+	endfor
+
+	if len( jumps ) > 0
+		popup workspaces
+	else
+		echo "No workspaces to fill popup"
+	endif
+
+endfunction
+
 function! <SID>ShortcutToNthPertinentJump( which )
 
-	let jumps = <SID>CollectPertinentJumps( a:which )
+	let jumps = <SID>CollectPertinentJumps( a:which, "Traditional" )
 	let jump = get( jumps, a:which - 1, {} )
 	if jump == {} 
 		echo "JBufs did not reach length of " . a:which
@@ -538,7 +583,7 @@ function! <SID>GetRoofDir()
 		let dir = getline( line_base + 1 )
 	endif
 
-	if match( dir, '.\+/$' ) < 0
+	if match( dir, '/$' ) < 0
 		echo dir . " does not seem to be a valid dir, remember to finish with a \"/\" ok?"
 				\ "By now current dir(". current_dir .") is being used"
 		return current_dir 
@@ -924,7 +969,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 "	imap jk <Esc>:set iskeyword+=.,=,\",:,/<CR>a<C-X><C-K>
 	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
 	imap jv <C-X><C-V>
-	imap jf <C-X><C-F>
+	imap jf <Esc>:call <SID>LocalCDAtFirstRoof()<CR>a<C-X><C-F>
 
 "   Window Navigation
 	map <silent> <C-Up> :call <SID>MoveTo("up")<CR>
@@ -942,6 +987,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	map <Bar> :bprevious<CR>
 	map Z :bnext<CR>
+	map <Del> :echo "Please use \"x\" or \"X\" instead of <Del\>"<CR>
 
 
 "	Commenting and uncommenting
@@ -989,6 +1035,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 
 "	Shortcuts
+
 	map ;a :ab<CR>
 	map ;bl :ls<CR>
 	map ;bu :bu 
@@ -998,12 +1045,16 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call <SID>RefreshAll()<CR>
 	map ;em :call <SID>EditMarksFile()<CR>
+
 	map <S-Left> :call <SID>PopupMarksShow()<CR>
 	map <S-Right> :call <SID>PopupBuffers()<CR>
 	map <S-Down> :call <SID>PopupJumps()<CR>
+	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
+
 	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1 )<CR>
 	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2 )<CR>
-	map [ :call <SID>ViInitialWorkspace()<CR>
+	map <S-C-kDel> :call <SID>ViInitialWorkspace()<CR>
+
 	map ] :call <SID>CycleLastTwoExcluded()<CR>
 	map B :bu<Space>
 	map E :e<CR>
@@ -1116,6 +1167,7 @@ function! <SID>HiLight()
 	
 	execute "highlight DiaryDivisorDate ctermbg=" . choose_separator_color . " ctermfg=" . date_color
 	execute "highlight DiaryDivisor ctermbg=" . choose_separator_color . " ctermfg=" . choose_separator_color
+	execute "highlight CallingAttention ctermbg=" . choose_separator_color . " ctermfg=197"
 	highlight MyActivities ctermfg=177
 	highlight CompanyActivities ctermfg=165
 	highlight BeAware ctermfg=219
@@ -1237,7 +1289,8 @@ let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
 let s:file_extension = '\.[^./\\]\+$'
 let s:workspaces_pattern = '\.workspaces$'
-let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcuts$' ]
+" The order of the array contents below matters
+let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcut$' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\cwe.are.here'

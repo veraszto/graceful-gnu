@@ -88,6 +88,8 @@ input *
 #
     # start a terminal
 	bindsym $mod+Return exec gnome-terminal
+	
+	bindsym $mod+Shift+Return exec google-chrome
 
 	#bindsym $mod+i exec $HOME/git/MyStuff/BashScripts/build.myworkspace/launcher.sh
 
