@@ -342,7 +342,7 @@ function! <SID>PopupJumps( )
 	for jump in jumps
 
 		execute "nmenu jumps." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
-			\ ":try <Bar> buffer " . jump["bufnr"]  . " " . 
+			\ ":wa <Bar> try <Bar> buffer " . jump["bufnr"]  . " " . 
 			\ "<Bar> catch <Bar> echo \"Could not buf:\" . v:exception <Bar> endtry<CR>" 
 
 	endfor
@@ -367,7 +367,7 @@ function! <SID>PopupWorkspaces( )
 	for jump in jumps
 
 		execute "nmenu workspaces." . <SID>MakeEscape( <SID>MakeJump( jump ) ) . " " . 
-			\ ":try <Bar> buffer " . jump["bufnr"]  . " " . 
+			\ ":wa <Bar> try <Bar> buffer " . jump["bufnr"]  . " " . 
 			\ "<Bar> catch <Bar> echo \"Could not buf:\" . v:exception <Bar> endtry<CR>" 
 
 	endfor
@@ -380,12 +380,12 @@ function! <SID>PopupWorkspaces( )
 
 endfunction
 
-function! <SID>ShortcutToNthPertinentJump( which )
+function! <SID>ShortcutToNthPertinentJump( nth, filter )
 
-	let jumps = <SID>CollectPertinentJumps( a:which, "Traditional" )
-	let jump = get( jumps, a:which - 1, {} )
+	let jumps = <SID>CollectPertinentJumps( a:nth, a:filter )
+	let jump = get( jumps, a:nth - 1, {} )
 	if jump == {} 
-		echo "JBufs did not reach length of " . a:which
+		echo "JBufs did not reach length of " . a:nth
 		return
 	endif
 	execute "try | buffer " . jump["bufnr"] . 
@@ -439,7 +439,7 @@ function! <SID>PopupBuffers()
 			continue
 		endif
 		execute "nmenu buffers." . <SID>MakeEscape( <SID>BuildBufferPopupItem( buffer ) ) . 
-			\ " :buffer" . get(buffer, "bufnr")  . "<CR>"
+			\ " :wa <Bar> buffer" . get(buffer, "bufnr")  . "<CR>"
 		let counter += 1
 	endfor
 	if counter > 0
@@ -839,7 +839,8 @@ function! <SID>OpenWorkspace()
 		call <SID>StampThisTypeToStatusLine()
 	endfor
 
-	wincmd _
+"No need as winheight is set to 999 and winminheight to 0
+"	wincmd _
 
 endfunction
 
@@ -1051,11 +1052,20 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <S-Down> :call <SID>PopupJumps()<CR>
 	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
 
-	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1 )<CR>
-	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2 )<CR>
-	map <S-C-kDel> :call <SID>ViInitialWorkspace()<CR>
+	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Traditional" )<CR>
+	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Traditional" )<CR>
+	map <S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Traditional" )<CR>
+	map <S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Traditional" )<CR>
 
-	map ] :call <SID>CycleLastTwoExcluded()<CR>
+	map <C-S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Workspaces" )<CR>
+	map <C-S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Workspaces" )<CR>
+	map <C-S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Workspaces" )<CR>
+	map <C-S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Workspaces" )<CR>
+
+	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
+
+"	map ] :call <SID>CycleLastTwoExcluded()<CR>
+
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
@@ -1192,6 +1202,16 @@ function! <SID>HiLight()
 	highligh Dirs ctermfg=111
 	highligh FileNamePrefix ctermfg=201
 
+"	highligh link WorkspacesMetaData FileNamePrefix
+"	highligh link WorkspacesMetaDataEnclosure Any 
+"	highligh link WorkspacesMetaDataContainer FileNamePrefix
+"	highligh link WorkspacesCurlyBraces Extension
+
+	highligh WorkspacesMetaDataEnclosure ctermfg=45
+	highligh WorkspacesMetaDataContainer ctermfg=81 
+	highligh WorkspacesMetaData ctermfg=84
+	highligh WorkspacesCurlyBraces ctermfg=45
+
 "	highlight! link Comment Extension
 
 	call <SID>MakeMarksPopupHiLight()
@@ -1293,8 +1313,8 @@ let s:workspaces_pattern = '\.workspaces$'
 let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcut$' ]
 let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
-let s:we_are_here = '^\cwe.are.here'
-let s:search_by_basic_regex = '^\c.bre.search'
+let s:we_are_here = '^\[\(we.are.here\|base\)\]'
+let s:search_by_basic_regex = '^\[search\]'
 
 echo "Dan.vim has just been loaded"
 
