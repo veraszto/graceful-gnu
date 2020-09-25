@@ -902,7 +902,7 @@ function! <SID>WorkspacesFilesToBuffer()
 				let files[ ext ] = []
 			endif
 
-			call add( files[ ext ], roof . content_line_content )
+			call add( files[ ext ], roof . trim( content_line_content ) )
 			
 			let content_line_number += 1
 			let content_line_content = getline( content_line_number )
@@ -1266,10 +1266,12 @@ function! <SID>ShowMeColors()
 endfunction
 
 function! <SID>MakeAbbreviations()
+
 	"Some iabs here
 	iabc
 	iabc <buffer>
 	iab ht <Esc>:call <SID>MakeHTML()<CR>i
+
 endfunction
 
 function! <SID>CopyRegisterToFileAndClipboard(register)
