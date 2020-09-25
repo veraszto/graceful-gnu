@@ -10,6 +10,7 @@ getElementById
 getElementsByClassName
 getElementsByTagName
 innerHTML
+outerHTML
 keydown
 keyup
 parentElement

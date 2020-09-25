@@ -24,11 +24,8 @@ what i was trying to do was to logically organize my workspace, which Sway is fu
 
 This is a vim script which i have been writting to tackle file editing/access to the best.
 
-It is intended to open buffers vertically in the same window whose type/extension are the same. Navigating with Ctrl+(Left|Right) arrows.
+Its documentation is being written [here](https://github.com/veraszto/GracefulGNU/wiki/Dan.vim)
 
-Navigation with a custom popup(normal F) and though arrows using Shift+(Left|Right) arrows and down arrow to confirm while in normal mode.
-
-;ms in normal mode in a satisfied(search for acceptable_mark in Dan.vim, it is something like this //\ToMark) string to mark it into the popup.
 
 
 ## Build Workspace

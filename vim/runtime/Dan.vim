@@ -108,10 +108,7 @@ function! <SID>AutoCommands()
 	au! BufRead *
 	au! filetypedetect BufRead *
 
-	autocmd BufReadPost *
-      \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
-      \ |   exe "normal! g`\""
-      \ | endif
+	autocmd mine BufReadPost * normal g'"zz
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
@@ -143,7 +140,7 @@ endfunction
 function! <SID>InsMenuSelected()
 
 	if complete_info()["mode"] =~ "^dictionary$"  
-		set iskeyword-=.
+"		set iskeyword-=.
 	endif
 
 endfunction
@@ -968,7 +965,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap jn <C-X><C-N>
 "	iskeyword is put back with -=. at AutoCommand
 "	imap jk <Esc>:set iskeyword+=.,=,\",:,/<CR>a<C-X><C-K>
-	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
+"	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
+	imap jk <C-X><C-K>
 	imap jv <C-X><C-V>
 	imap jf <Esc>:call <SID>LocalCDAtFirstRoof()<CR>a<C-X><C-F>
 
