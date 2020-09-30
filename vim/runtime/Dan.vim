@@ -947,6 +947,18 @@ function! <SID>AfterRuntimeAndDo( what )
 
 endfunction
 
+function! s:AFunction()
+	echo "Hello"
+endfunction
+
+function! <SID>SharpSplits( JK )
+
+	split
+	execute "wincmd " . a:JK
+	call <SID>ShortcutToNthPertinentJump( 1, "Workspaces" )
+
+endfunction
+
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
@@ -956,6 +968,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 "	imapclear
 	mapclear <buffer>
 	imapclear <buffer>
+
+"	map ;L :call <SID>Afunction()<CR>
 	
 "	Avoiding insert/replace toggle
 	inoremap <Insert> <Esc>a
@@ -1063,6 +1077,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
 
 "	map ] :call <SID>CycleLastTwoExcluded()<CR>
+	
+	map ;J :call <SID>SharpSplits("J")<CR>
+	map ;K :call <SID>SharpSplits("K")<CR>
 
 	map B :bu<Space>
 	map E :e<CR>
@@ -1083,7 +1100,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;std :call <SID>StampThisTypeToStatusLine()<CR>
 	map ;stc :try <Bar> unlet w:stamp_name <Bar> catch <Bar> echo "Already unstamped" <Bar> endtry<CR>
 	map ;, :tabm0<CR>
-	map ;t :tabnew \| clearjumps<CR>
+	map ;t :tabnew \| clearjumps \| call <SID>ViInitialWorkspace()<CR>
 	map ;vn :vertical new<CR><C-W>\|
 	map ;vs :vertical split<CR><C-W>\|
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
