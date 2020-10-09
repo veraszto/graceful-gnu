@@ -298,14 +298,20 @@ function! <SID>CollectPertinentJumps( limit, what_is_pertinent )
 
 		let jump = get( jumps, i )
 		let bufnr = jump["bufnr"]
-		let bufinfo = getbufinfo( bufnr )[0]
+		let buf = getbufinfo( bufnr )
+		
+		if len( buf ) == 0
+			let i -= 1
+			continue			
+		endif
+
+		let bufinfo = buf[0]
 
 		if
 		\(
 				\ count( do_not_repeat, bufnr ) > 0 ||
 				\ bufnr == 0 || 
 				\ len( bufinfo["name"] ) == 0 ||
-				\ bufinfo["listed"]  == 0 ||
 				\ <SID>{a:what_is_pertinent}PertinentJumps( bufinfo ) == v:true
 		\)
 			let i -= 1
