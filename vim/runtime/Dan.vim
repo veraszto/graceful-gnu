@@ -305,6 +305,7 @@ function! <SID>CollectPertinentJumps( limit, what_is_pertinent )
 				\ count( do_not_repeat, bufnr ) > 0 ||
 				\ bufnr == 0 || 
 				\ len( bufinfo["name"] ) == 0 ||
+				\ bufinfo["listed"]  == 0 ||
 				\ <SID>{a:what_is_pertinent}PertinentJumps( bufinfo ) == v:true
 		\)
 			let i -= 1
@@ -385,7 +386,8 @@ function! <SID>ShortcutToNthPertinentJump( nth, filter )
 		echo "JBufs did not reach length of " . a:nth
 		return
 	endif
-	execute "try | buffer " . jump["bufnr"] . 
+
+	execute "try | wa | buffer " . jump["bufnr"] . 
 				\ " | catch | echo \"Could not buf:\" . v:exception | endtry" 
 
 endfunction
@@ -773,6 +775,17 @@ function! <SID>OpenWorkspace()
 	let non_stamped = []
 
 	for a in range( 1, winnr("$") )
+
+		let this_window_cur_buffer = getbufinfo( winbufnr( a ) )[ 0 ]
+		if this_window_cur_buffer[ "changed" ] == 1
+
+			echo "Please save buf " . this_window_cur_buffer["bufnr"] . ", " .
+					\ matchstr( this_window_cur_buffer[ "name" ], s:tail_file ) . 
+					\ ", before trying to open " .
+					\ " the \n{ \n\tembraced files \n}"
+			return
+		endif
+
 		let stamp = getwinvar( a, "stamp_name", -1)
 		if  stamp > -1
 			call add( already_stamped, [ a, win_getid( a ), stamp ] )
