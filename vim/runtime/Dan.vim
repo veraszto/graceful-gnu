@@ -1103,6 +1103,11 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map B :bu<Space>
 	map E :e<CR>
 	map V EG
+
+	map P :set paste! <Bar> 
+			\ if &paste == 0 <Bar> echo "Paste mode is OFF" 
+			\ <Bar> else <Bar> echo "Paste mode is ON" <Bar> endif <CR>
+
 	map <Space> :call <SID>SearchOrAddBufferAtThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_
