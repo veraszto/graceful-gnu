@@ -145,13 +145,14 @@ function! <SID>InsMenuSelected()
 
 endfunction
 
+
 "\Sets
 function! <SID>Sets()
-	set autoindent
+	set autoindent	
 	set smartindent
 	set title
-	set tabstop=4
-	set shiftwidth=4
+	set tabstop=4	
+	set shiftwidth=0 "So takes the value of 'ts'
 	set scrolloff=5
 	set noloadplugins
 	set nohlsearch
@@ -220,6 +221,7 @@ function! <SID>ReadFromFile( file, create )
 		echo "Creating " . a:file
 		call <SID>WriteToFile( [], a:file )
 	endif
+
 	return []
 
 endfunction
@@ -483,7 +485,7 @@ func! <SID>PopupMarksShow()
 			\ <SID>ReadFromFile
 			\ ( 
 				\ <SID>GetThisFilePopupMark(), 
-				\ v:true 
+				\ v:false 
 			\ )
 
 	endif

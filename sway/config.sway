@@ -90,6 +90,7 @@ input *
 	bindsym $mod+Return exec gnome-terminal
 	bindsym $mod+Shift+Return exec google-chrome
 	bindsym $mod+Shift+n exec nautilus
+	bindsym $mod+Shift+f exec firefox
 
 	#bindsym $mod+i exec $HOME/git/MyStuff/BashScripts/build.myworkspace/launcher.sh
 
