@@ -1,0 +1,12 @@
+<beans
+
+	xmlns="http://www.springframework.com/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:schemaLocation="http://www.springframework/schema/beans
+	http://www.springframework/schema/beans/spring-beans.xsd"
+>
+
+
+
+</bean>
+

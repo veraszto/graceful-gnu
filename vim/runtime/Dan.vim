@@ -105,25 +105,17 @@ function! <SID>AutoCommands()
 		au!
 	aug END
 
-	au! BufRead *
-	au! filetypedetect BufRead *
+"	au! BufRead *
+"	au! filetypedetect BufRead *
 
 	autocmd mine BufReadPost * normal g'"zz
+
+	autocmd mine BufRead *.yaml set expandtab | set tabstop=2
+	
+	autocmd mine BufRead * call <SID>SetDict( expand("<afile>") )
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
-"	autocmd mine TextChangedI,TextChangedP,MenuPopup,CompleteChanged,CompleteDone,CompleteDonePre * 
-"		\ call <SID>StudyAu( deepcopy( v:event ) )
-
-"	autocmd mine BufRead * call <SID>BoosterNavigation()
-"	autocmd mine BufRead * clearjumps
-"	autocmd mine BufEnter * echo expand("%")
-"	autocmd mine BufEnter * normal zz
-
-	"autocmd  mine BufWrite * 
-	"	\tabm0 | execute "normal \<C-W>H" | 
-	"	\execute "normal \<C-W>|" | normal zz
-	"
 endfunction
 
 function! <SID>StudyAu( event )
@@ -139,8 +131,11 @@ endfunction
 
 function! <SID>InsMenuSelected()
 
+" 	Turn on verbose to help, set verbose=9
+
 	if complete_info()["mode"] =~ "^dictionary$"  
-"		set iskeyword-=.
+		set iskeyword&
+		set iskeyword+=-
 	endif
 
 endfunction
@@ -190,13 +185,12 @@ endfunction
 
 function! <SID>StartUp()
 
-	let s:base_path = expand("~/") . "/git" 
 	call <SID>Sets()	
 	call <SID>AutoCommands()
 	call <SID>HiLight()
 	call <SID>MakeAbbreviations()
 	call <SID>MakeMappings()
-	call <SID>SetDict()
+"	call <SID>SetDict()
 	echo "StartUp has been called"
 
 endfunction
@@ -998,9 +992,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 "	Easing autocomplete
 	imap jj <C-X><C-N>
 	imap jn <C-X><C-N>
-"	iskeyword is put back with -=. at AutoCommand
-"	imap jk <Esc>:set iskeyword+=.,=,\",:,/<CR>a<C-X><C-K>
-"	imap jk <Esc>:set iskeyword+=.<CR>a<C-X><C-K>
+"	iskeyword is put back at AutoCommand
+	imap jp <Esc>:set iskeyword=21-125<CR>a<C-X><C-K>
 	imap jk <C-X><C-K>
 	imap jv <C-X><C-V>
 	imap jf <Esc>:call <SID>LocalCDAtFirstRoof()<CR>a<C-X><C-F>
@@ -1014,7 +1007,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap <silent> <C-Down> <Esc>:call <SID>MoveTo("down")<CR>a
 	imap <C-Left> <Esc><C-W>hi
 	imap <C-Right> <Esc><C-W>li
-	
 
 "	Buffer Navigation
 	map <S-Tab> :up <Bar> :e#<CR>
@@ -1148,11 +1140,30 @@ function! <SID>ViInitialWorkspace()
 	endtry
 endfunction
 
-function! <SID>SetDict()
-	let set_dict = 
-		\"set dictionary=" . 
-		\join(expand(s:base_path . "/GracefulGNU/" . "vim/vim_dictionary/*", 0, 1), ",")
-	execute set_dict
+function! <SID>SetDict( file )
+
+	let potential_dicts = expand
+			\ ( s:base_path . "/vim/vim_dictionary/*", 1, 1)
+
+	let selected = []
+	let this_type = matchstr( a:file, s:file_extension )
+
+	if len( this_type ) == 0
+"		echo "len(this_type) empty"
+		return
+	endif
+
+	for a in potential_dicts
+		let type = matchstr( a, s:tail_file )		
+		if match( type, this_type ) >= 0
+			call add( selected, a )
+		endif
+	endfor
+
+"	echo selected
+
+	execute "setlocal dictionary=" . join( selected, "," )
+
 endfunction
 
 function! <SID>SourceCurrent_ifVim()
@@ -1348,6 +1359,7 @@ function! PopupCreate()
 endfunction
 
 
+let s:base_path = expand("~") . "/git/GracefulGNU/" 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
 let s:file_extension = '\.[^./\\]\+$'
