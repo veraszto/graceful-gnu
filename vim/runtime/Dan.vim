@@ -196,15 +196,25 @@ function! <SID>StartUp()
 endfunction
 
 function! <SID>WriteToFile( content, file )
+
+	if a:file == v:false
+		return
+	endif
+
 	try
 		return writefile( a:content, a:file )
 	catch
-		echo "Could not write to file, " . file . ", " . v:exception
-		return []
+		echo "Could not write to file, " . a:file . ", " . v:exception
+		return 
 	endtry
 endfunction
 
 function! <SID>ReadFromFile( file, create )
+
+	if a:file == v:false
+		return []
+	endif
+
 	try
 		return readfile( a:file )
 	catch
@@ -462,9 +472,15 @@ function! <SID>BuildBufferPopupItem( buffer )
 endfunction
 
 function! <SID>GetThisFilePopupMark()
-	let file = expand("~/.vim/" . $USER . "_popup_marks/shortcuts/") . expand("%:t") . ".vim.shortcut"
-	echo "GetThisFilePopupMark: " . file
-	return file 
+
+	try
+		let file = expand( s:popup_marks_dir ) . expand("%:t") . ".vim.shortcut"
+		echo "GetThisFilePopupMark: " . file
+		return file 
+	catch
+		echo "Could not reach file, " . v:exception
+	endtry
+
 endfunction
 
 function! <SID>EditMarksFile()
