@@ -197,10 +197,6 @@ endfunction
 
 function! <SID>WriteToFile( content, file )
 
-	if a:file == v:false
-		return
-	endif
-
 	try
 		return writefile( a:content, a:file )
 	catch
@@ -210,10 +206,6 @@ function! <SID>WriteToFile( content, file )
 endfunction
 
 function! <SID>ReadFromFile( file, create )
-
-	if a:file == v:false
-		return []
-	endif
 
 	try
 		return readfile( a:file )
@@ -473,28 +465,47 @@ endfunction
 
 function! <SID>GetThisFilePopupMark()
 
+	if ! exists( "s:popup_marks_dir" )
+		echo "Please define s:popup_marks_dir, like s:popup_marks_dir=~/.vim/popup_marks"
+		return 
+	endif
+
+	let to_expand = s:popup_marks_dir . expand("%:t") . ".vim.shortcut"
+
 	try
-		let file = expand( s:popup_marks_dir ) . expand("%:t") . ".vim.shortcut"
+		let file = expand( to_expand )
 		echo "GetThisFilePopupMark: " . file
 		return file 
 	catch
-		echo "Could not reach file, " . v:exception
+		echo "Could not reach file, " . to_expand . ", " . v:exception
 	endtry
 
 endfunction
 
 function! <SID>EditMarksFile()
-	execute "vi " . <SID>GetThisFilePopupMark()
+
+	let file_popup = <SID>GetThisFilePopupMark()
+	if file_popup == v:false
+		return
+	endif
+	execute "vi " . file_popup
+
 endfunction
 
 func! <SID>PopupMarksShow()
 
 	if !exists("b:marks")
 
+		let popup_file = <SID>GetThisFilePopupMark()
+
+		if popup_file == v:false
+			return
+		endif
+
 		let b:marks = 
 			\ <SID>ReadFromFile
 			\ ( 
-				\ <SID>GetThisFilePopupMark(), 
+				\ popup_file, 
 				\ v:false 
 			\ )
 
@@ -567,7 +578,13 @@ func! <SID>PopupChosen( index )
 
 	normal zz
 
-	call <SID>WriteToFile( b:marks, <SID>GetThisFilePopupMark() )
+	let popup_file = <SID>GetThisFilePopupMark()
+
+	if popup_file == v:false
+		return
+	endif
+
+	call <SID>WriteToFile( b:marks, popup_file )
 	
 endfunction
 
@@ -1388,6 +1405,7 @@ let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
 
 echo "Dan.vim has just been loaded"
+
 
 if exists("s:this_has_been_loaded") == v:false
 	let s:this_has_been_loaded = v:true
