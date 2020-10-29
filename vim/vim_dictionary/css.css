@@ -94,6 +94,8 @@ position:fixed;
 position:relative;
 right:0;
 stroke:Crimson;
+stroke-dasharray:100;
+stroke-dashoffset:100;
 stroke-linecap:butt;
 stroke-width:10;
 text-align:center;
