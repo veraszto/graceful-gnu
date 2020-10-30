@@ -1352,9 +1352,6 @@ endfunction
 
 function! <SID>MakeAbbreviations()
 
-	"Some iabs here
-	iabc
-	iabc <buffer>
 	iab ht <Esc>:call <SID>MakeHTML()<CR>i
 
 endfunction

@@ -10,6 +10,7 @@ function! <SID>MyMakeAbbreviations()
 	"Special
 	iab cla class="hello"<Esc>bve
 	iab sout setTimeout<CR>(<CR><Tab>function( ev )<CR>{<CR>}, <CR>);<Home><Del>
+	iab linkrel <link rel="icon" type="image/png" href="images/common/link_rel_icon.png?2" />
 
 	iab mdep <dependency><CR><Tab>
 			\<groupId></groupId><CR><artifactId></artifactId><CR>
@@ -40,6 +41,7 @@ function! <SID>MyMakeAbbreviations()
 	iab rt return true;
 	"CSS
 
+	iab csskeyframes @keyframes SlowAndSteadyWinsTheRace<CR>{<CR>from<CR>{<CR>}<CR>to<CR>{<CR>}<CR>}<Esc>8kfSve
 	iab ad animation-duration:1000ms;
 	iab ade animation-delay:1000ms;
 	iab afm animation-fill-mode:forwards;
@@ -105,7 +107,7 @@ function! <SID>MyMakeAbbreviations()
 	iab jc justify-content:center;<Left>
 	iab le left:0;<Left>
 	iab lh line-height:1;<Left>
-	iab ma margin:1em;<Left>
+	iab mg margin:1em;<Left>
 	iab mb margin-bottom:1em;<Left>
 	iab mc /*****Section******/<Esc>3bfSve
 	iab ml margin-left:1em;<Left>
