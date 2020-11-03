@@ -100,6 +100,10 @@ function! <SID>AutoCommands()
 	aug mine
 		au!
 	aug END
+	
+	aug my_overlays
+		au!
+	aug END
 
 	aug fedora
 		au!
@@ -112,9 +116,15 @@ function! <SID>AutoCommands()
 
 	autocmd mine BufRead *.yaml set expandtab | set tabstop=2
 	
-	autocmd mine BufRead * call <SID>SetDict( expand("<afile>") )
+	autocmd mine BufRead * call <SID>SetDict( )
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
+
+	autocmd my_overlays WinEnter *
+		\ call <SID>RefreshingOverlays( "WinEnter" )
+	
+	autocmd my_overlays BufRead *
+		\ call <SID>RefreshingOverlays( "BufRead" )
 
 endfunction
 
@@ -419,8 +429,8 @@ endfunction
 
 function! <SID>MakeJump( jump )
 
-	let built = "jbuf: " . 
-		\ <SID>StrPad( a:jump["bufnr"], " ", 3 ) . 
+	let built =  "b:" .
+		\ <SID>StrPad( a:jump["bufnr"], " ", 4 ) . 
 		\ matchstr( bufname( a:jump["bufnr"] ), s:tail_file )
 	return built
 
@@ -470,7 +480,7 @@ function! <SID>GetThisFilePopupMark()
 		return 
 	endif
 
-	let to_expand = s:popup_marks_dir . expand("%:t") . ".vim.shortcut"
+	let to_expand = s:popup_marks_dir . "/" . expand("%:t") . ".vim.shortcut"
 
 	try
 		let file = expand( to_expand )
@@ -1173,13 +1183,13 @@ function! <SID>ViInitialWorkspace()
 	endtry
 endfunction
 
-function! <SID>SetDict( file )
+function! <SID>SetDict( )
 
 	let potential_dicts = expand
 			\ ( s:base_path . "/vim/vim_dictionary/*", 1, 1)
 
 	let selected = []
-	let this_type = matchstr( a:file, s:file_extension )
+	let this_type = matchstr( expand("<afile>"), s:file_extension )
 
 	if len( this_type ) == 0
 "		echo "len(this_type) empty"
@@ -1384,11 +1394,142 @@ function! <SID>SayHello( msg )
 
 endfunction
 
-function! PopupCreate()
+function! <SID>PopupCreate( what, config, name )
 	"
+	let tabnr = tabpagenr()
+	let tabname = "tab" . tabnr
+
+	let popup = popup_create( a:what, a:config )
+	let s:popup_winids[ tabname ][ join( a:name, "" ) ] = [ popup, winbufnr( popup ) ]
+
+
+endfunction
+
+function! <SID>HideAndShowPopups( name )
+
+	let tabnr = tabpagenr()
+	let tabname = "tab" . tabnr
+	let str_name = join( a:name, "" )
+
+
+	for key in keys( s:popup_winids[ tabname ] )
+
+		if str_name == key
+			call popup_show( s:popup_winids[ tabname ][ key ][ 0 ] )
+
+		else
+			call popup_hide( s:popup_winids[ tabname ][ key ][ 0 ] )
+		endif
+
+	endfor
+
+endfunction
+
+function! <SID>PopupExists( name )
+	
+	let tabnr = tabpagenr()
+	let tabname = "tab" . tabnr
+	let str_name = join( a:name, "" )
+
+	if has_key( s:popup_winids, tabname )
+		
+		if has_key( s:popup_winids[ tabname ], str_name  )
+			return s:popup_winids[ tabname ][ str_name ]
+		endif
+	else
+		let s:popup_winids[ tabname ] = {}
+	endif
+
+	return []
+
+endfunction
+
+function! <SID>RefreshingOverlays( event )
+
+	echo s:popup_winids
+
+	let types = [ "Traditional", "Workspaces" ]
+	let type = <SID>ExtractExtension( expand( "<afile>" . ":t") )
+
+	let name = [ "jbuf", types[ 0 ], ".", winnr() ]
+
+"	if type =~? 'workspaces$'
+"		let name[ 1 ] = types[ 1 ]
+"	endif
+
+	echo a:event . type . join( name, "" )
+
+	let popup_exists = <SID>PopupExists( name )
+
+	let len_popup = len( popup_exists )
+
+	echo popup_exists
+
+	if a:event =~? "^winenter$" && len_popup > 0 
+
+		call <SID>HideAndShowPopups( name )
+
+	else
+
+		let jumps = <SID>BuildJBufs( types[0] )
+
+
+		if  len_popup == 0
+
+			call <SID>PopupConfigThenCreate( jumps, name )
+			call <SID>HideAndShowPopups( name )
+
+		else
+
+			call <SID>UpdateOverlay( popup_exists[ 0 ], jumps )
+
+		endif
+
+	endif
+
+endfunction
+
+function! <SID>PopupConfigThenCreate( content, name )
+
+	call <SID>PopupCreate
+	\ ( 
+		\ a:content, 
+		\ #{
+			\ pos: "topright",
+			\ line: 2,
+			\ highlight: "Bars",
+			\ col: 999
+		\ },
+		\ a:name 
+	\ )
+
+endfunction
+
+function! <SID>BuildJBufs( type )
+
+	let jumps = <SID>CollectPertinentJumps( -1, a:type )
+	let jumps_improved = []
+	let counter = 1
+	for jump in jumps
+		call add( jumps_improved, counter . "/" . <SID>MakeJump( jump ) )
+		let counter += 1
+	endfor
+
+	return jumps_improved
+
+endfunction
+
+function! <SID>UpdateOverlay( which, content )
+	
+	call popup_settext
+			\ ( 
+				\ a:which, a:content 
+			\ )
+
 endfunction
 
 
+let s:popup_marks_dir = "~/git/MyStuff/vim/popup.shortcuts"
 let s:base_path = expand("~") . "/git/GracefulGNU/" 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
@@ -1400,9 +1541,12 @@ let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
+let s:popup_winids = {}
+
 
 echo "Dan.vim has just been loaded"
 
+call popup_clear()
 
 if exists("s:this_has_been_loaded") == v:false
 	let s:this_has_been_loaded = v:true
