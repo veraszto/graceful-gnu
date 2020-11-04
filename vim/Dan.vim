@@ -120,11 +120,11 @@ function! <SID>AutoCommands()
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
-	autocmd my_overlays WinEnter *
-		\ call <SID>RefreshingOverlays( "WinEnter" )
+"	autocmd my_overlays WinEnter *
+"		\ call <SID>RefreshingOverlays( "WinEnter" )
 	
-	autocmd my_overlays BufRead *
-		\ call <SID>RefreshingOverlays( "BufRead" )
+"	autocmd my_overlays BufRead *
+"		\ call <SID>RefreshingOverlays( "BufRead" )
 
 endfunction
 
@@ -349,7 +349,7 @@ function! <SID>PopupJumps( )
 	catch
 	endtry
 
-	let jumps = <SID>CollectPertinentJumps( -1, "Traditional" )
+	let jumps = <SID>ChooseBestPlaceToGetJumps( -1, "Traditional" )
 
 	for jump in jumps
 
@@ -363,6 +363,20 @@ function! <SID>PopupJumps( )
 		popup jumps
 	else
 		echo "No jumps to fill the list popup"
+	endif
+
+endfunction
+
+function! <SID>ChooseBestPlaceToGetJumps( limit, type )
+
+	let name = <SID>BuildOverlayNameArray( a:type )
+
+	let popup_exists = <SID>PopupExists( name )
+
+	if len( popup_exists ) == 0
+		return <SID>CollectPertinentJumps( a:limit, a:type )
+	else
+		return popup_exists[ 1 ]
 	endif
 
 endfunction
@@ -1394,13 +1408,16 @@ function! <SID>SayHello( msg )
 
 endfunction
 
+function! <SID>BuildOverlayTabName()
+endfunction
+
 function! <SID>PopupCreate( what, config, name )
 	"
 	let tabnr = tabpagenr()
 	let tabname = "tab" . tabnr
 
-	let popup = popup_create( a:what, a:config )
-	let s:popup_winids[ tabname ][ join( a:name, "" ) ] = [ popup, winbufnr( popup ) ]
+	let popup = popup_create( a:what[ 0 ], a:config )
+	let s:popup_winids[ tabname ][ join( a:name, "" ) ] = [ popup, a:what[ 1 ] ]
 
 
 endfunction
@@ -1451,13 +1468,11 @@ function! <SID>RefreshingOverlays( event )
 	let types = [ "Traditional", "Workspaces" ]
 	let type = <SID>ExtractExtension( expand( "<afile>" . ":t") )
 
-	let name = [ "jbuf", types[ 0 ], ".", winnr() ]
+	let name = <SID>BuildOverlayNameArray( types[ 0 ] )
 
 "	if type =~? 'workspaces$'
 "		let name[ 1 ] = types[ 1 ]
 "	endif
-
-	echo a:event . type . join( name, "" )
 
 	let popup_exists = <SID>PopupExists( name )
 
@@ -1481,11 +1496,17 @@ function! <SID>RefreshingOverlays( event )
 
 		else
 
-			call <SID>UpdateOverlay( popup_exists[ 0 ], jumps )
+			call <SID>UpdateOverlay( popup_exists, jumps )
 
 		endif
 
 	endif
+
+endfunction
+
+function! <SID>BuildOverlayNameArray( type )
+
+	return [ "jbuf", ".", a:type, ".", winnr() ]
 
 endfunction
 
@@ -1515,7 +1536,7 @@ function! <SID>BuildJBufs( type )
 		let counter += 1
 	endfor
 
-	return jumps_improved
+	return  [ jumps_improved, jumps ]
 
 endfunction
 
@@ -1523,7 +1544,7 @@ function! <SID>UpdateOverlay( which, content )
 	
 	call popup_settext
 			\ ( 
-				\ a:which, a:content 
+				\ a:which[ 0 ], a:content[ 0 ]
 			\ )
 
 endfunction
