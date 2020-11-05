@@ -120,11 +120,11 @@ function! <SID>AutoCommands()
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
-"	autocmd my_overlays WinEnter *
-"		\ call <SID>RefreshingOverlays( "WinEnter" )
+	autocmd my_overlays WinEnter *
+		\ call <SID>RefreshingOverlays( "WinEnter", 0 )
 	
-"	autocmd my_overlays BufRead *
-"		\ call <SID>RefreshingOverlays( "BufRead" )
+	autocmd my_overlays BufRead *
+		\ call <SID>RefreshingOverlays( "BufRead", 0 )
 
 endfunction
 
@@ -201,6 +201,7 @@ function! <SID>StartUp()
 	call <SID>MakeAbbreviations()
 	call <SID>MakeMappings()
 "	call <SID>SetDict()
+	tabnew | tabnew | tabnew
 	echo "StartUp has been called"
 
 endfunction
@@ -1409,31 +1410,36 @@ function! <SID>SayHello( msg )
 endfunction
 
 function! <SID>BuildOverlayTabName()
+	
+	return "tab" . tabpagenr()
+
 endfunction
 
 function! <SID>PopupCreate( what, config, name )
 	"
-	let tabnr = tabpagenr()
-	let tabname = "tab" . tabnr
-
 	let popup = popup_create( a:what[ 0 ], a:config )
-	let s:popup_winids[ tabname ][ join( a:name, "" ) ] = [ popup, a:what[ 1 ] ]
+	let s:popup_winids[ <SID>BuildOverlayTabName() ][ join( a:name, "" ) ] = [ popup, a:what[ 1 ] ]
 
+endfunction
+
+function! <SID>GetWinnrFromOverlayKey( key )
+
+	return matchstr( a:key, '\d\+$')
 
 endfunction
 
 function! <SID>HideAndShowPopups( name )
 
-	let tabnr = tabpagenr()
-	let tabname = "tab" . tabnr
+	let tabname = <SID>BuildOverlayTabName()
 	let str_name = join( a:name, "" )
 
 
 	for key in keys( s:popup_winids[ tabname ] )
 
-		if str_name == key
-			call popup_show( s:popup_winids[ tabname ][ key ][ 0 ] )
+		let key_winnr = <SID>GetWinnrFromOverlayKey( key )
 
+		if str_name == key || key_winnr == winnr()
+			call popup_show( s:popup_winids[ tabname ][ key ][ 0 ] )
 		else
 			call popup_hide( s:popup_winids[ tabname ][ key ][ 0 ] )
 		endif
@@ -1444,8 +1450,7 @@ endfunction
 
 function! <SID>PopupExists( name )
 	
-	let tabnr = tabpagenr()
-	let tabname = "tab" . tabnr
+	let tabname = <SID>BuildOverlayTabName()
 	let str_name = join( a:name, "" )
 
 	if has_key( s:popup_winids, tabname )
@@ -1453,6 +1458,7 @@ function! <SID>PopupExists( name )
 		if has_key( s:popup_winids[ tabname ], str_name  )
 			return s:popup_winids[ tabname ][ str_name ]
 		endif
+
 	else
 		let s:popup_winids[ tabname ] = {}
 	endif
@@ -1461,24 +1467,24 @@ function! <SID>PopupExists( name )
 
 endfunction
 
-function! <SID>RefreshingOverlays( event )
+function! <SID>RefreshingOverlays( event, type )
 
-	echo s:popup_winids
+"	echo "Type:" . a:type
+"	echo s:popup_winids
 
 	let types = [ "Traditional", "Workspaces" ]
-	let type = <SID>ExtractExtension( expand( "<afile>" . ":t") )
 
-	let name = <SID>BuildOverlayNameArray( types[ 0 ] )
+	if ! exists("types[" . a:type . "]")
+		return
+	endif
+	
+	let this_type = types[ a:type ]
 
-"	if type =~? 'workspaces$'
-"		let name[ 1 ] = types[ 1 ]
-"	endif
+	let name = <SID>BuildOverlayNameArray( this_type )
 
 	let popup_exists = <SID>PopupExists( name )
 
 	let len_popup = len( popup_exists )
-
-	echo popup_exists
 
 	if a:event =~? "^winenter$" && len_popup > 0 
 
@@ -1486,21 +1492,24 @@ function! <SID>RefreshingOverlays( event )
 
 	else
 
-		let jumps = <SID>BuildJBufs( types[0] )
+		let jumps = <SID>BuildJBufs( this_type )
 
 
 		if  len_popup == 0
 
-			call <SID>PopupConfigThenCreate( jumps, name )
+			call <SID>PopupConfigThenCreate( jumps, name, a:type )
 			call <SID>HideAndShowPopups( name )
 
 		else
 
-			call <SID>UpdateOverlay( popup_exists, jumps )
+			call <SID>UpdateOverlay( popup_exists, jumps, this_type )
 
 		endif
 
 	endif
+
+	let increase = a:type + 1
+	call <SID>RefreshingOverlays( a:event, increase )
 
 endfunction
 
@@ -1510,16 +1519,25 @@ function! <SID>BuildOverlayNameArray( type )
 
 endfunction
 
-function! <SID>PopupConfigThenCreate( content, name )
+function! <SID>PopupConfigThenCreate( content, name, type )
+
+	let line = 2
+	let highlight = "Extension"
+	if a:type > 0
+		let line += 15
+		let highlight = "FileNamePrefix"
+	endif
 
 	call <SID>PopupCreate
 	\ ( 
 		\ a:content, 
 		\ #{
 			\ pos: "topright",
-			\ line: 2,
-			\ highlight: "Bars",
-			\ col: 999
+			\ line: line,
+			\ col: 999,
+			\ highlight: highlight,
+			\ maxheight: 13,
+			\ minheight: 13
 		\ },
 		\ a:name 
 	\ )
@@ -1540,12 +1558,17 @@ function! <SID>BuildJBufs( type )
 
 endfunction
 
-function! <SID>UpdateOverlay( which, content )
+function! <SID>UpdateOverlay( which, content, type )
 	
 	call popup_settext
 			\ ( 
 				\ a:which[ 0 ], a:content[ 0 ]
 			\ )
+
+	let str_name = join( <SID>BuildOverlayNameArray( a:type ), "" )
+	let tabname = <SID>BuildOverlayTabName()
+
+	let a:which[ 1 ] = a:content[ 1 ]
 
 endfunction
 
