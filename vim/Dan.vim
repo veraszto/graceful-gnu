@@ -101,9 +101,6 @@ function! <SID>AutoCommands()
 		au!
 	aug END
 	
-	aug my_overlays
-		au!
-	aug END
 
 	aug fedora
 		au!
@@ -120,11 +117,40 @@ function! <SID>AutoCommands()
 	
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
-	autocmd my_overlays WinEnter *
-		\ call <SID>RefreshingOverlays( "WinEnter", 0 )
-	
-	autocmd my_overlays BufRead *
-		\ call <SID>RefreshingOverlays( "BufRead", 0 )
+	call <SID>AutoCommandsOverlay( 0 ) 
+
+
+endfunction
+
+function! <SID>AutoCommandsOverlay( wipe )
+
+	aug my_overlays
+		au!
+	aug END
+
+	if a:wipe == v:true
+		return
+	endif
+
+	autocmd my_overlays BufEnter *
+		\ call <SID>RefreshingOverlays( 0 )
+
+endfunction
+
+function! <SID>TurnOnOffOverlays( )
+
+	if len( s:popup_winids ) > 0
+
+		call <SID>AutoCommandsOverlay( 1 )
+		tabdo call popup_clear()
+		let s:popup_winids = {}
+		echo "Overlays are turned OFF"
+
+	else
+
+		call <SID>AutoCommandsOverlay( 0 )
+		echo "Overlays are turned ON"
+	endif
 
 endfunction
 
@@ -201,8 +227,8 @@ function! <SID>StartUp()
 	call <SID>MakeAbbreviations()
 	call <SID>MakeMappings()
 "	call <SID>SetDict()
-	tabnew | tabnew | tabnew
 	echo "StartUp has been called"
+	$tabnew | $tabnew | tabfirst
 
 endfunction
 
@@ -409,7 +435,7 @@ endfunction
 
 function! <SID>ShortcutToNthPertinentJump( nth, filter )
 
-	let jumps = <SID>CollectPertinentJumps( a:nth, a:filter )
+	let jumps = <SID>ChooseBestPlaceToGetJumps( a:nth, a:filter )
 	let jump = get( jumps, a:nth - 1, {} )
 	if jump == {} 
 		echo "JBufs did not reach length of " . a:nth
@@ -1135,15 +1161,28 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <S-Down> :call <SID>PopupJumps()<CR>
 	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
 
-	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Traditional" )<CR>
-	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Traditional" )<CR>
-	map <S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Traditional" )<CR>
-	map <S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Traditional" )<CR>
+	for a in range(1, 9)
+		
+		execute "map j" . a . " " . 
+			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
+		execute "map w" . a . " " . 
+			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
+		execute "inoremap j" . a . " " . 
+			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
+		execute "inoremap w" . a . " " . 
+			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
 
-	map <C-S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Workspaces" )<CR>
-	map <C-S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Workspaces" )<CR>
-	map <C-S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Workspaces" )<CR>
-	map <C-S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Workspaces" )<CR>
+	endfor
+
+"	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Traditional" )<CR>
+"	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Traditional" )<CR>
+"	map <S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Traditional" )<CR>
+"	map <S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Traditional" )<CR>
+
+"	map <C-S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Workspaces" )<CR>
+"	map <C-S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Workspaces" )<CR>
+"	map <C-S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Workspaces" )<CR>
+"	map <C-S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Workspaces" )<CR>
 
 	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
 
@@ -1182,6 +1221,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 	map ;sc :call <SID>ShowMeColors()<CR>
 	map ;o :call <SID>OpenWorkspace()<CR>
+	map ;O :call <SID>TurnOnOffOverlays()<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 
@@ -1467,7 +1507,9 @@ function! <SID>PopupExists( name )
 
 endfunction
 
-function! <SID>RefreshingOverlays( event, type )
+
+
+function! <SID>RefreshingOverlays( type )
 
 "	echo "Type:" . a:type
 "	echo s:popup_winids
@@ -1486,30 +1528,28 @@ function! <SID>RefreshingOverlays( event, type )
 
 	let len_popup = len( popup_exists )
 
-	if a:event =~? "^winenter$" && len_popup > 0 
+	let jumps = <SID>BuildJBufs( this_type )
 
-		call <SID>HideAndShowPopups( name )
+	if  len_popup == 0
+
+		call <SID>PopupConfigThenCreate( jumps, name, a:type )
 
 	else
 
-		let jumps = <SID>BuildJBufs( this_type )
-
-
-		if  len_popup == 0
-
-			call <SID>PopupConfigThenCreate( jumps, name, a:type )
-			call <SID>HideAndShowPopups( name )
-
-		else
-
-			call <SID>UpdateOverlay( popup_exists, jumps, this_type )
-
-		endif
+		call <SID>UpdateOverlay( popup_exists, jumps, this_type )
 
 	endif
 
+	call <SID>HideAndShowPopups( name )
+
 	let increase = a:type + 1
-	call <SID>RefreshingOverlays( a:event, increase )
+	call <SID>RefreshingOverlays( increase )
+
+	if ( increase + 1 ) == len( types )
+
+		let s:last_win_tab = [ winnr(), tabpagenr() ]
+
+	endif
 
 endfunction
 
@@ -1523,9 +1563,11 @@ function! <SID>PopupConfigThenCreate( content, name, type )
 
 	let line = 2
 	let highlight = "Extension"
+	let title = "jBufs"
 	if a:type > 0
-		let line += 15
+		let line += 12
 		let highlight = "FileNamePrefix"
+		let title = "jBufs Workspaces"
 	endif
 
 	call <SID>PopupCreate
@@ -1533,11 +1575,15 @@ function! <SID>PopupConfigThenCreate( content, name, type )
 		\ a:content, 
 		\ #{
 			\ pos: "topright",
+			\ scrollbar: 0,
+			\ title: title,
 			\ line: line,
 			\ col: 999,
 			\ highlight: highlight,
-			\ maxheight: 13,
-			\ minheight: 13
+			\ border: [3, 3, 3, 3],
+			\ padding: [1, 1, 1, 1],
+			\ maxheight: 8,
+			\ minheight: 8
 		\ },
 		\ a:name 
 	\ )
@@ -1546,7 +1592,16 @@ endfunction
 
 function! <SID>BuildJBufs( type )
 
-	let jumps = <SID>CollectPertinentJumps( -1, a:type )
+	if s:last_win_tab[ 0 ] == winnr() &&
+		\ s:last_win_tab[ 1 ] == tabpagenr()
+
+		let jumps = <SID>CollectPertinentJumps( -1, a:type )
+	else
+
+		let jumps = <SID>ChooseBestPlaceToGetJumps( -1, a:type )
+
+	endif
+
 	let jumps_improved = []
 	let counter = 1
 	for jump in jumps
@@ -1585,15 +1640,14 @@ let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
-let s:popup_winids = {}
 
 
 echo "Dan.vim has just been loaded"
 
-call popup_clear()
-
 if exists("s:this_has_been_loaded") == v:false
 	let s:this_has_been_loaded = v:true
+	let s:popup_winids = {}
+	let s:last_win_tab = [0, 0]
 	echo "As its the first time for this instance, then we call StartUp"
 	call <SID>StartUp()
 	call <SID>SayHello(["Hello are you good?", "What are you up to today?", "Great!"])
