@@ -134,6 +134,8 @@ function! <SID>AutoCommandsOverlay( wipe )
 
 	autocmd my_overlays BufEnter *
 		\ call <SID>RefreshingOverlays( 0 )
+"	autocmd my_overlays WinEnter *
+"		\ call <SID>RefreshingOverlays( 0 )
 
 endfunction
 
@@ -1127,22 +1129,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map } g,
 	
 
-"	Fast moving
-"	map <S-Down> 	:<C-U>call <SID>CommitToMark()<CR>
-"	map <S-Left>	:call <SID>SlideThroughMarks("left")<CR>
-"	map <S-Right>	:call <SID>SlideThroughMarks("right")<CR>
-
 	map <C-S-Left>	:previous<CR>
 	map <C-S-Right>	:next<CR>
 	inoremap jh 	<Esc>:call <SID>PopupMarksShow()<CR>a
-
-"	imap <S-Down> 	
-	
-"	map <C-S-Down> 	
-	map <C-S-Up> 	
-"	imap <C-S-Down> 
-"	imap <C-S-Up> 	
-
 
 "	Shortcuts
 
@@ -1174,20 +1163,24 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	endfor
 
-"	map <S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Traditional" )<CR>
-"	map <S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Traditional" )<CR>
-"	map <S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Traditional" )<CR>
-"	map <S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Traditional" )<CR>
+	let types = [ "\"Traditional\"", "\"Workspaces\"" ]
 
-"	map <C-S-Home> :call <SID>ShortcutToNthPertinentJump( 1, "Workspaces" )<CR>
-"	map <C-S-End> :call <SID>ShortcutToNthPertinentJump( 2, "Workspaces" )<CR>
-"	map <C-S-PageUp> :call <SID>ShortcutToNthPertinentJump( 3, "Workspaces" )<CR>
-"	map <C-S-PageDown> :call <SID>ShortcutToNthPertinentJump( 4, "Workspaces" )<CR>
+	let keys = 
+		\ [
+			\ "<S-PageUp>", "<S-PageDown>", "<C-S-PageUp>", "<C-S-PageDown>",
+			\ "<S-Home>", "<S-End>", "<C-S-Home>", "<C-S-End>" 
+		\ ]
 
-	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
+	for a in range(1, 4)
+		execute "map " . keys[ a - 1 ] . 
+			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 0 ] . ")<CR>"
 
-"	map ] :call <SID>CycleLastTwoExcluded()<CR>
-	
+		execute "map " . keys[ a + 3 ] . 
+			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 1 ] . ")<CR>"
+	endfor
+
+	map <S-kDel> :call <SID>ViInitialWorkspace()<CR>
+
 	map ;J :call <SID>SharpSplits("J")<CR>
 	map ;K :call <SID>SharpSplits("K")<CR>
 
