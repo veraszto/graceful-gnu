@@ -1,9 +1,9 @@
 <beans
 
-	xmlns="http://www.springframework.com/schema/beans"
+	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:schemaLocation="http://www.springframework/schema/beans
-	http://www.springframework/schema/beans/spring-beans.xsd"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd"
 >
 
 

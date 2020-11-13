@@ -17,7 +17,7 @@ function! <SID>MyMakeAbbreviations()
 			\<version></version><CR><BS></dependency>
 	"CODE
 	iab ac appendChild();<Left><Left>
-	iab ae addEventListener<CR>(<CR>"",<CR>);<kHome><Up><kEnd><CR>
+	iab ae addEventListener<CR>(<CR><Tab>"",<CR>);<kHome><Del><Up><kEnd><CR>
 	iab ahe alert("Hello");
 	iab ahi alert("Hi");
 	iab bcla getElementsByClassName("")<Left><Left>

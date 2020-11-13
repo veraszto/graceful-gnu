@@ -1215,6 +1215,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;sc :call <SID>ShowMeColors()<CR>
 	map ;o :call <SID>OpenWorkspace()<CR>
 	map ;O :call <SID>TurnOnOffOverlays()<CR>
+	map ;OO :call <SID>ShowPopups()<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 
@@ -1443,10 +1444,29 @@ function! <SID>SayHello( msg )
 endfunction
 
 function! <SID>BuildOverlayTabName()
-	
-	return "tab" . tabpagenr()
+
+	if exists("t:overlay_id")
+		return t:overlay_id
+	endif
+
+	let t:overlay_id = "tab" . ( rand() * rand() )
+
+	return t:overlay_id
 
 endfunction
+
+function!<SID>ShowPopups()
+
+	
+	for a in keys( s:popup_winids )
+		echo a
+		for b in keys( s:popup_winids[ a ] )
+			echo b
+			echo s:popup_winids[ a ][ b ][ 0 ]
+		endfor
+	endfor
+
+endfunction!
 
 function! <SID>PopupCreate( what, config, name )
 	"
