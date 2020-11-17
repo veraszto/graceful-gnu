@@ -256,10 +256,26 @@ default_border none
 set $main_left Wrapper.MainLeft
 set $main_right Wrapper.MainRight
 set $inner.readcalmly Inner.ReadCalmly
+set $Inner.Misc.Holders Inner.Misc.Holders
 set $inner.input Inner.Input
 set $inner.root Inner.Root
 
-set $lower.left {
+set $lower.super.left 
+{
+	workspace 0, \
+	exec screen -S $main_right -X select 0, \
+	exec screen -S $Inner.Misc.Holders -X select 0
+}
+
+set $upper.super.left 
+{
+	workspace 0, \
+	exec screen -S $main_right -X select 0, \
+	exec screen -S $Inner.Misc.Holders -X select 1
+}
+
+set $lower.left 
+{
 	workspace 0;\
 	exec screen -S $main_right -X select 1;\
 	exec screen -S $inner.readcalmly -X select 0
@@ -306,17 +322,19 @@ set $docker1
 	exec screen -S $main_right -X select 4
 }
 
-set $docker2
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 5
-}
 
+bindsym Mod4+Insert $upper.super.left
+bindsym Mod4+Delete $lower.super.left
+
+bindsym Mod4+Home $docker1 
+bindsym Mod4+End $docker1
 
 bindsym Ctrl+KP_0 workspace 0
+bindsym Mod5+e workspace 0
 
 #bindsym Ctrl+KP_Separator workspace RightScreen
 bindsym Ctrl+KP_Separator workspace 1
+bindsym Mod5+r workspace 1
 
 
 bindsym Ctrl+KP_1 $lower.left
@@ -337,18 +355,27 @@ bindsym Mod1+Home $upper.middle
 bindsym Ctrl+KP_6 $upper.right
 bindsym Mod1+Prior $upper.right
 
-bindcode Ctrl+86 $docker1
-bindcode Ctrl+129 $docker2
+#bindcode Ctrl+86 $docker1
+#bindcode Ctrl+129 $docker2
 
 bindsym Ctrl+KP_7 
 {
 	workspace WithDeveloperTools 
 }
+bindsym Mod5+a 
+{
+	workspace WithDeveloperTools 
+}
+
 bindsym Ctrl+KP_8 
 {
 	
 }
 bindsym Ctrl+KP_9 
+{
+	workspace DeveloperTools
+}
+bindsym Mod5+s 
 {
 	workspace DeveloperTools
 }
@@ -360,11 +387,8 @@ bindsym Ctrl+1
 bindsym Ctrl+KP_Divide workspace MainNonTerminals
 bindsym Ctrl+KP_Multiply workspace Reading
 
-bindsym $mod+mod4+KP_0 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 0
-bindsym $mod+mod4+KP_1 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 1
-bindsym $mod+mod4+KP_2 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 2
-bindsym $mod+mod4+KP_3 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 3
-bindsym $mod+mod4+KP_4 exec /home/veraszto/git/GracefulGNU/BashScripts/build.workspace/launcher.sh 4
+bindsym Mod5+q workspace MainNonTerminals
+bindsym Mod5+w workspace Reading
 
 #bindcode $mod+0xff55 workspace prev
 #bindcode $mod+0xff56 workspace next

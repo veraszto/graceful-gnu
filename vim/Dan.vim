@@ -1118,6 +1118,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
 	map ;mc :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "AutoCommands" )<CR>
 
+
+
 "	map ;ms :call <SID>SaveMark()<CR>
 
 "	Easy save
