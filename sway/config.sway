@@ -329,12 +329,6 @@ bindsym Mod4+Delete $lower.super.left
 bindsym Mod4+Home $docker1 
 bindsym Mod4+End $docker1
 
-bindsym Ctrl+KP_0 workspace 0
-bindsym Mod5+e workspace 0
-
-#bindsym Ctrl+KP_Separator workspace RightScreen
-bindsym Ctrl+KP_Separator workspace 1
-bindsym Mod5+r workspace 1
 
 
 bindsym Ctrl+KP_1 $lower.left
@@ -358,37 +352,16 @@ bindsym Mod1+Prior $upper.right
 #bindcode Ctrl+86 $docker1
 #bindcode Ctrl+129 $docker2
 
-bindsym Ctrl+KP_7 
-{
-	workspace WithDeveloperTools 
-}
-bindsym Mod5+a 
-{
-	workspace WithDeveloperTools 
-}
+bindsym Mod4+a workspace WithDeveloperTools 
+bindsym Mod4+s workspace DeveloperTools
+bindsym Mod4+q workspace MainNonTerminals
+bindsym Mod4+w workspace Reading
+bindsym Mod4+e workspace 0
+bindsym Mod4+r workspace 1
 
-bindsym Ctrl+KP_8 
-{
-	
-}
-bindsym Ctrl+KP_9 
-{
-	workspace DeveloperTools
-}
-bindsym Mod5+s 
-{
-	workspace DeveloperTools
-}
+#bindsym Ctrl+KP_Divide workspace MainNonTerminals
+#bindsym Ctrl+KP_Multiply workspace Reading
 
-bindsym Ctrl+1 
-{
-}
-
-bindsym Ctrl+KP_Divide workspace MainNonTerminals
-bindsym Ctrl+KP_Multiply workspace Reading
-
-bindsym Mod5+q workspace MainNonTerminals
-bindsym Mod5+w workspace Reading
 
 #bindcode $mod+0xff55 workspace prev
 #bindcode $mod+0xff56 workspace next

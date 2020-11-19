@@ -1060,6 +1060,8 @@ function! <SID>SharpSplits( JK )
 
 endfunction
 
+
+
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
@@ -1169,19 +1171,27 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	let keys = 
 		\ [
-			\ "<S-PageUp>", "<S-PageDown>", "<C-S-PageUp>", "<C-S-PageDown>",
-			\ "<S-Home>", "<S-End>", "<C-S-Home>", "<C-S-End>" 
+			\ "<S-Home>", "<S-End>", "<S-PageUp>", "<S-PageDown>",
+			\ "<C-S-Home>", "<C-S-End>", "<C-S-PageUp>", "<C-S-PageDown>",
+			\ "<M-C-Home>", "<M-C-End>", "<M-C-PageUp>", "<M-C-PageDown>" 
 		\ ]
+
 
 	for a in range(1, 4)
 		execute "map " . keys[ a - 1 ] . 
 			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 0 ] . ")<CR>"
 
-		execute "map " . keys[ a + 3 ] . 
+		let a_plus_three = a + 3
+
+		execute "map " . keys[ a_plus_three ] . 
+			\ " :call <SID>ShortcutToNthPertinentJump( " . ( a_plus_three + 1 ). ", " . types[ 0 ] . ")<CR>"
+
+		execute "map " . keys[ a + 7 ] . 
 			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 1 ] . ")<CR>"
 	endfor
 
-	map <S-kDel> :call <SID>ViInitialWorkspace()<CR>
+
+	map <M-C-kDel> :call <SID>ViInitialWorkspace()<CR>
 
 	map ;J :call <SID>SharpSplits("J")<CR>
 	map ;K :call <SID>SharpSplits("K")<CR>
