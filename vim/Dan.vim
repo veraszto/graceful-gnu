@@ -139,13 +139,18 @@ function! <SID>AutoCommandsOverlay( wipe )
 
 endfunction
 
-function! <SID>TurnOnOffOverlays( )
+function! <SID>TurnOnOffOverlays( on_off )
 
-	if len( s:popup_winids ) > 0
+	if a:on_off == 0
+
+		let this_tabnr = tabpagenr()
 
 		call <SID>AutoCommandsOverlay( 1 )
 		tabdo call popup_clear()
 		let s:popup_winids = {}
+
+		execute "normal" . " " . this_tabnr . "gt"
+
 		echo "Overlays are turned OFF"
 
 	else
@@ -474,7 +479,8 @@ function! <SID>MakeJump( jump )
 
 	let built =  "b:" .
 		\ <SID>StrPad( a:jump["bufnr"], " ", 4 ) . 
-		\ matchstr( bufname( a:jump["bufnr"] ), s:tail_file )
+		\ matchstr( bufname( a:jump["bufnr"] ), s:tail_file ) .
+		\ getbufvar( a:jump["bufnr"], "jBufs_overlay_amend" )
 	return built
 
 endfunction
@@ -773,23 +779,40 @@ function! <SID>SearchFileAction( filename_to_stamp, prefix )
 endfunction
 
 
-function! <SID>AddBufferAtThisLine( )
+function! <SID>SpecialBu( this_bu )
 
-	let this_line = trim( getline(".") )
-	
-	let dir = <SID>GetRoofDir()
+	let built = a:this_bu
 
-	let built = dir . this_line
-
-	if len( trim( this_line ) ) == 0
-		echo "Cannot args an empty line with the roof " . dir
+	if len( trim( built ) ) == 0
+		echo "Could not SpecialBu an empty file: " . built
 		return
 	endif
 
-	let pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
-	let pattern_prefix = matchstr( built, pattern )	
-	let remove_pattern_prefix = substitute( built, pattern, "", "")
-	let built = remove_pattern_prefix
+
+	let 
+		\ [
+				\ pattern_prefix,
+				\ pattern_bufvar_suffix,
+				\ pattern_bufvar_suffix_with_error,
+				\ filtered_built
+		\ ] =
+		\ <SID>MatchedAndAllRemoved
+		\	( 
+				\ built, 
+				\ [
+						\ s:cmd_buf_pattern,
+						\ s:add_as_bufvar,
+						\ s:add_as_bufvar_missing_bar
+				\ ] 
+		\	)
+
+	let built = filtered_built
+
+	if len( pattern_bufvar_suffix_with_error ) > 0
+		echo "Please, the hash must be escaped(\\) and adjacent to curly open({), like:" .
+			\ "\nfilename.abc__\\#{a:1,b:2, \"hello\": \"Hi!\"}" 
+		return
+	endif
 
 	let space = match( built, '[[:space:]]' )
 	if space > -1
@@ -808,14 +831,72 @@ function! <SID>AddBufferAtThisLine( )
 	let first_file = argv()[0]
 	wa
 	let to_execute = "buffer " . pattern_prefix . first_file 
-	"echo to_execute
 	try
 		execute to_execute 
 	catch
 		echo "Could not " .  to_execute . ", because: " . v:exception . 
 				\ ", so trying to just buffer the asked file " . first_file
 	endtry
+
+	call <SID>LoadBufferVars( bufnr(),  pattern_bufvar_suffix )
+
 	arglocal
+
+endfunction
+
+function! <SID>MatchedAndAllRemoved( matter, cycle )
+
+	let gather = []
+	let hold_matter = a:matter
+
+	for a in a:cycle
+		
+		call add( gather, matchstr( a:matter, a ) )
+		let filtered = substitute( hold_matter, a, "", "" )
+		let hold_matter = filtered
+
+	endfor
+
+	call add( gather, filtered )
+
+	return gather
+
+endfunction
+
+function! <SID>AddBufferAtThisLine( )
+
+	let this_line = trim( getline(".") )
+	if len( trim( this_line ) ) == 0
+		echo "Could not edit this empty line"
+		return
+	endif
+	let dir = <SID>GetRoofDir()
+	let built = dir . this_line
+	return <SID>SpecialBu( built )
+
+endfunction
+
+
+function! <SID>LoadBufferVars( bufnr, string_dict )
+
+	if len( a:string_dict ) <= 0
+		return
+	endif
+
+	let cropped = substitute( a:string_dict, '^...', "", "" )
+
+	try
+"		execute "let dict = " . escape( cropped, '"' )
+		execute "let dict = " . cropped
+	catch
+		echo "Could not parse: " . cropped . ", because: " . v:exception .
+			\ "\nUsage: filename.abc__\\#{a:1, b:2, \"jBufs_overlay_amend\":\"(Hello)\"}"
+		return
+	endtry
+
+	for a in keys( dict )
+		call setbufvar( a:bufnr, a, dict[ a ] )
+	endfor
 
 endfunction
 
@@ -857,22 +938,13 @@ function! <SID>OpenWorkspace()
 	if files_to_buffer == {}
 		return
 	endif
-	
+
+	call <SID>TurnOnOffOverlays( 0 )
 
 	let already_stamped = []
 	let non_stamped = []
 
 	for a in range( 1, winnr("$") )
-
-		let this_window_cur_buffer = getbufinfo( winbufnr( a ) )[ 0 ]
-		if this_window_cur_buffer[ "changed" ] == 1
-
-			echo "Please save buf " . this_window_cur_buffer["bufnr"] . ", " .
-					\ matchstr( this_window_cur_buffer[ "name" ], s:tail_file ) . 
-					\ ", before trying to open " .
-					\ " the \n{ \n\tembraced files \n}"
-			return
-		endif
 
 		let stamp = getwinvar( a, "stamp_name", -1)
 		if  stamp > -1
@@ -893,7 +965,7 @@ function! <SID>OpenWorkspace()
 			if b == a[ 2 ]
 				call win_gotoid( a[ 1 ] )
 				for c in files
-					execute "vi " . c
+					call <SID>SpecialBu( c )
 				endfor
 				call remove( files_to_buffer, b )
 				break
@@ -917,7 +989,7 @@ function! <SID>OpenWorkspace()
 		let files = files_to_buffer[ a_key_group ]
 		call win_gotoid( a[ 1 ] )
 		for c in files
-			execute "vi " . c
+			call <SID>SpecialBu( c )
 		endfor
 
 		call remove( files_to_buffer, a_key_group )
@@ -932,13 +1004,15 @@ function! <SID>OpenWorkspace()
 		let files = files_to_buffer[ b ]
 		split
 		for c in files
-			execute "vi " . c
+			call <SID>SpecialBu( c )
 		endfor
 		call <SID>StampThisTypeToStatusLine()
 	endfor
 
 "No need as winheight is set to 999 and winminheight to 0
 "	wincmd _
+
+	call <SID>TurnOnOffOverlays( 1 )
 
 endfunction
 
@@ -1226,7 +1300,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;so :call <SID>SourceCurrent_ifVim()<CR>
 	map ;sc :call <SID>ShowMeColors()<CR>
 	map ;o :call <SID>OpenWorkspace()<CR>
-	map ;O :call <SID>TurnOnOffOverlays()<CR>
+	map ;O0 :call <SID>TurnOnOffOverlays( 0 )<CR>
+	map ;O1 :call <SID>TurnOnOffOverlays( 1 )<CR>
 	map ;OO :call <SID>ShowPopups()<CR>
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
@@ -1665,7 +1740,9 @@ let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
-
+let s:add_as_bufvar = '__\\#{.\+$'
+let s:add_as_bufvar_missing_bar = '\(\\\)\@<!#.*{.\+$'
+let s:cmd_buf_pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
 
 echo "Dan.vim has just been loaded"
 
