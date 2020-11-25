@@ -1055,7 +1055,17 @@ function! <SID>WorkspacesFilesToBuffer()
 				break
 			endif
 
-			let ext = <SID>ExtractExtension( content_line_content )
+			let [ a, b, filtered ] = 
+					\ <SID>MatchedAndAllRemoved
+					\ (
+							\ content_line_content,
+							\ [
+									\ s:add_as_bufvar,
+									\ s:cmd_buf_pattern
+							\ ]
+					\ )
+
+			let ext = <SID>ExtractExtension( filtered )
 
 			if len( ext ) == 0
 				let ext = ".ext.less"
@@ -1740,6 +1750,8 @@ let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
+
+
 let s:add_as_bufvar = '__\\#{.\+$'
 let s:add_as_bufvar_missing_bar = '\(\\\)\@<!#.*{.\+$'
 let s:cmd_buf_pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'

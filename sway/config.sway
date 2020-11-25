@@ -260,14 +260,14 @@ set $Inner.Misc.Holders Inner.Misc.Holders
 set $inner.input Inner.Input
 set $inner.root Inner.Root
 
-set $lower.super.left 
+set $lower.with.shift.left 
 {
 	workspace 0, \
 	exec screen -S $main_right -X select 0, \
 	exec screen -S $Inner.Misc.Holders -X select 0
 }
 
-set $upper.super.left 
+set $upper.with.shift.left 
 {
 	workspace 0, \
 	exec screen -S $main_right -X select 0, \
@@ -323,41 +323,29 @@ set $docker1
 }
 
 
-bindsym Mod4+Insert $upper.super.left
-bindsym Mod4+Delete $lower.super.left
-
-bindsym Mod4+Home $docker1 
-bindsym Mod4+End $docker1
 
 
-
-bindsym Ctrl+KP_1 $lower.left
 bindsym Mod1+Delete $lower.left
-
-bindsym Ctrl+KP_2 $lower.middle
 bindsym Mod1+End $lower.middle
-
-bindsym Ctrl+KP_3 $lower.right
 bindsym Mod1+Next $lower.right
-
-bindsym Ctrl+KP_4 $upper.left
 bindsym Mod1+Insert $upper.left
-
-bindsym Ctrl+KP_5 $upper.middle
 bindsym Mod1+Home $upper.middle
-
-bindsym Ctrl+KP_6 $upper.right
 bindsym Mod1+Prior $upper.right
+bindsym Shift+Mod1+Insert $upper.with.shift.left
+bindsym Shift+Mod1+Delete $lower.with.shift.left
+bindsym Shift+Mod1+Home $docker1 
+bindsym Shift+Mod1+End $docker1
+bindsym Shift+$mod+Insert workspace 1
 
 #bindcode Ctrl+86 $docker1
 #bindcode Ctrl+129 $docker2
 
-bindsym Mod4+a workspace WithDeveloperTools 
-bindsym Mod4+s workspace DeveloperTools
-bindsym Mod4+q workspace MainNonTerminals
-bindsym Mod4+w workspace Reading
-bindsym Mod4+e workspace 0
-bindsym Mod4+r workspace 1
+bindsym Mod4+Delete workspace WithDeveloperTools 
+bindsym Mod4+End workspace DeveloperTools
+bindsym Mod4+Insert workspace MainNonTerminals
+bindsym Mod4+Home workspace Reading
+bindsym Mod4+Prior workspace Company
+bindsym Mod4+Next workspace Beyond
 
 #bindsym Ctrl+KP_Divide workspace MainNonTerminals
 #bindsym Ctrl+KP_Multiply workspace Reading
