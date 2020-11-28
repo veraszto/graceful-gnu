@@ -186,6 +186,8 @@ endfunction
 
 "\Sets
 function! <SID>Sets()
+
+	set updatecount=0
 	set autoindent	
 	set smartindent
 	set title
@@ -213,6 +215,7 @@ function! <SID>Sets()
 	set comments=""
 	"Add minus sign
 	set iskeyword+=-
+	set shortmess+=A
 "	set mouse=""
 "	set ttymouse=""
 	filetype indent off
@@ -1145,6 +1148,47 @@ function! <SID>SharpSplits( JK )
 endfunction
 
 
+function! <SID>CycleTwoLetters( letters )
+
+	let joined_letters = join( a:letters, "")
+
+	if ! exists("b:counter_cycle_bufs_" . joined_letters )
+		let b:counter_cycle_bufs_{joined_letters} = 0
+	endif
+
+	let b:counter_cycle_bufs_{joined_letters} += 1
+	let index = b:counter_cycle_bufs_{joined_letters} % len( a:letters )
+
+	let letter = a:letters[ index ]
+	
+	let pos = getpos( "'" . letter )
+
+	if pos[1] > 0
+		call setpos( ".", pos ) | execute "normal z\<enter>"
+		echo "At mark: " . letter
+	else
+		echo "Marking letter \"" . letter . "\" here: " . getline(".")
+		execute "mark " . letter
+	endif
+
+	if index >= 36
+		unlet b:counter_cycle_bufs_{joined_letters}
+	endif
+
+	let b:last_two_letters_cycle = a:letters	
+
+endfunction
+
+function! <SID>RemoveLastTwoLettersCycle()
+
+	if ! exists("b:last_two_letters_cycle")
+		return
+	endif
+
+	execute "delm " . join( b:last_two_letters_cycle, " ")
+ 
+endfunction
+
 
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
@@ -1274,6 +1318,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 1 ] . ")<CR>"
 	endfor
 
+	map <C-Home> :call <SID>CycleTwoLetters( [ "l", "v" ] )<CR>
+	map <C-End> :call <SID>CycleTwoLetters( [ "r", "w" ] )<CR>
+	map <C-kDel> :call <SID>RemoveLastTwoLettersCycle()<CR>
 
 	map <M-C-kDel> :call <SID>ViInitialWorkspace()<CR>
 
