@@ -133,7 +133,7 @@ function! <SID>MyMakeAbbreviations()
 	iab stroff stroke-dashoffset:100;<Left>
 	iab ta text-align:center;<Left>
 	iab td transition-duration:;<Left>
-"	iab :to top:0;<Left>
+	iab top0 top:0;<Left>
 	iab tp transition-property:;<Left>
 	iab tro transform-origin:center;<Left>
 	iab tr transform:;<Left>

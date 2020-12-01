@@ -652,9 +652,9 @@ endfunction
 
 
 
-function! <SID>LocalCDAtThisLine()
+function! <SID>LocalCDAtThisFile()
 
-	let to_lcd = getline(".")
+	let to_lcd = expand("%:h")
 	execute "lcd " . to_lcd
 	echo "Current lcd is now " . to_lcd
 
@@ -1152,40 +1152,62 @@ function! <SID>CycleTwoLetters( letters )
 
 	let joined_letters = join( a:letters, "")
 
-	if ! exists("b:counter_cycle_bufs_" . joined_letters )
-		let b:counter_cycle_bufs_{joined_letters} = 0
+	if joined_letters =~ '^\l\{2}'
+		let add_to_joined = joined_letters . "_" . bufnr()
+		let joined_letters = add_to_joined
 	endif
 
-	let b:counter_cycle_bufs_{joined_letters} += 1
-	let index = b:counter_cycle_bufs_{joined_letters} % len( a:letters )
+	if ! exists("s:counter_cycle_bufs_" . joined_letters )
+		let s:counter_cycle_bufs_{joined_letters} = 0
+	endif
+
+	let s:counter_cycle_bufs_{joined_letters} += 1
+	let index = s:counter_cycle_bufs_{joined_letters} % len( a:letters )
 
 	let letter = a:letters[ index ]
 	
 	let pos = getpos( "'" . letter )
 
 	if pos[1] > 0
+
+		if bufnr() != pos[ 0 ] &&
+				\ pos[ 0 ] != 0
+			try
+				wa
+				execute "bu " . pos[ 0 ]
+			catch
+				echo "Could not reach: '" . letter . ", because: " . v:exception
+			endtry
+		else
+			echo "At mark: " . letter
+		endif
+"		normal m'
 		call setpos( ".", pos ) | execute "normal z\<enter>"
-		echo "At mark: " . letter
 	else
 		echo "Marking letter \"" . letter . "\" here: " . getline(".")
 		execute "mark " . letter
 	endif
 
 	if index >= 36
-		unlet b:counter_cycle_bufs_{joined_letters}
+		unlet s:counter_cycle_bufs_{joined_letters}
 	endif
 
-	let b:last_two_letters_cycle = a:letters	
+	let s:last_two_letters_cycle = a:letters	
 
 endfunction
 
 function! <SID>RemoveLastTwoLettersCycle()
 
-	if ! exists("b:last_two_letters_cycle")
+	if ! exists("s:last_two_letters_cycle")
+		echo "There are not marks to remove"
 		return
 	endif
 
-	execute "delm " . join( b:last_two_letters_cycle, " ")
+	let letters = join( s:last_two_letters_cycle, " ")
+
+	echo "Removing " .  letters
+
+	execute "delm " . letters
  
 endfunction
 
@@ -1319,7 +1341,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	endfor
 
 	map <C-Home> :call <SID>CycleTwoLetters( [ "l", "v" ] )<CR>
-	map <C-End> :call <SID>CycleTwoLetters( [ "r", "w" ] )<CR>
+	map <C-End> :call <SID>CycleTwoLetters( [ "R", "W" ] )<CR>
+	map <C-S-Up> :call <SID>CycleTwoLetters( [ "D", "V" ] )<CR>
 	map <C-kDel> :call <SID>RemoveLastTwoLettersCycle()<CR>
 
 	map <M-C-kDel> :call <SID>ViInitialWorkspace()<CR>
@@ -1341,7 +1364,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;ju :jumps<CR>
 	map ;hs :split<CR><C-W>_
 	map ;ks :keepjumps /
-	map ;l :lcd 
+	map ;lc :lcd 
+	map ;lf :call <SID>LocalCDAtThisFile()<CR>
 	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
 	map ;pw :pwd<CR>
 	map ;pt :call <SID>GetThisFilePopupMark()<CR>
