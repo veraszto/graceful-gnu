@@ -53,6 +53,7 @@ dollar="\360\237\222\262"
 home="\360\237\217\240"
 #horse="@"
 horse="\xF0\x9F\x90\xB4"
+horse="\360\237\220\264"
 
 function echoEscaped
 {
@@ -122,9 +123,9 @@ function reloadPrompt
 
 	if [ $USER = "root" ]
 	then	
-		PS1="$(fillTemplate 9)\u${finish}$(echoNonEscaped $horse)${pwd}$(echoNonEscaped $dollar) "
+		PS1="$(fillTemplate 88)\u${finish}$(echoNonEscaped $horse)${pwd}\\$ "
 	else
-		PS1="$(fillTemplate 9)\u${finish}$(echoNonEscaped $teddybear)${pwd}$(echoNonEscaped $dollar) "
+		PS1="$(fillTemplate 147)\u${finish}$(echoNonEscaped $teddybear)${pwd}$(echoNonEscaped $dollar) "
 	fi
 }
 

@@ -228,10 +228,11 @@ mode "resize" {
 }
 
 
-#
+
 # Status Bar:
-#
+
 # Read `man 5 sway-bar` for more information about this section.
+
 #bar
 #{
 #    position top
@@ -253,89 +254,55 @@ mode "resize" {
 
 default_border none
 
-set $main_left Wrapper.MainLeft
-set $main_right Wrapper.MainRight
-set $inner.readcalmly Inner.ReadCalmly
-set $Inner.Misc.Holders Inner.Misc.Holders
-set $inner.input Inner.Input
-set $inner.root Inner.Root
+set $tmux.main Main
+#set $workspace0 workspace MainNonTerminals
+set $workspace0 workspace 0
+set $tmux.select.window.pane $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.main
 
-set $lower.with.shift.left 
+set $alt.insert 
 {
-	workspace 0, \
-	exec screen -S $main_right -X select 0, \
-	exec screen -S $Inner.Misc.Holders -X select 0
+	$workspace0, \
+	exec $tmux.select.window.pane 0 0
 }
 
-set $upper.with.shift.left 
+set $alt.delete 
 {
-	workspace 0, \
-	exec screen -S $main_right -X select 0, \
-	exec screen -S $Inner.Misc.Holders -X select 1
+	$workspace0, \
+	exec $tmux.select.window.pane 0 1
 }
 
-set $lower.left 
+set $alt.home 
 {
-	workspace 0;\
-	exec screen -S $main_right -X select 1;\
-	exec screen -S $inner.readcalmly -X select 0
+	$workspace0, \
+	exec $tmux.select.window.pane 2 0
 }
 
-set $lower.middle
+set $alt.end 
 {
-	workspace 0;\
-	exec screen -S $main_right -X select 2;\
-	exec screen -S $inner.input -X select 0
+	$workspace0, \
+	exec $tmux.select.window.pane 1 0
 }
 
-set $lower.right
+set $alt.pgup 
 {
-	workspace 0;\
-	exec screen -S $main_right -X select 3;\
-	exec screen -S $inner.root -X select 0
+	$workspace0, \
+	exec $tmux.select.window.pane 2 1
+}
+set $alt.pgdown
+{
+	$workspace0, \
+	exec $tmux.select.window.pane 1 1
 }
 
-set $upper.left
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 1;\
-	exec screen -S $inner.readcalmly -X select 1
-}
+bindsym Mod1+Insert $alt.insert
+bindsym Mod1+Delete $alt.delete
 
-set $upper.middle
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 2;\
-	exec screen -S $inner.input -X select 1
-}
+bindsym Mod1+Home $alt.home
+bindsym Mod1+End $alt.end
 
-set $upper.right
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 3;\
-	exec screen -S $inner.root -X select 1
-}
+bindsym Mod1+Prior $alt.pgup
+bindsym Mod1+Next $alt.pgdown
 
-set $docker1
-{
-	workspace 0;\
-	exec screen -S $main_right -X select 4
-}
-
-
-
-
-bindsym Mod1+Delete $lower.left
-bindsym Mod1+End $lower.middle
-bindsym Mod1+Next $lower.right
-bindsym Mod1+Insert $upper.left
-bindsym Mod1+Home $upper.middle
-bindsym Mod1+Prior $upper.right
-bindsym Shift+Mod1+Insert $upper.with.shift.left
-bindsym Shift+Mod1+Delete $lower.with.shift.left
-bindsym Shift+Mod1+Home $docker1 
-bindsym Shift+Mod1+End $docker1
-bindsym Shift+$mod+Insert workspace 1
 
 #bindcode Ctrl+86 $docker1
 #bindcode Ctrl+129 $docker2
@@ -362,6 +329,72 @@ include /etc/sway/config.d/*
 
 
 
-
-
-
+#set $main_left Wrapper.MainLeft
+#set $main_right Wrapper.MainRight
+#set $inner.readcalmly Inner.ReadCalmly
+#set $Inner.Misc.Holders Inner.Misc.Holders
+#set $inner.input Inner.Input
+#set $inner.root Inner.Root
+#
+#set $lower.with.shift.left 
+#{
+#	workspace 0, \
+#	exec screen -S $main_right -X select 0, \
+#	exec screen -S $Inner.Misc.Holders -X select 0
+#}
+#
+#set $upper.with.shift.left 
+#{
+#	workspace 0, \
+#	exec screen -S $main_right -X select 0, \
+#	exec screen -S $Inner.Misc.Holders -X select 1
+#}
+#
+#set $lower.left 
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 1;\
+#	exec screen -S $inner.readcalmly -X select 0
+#}
+#
+#set $lower.middle
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 2;\
+#	exec screen -S $inner.input -X select 0
+#}
+#
+#set $lower.right
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 3;\
+#	exec screen -S $inner.root -X select 0
+#}
+#
+#set $upper.left
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 1;\
+#	exec screen -S $inner.readcalmly -X select 1
+#}
+#
+#set $upper.middle
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 2;\
+#	exec screen -S $inner.input -X select 1
+#}
+#
+#set $upper.right
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 3;\
+#	exec screen -S $inner.root -X select 1
+#}
+#
+#set $docker1
+#{
+#	workspace 0;\
+#	exec screen -S $main_right -X select 4
+#}
+#
