@@ -288,11 +288,13 @@ set $alt.pgup
 	$workspace0, \
 	exec $tmux.select.window.pane 2 1
 }
+
 set $alt.pgdown
 {
 	$workspace0, \
 	exec $tmux.select.window.pane 1 1
 }
+
 
 bindsym Mod1+Insert $alt.insert
 bindsym Mod1+Delete $alt.delete

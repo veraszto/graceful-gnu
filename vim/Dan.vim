@@ -1323,7 +1323,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 		\ [
 			\ "<S-Home>", "<S-End>", "<S-PageUp>", "<S-PageDown>",
 			\ "<C-S-Home>", "<C-S-End>", "<C-S-PageUp>", "<C-S-PageDown>",
-			\ "<M-C-Home>", "<M-C-End>", "<M-C-PageUp>", "<M-C-PageDown>" 
+			\ "<M-S-Home>", "<M-S-End>", "<M-S-PageUp>", "<M-S-PageDown>" 
 		\ ]
 
 
@@ -1345,7 +1345,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <C-S-Up> :call <SID>CycleTwoLetters( [ "D", "V" ] )<CR>
 	map <C-kDel> :call <SID>RemoveLastTwoLettersCycle()<CR>
 
-	map <M-C-kDel> :call <SID>ViInitialWorkspace()<CR>
+	map <M-S-kDel> :call <SID>ViInitialWorkspace()<CR>
+	map <S-kDel> :call <SID>ViInitialWorkspace()<CR>
 
 	map ;J :call <SID>SharpSplits("J")<CR>
 	map ;K :call <SID>SharpSplits("K")<CR>
