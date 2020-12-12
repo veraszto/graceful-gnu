@@ -480,11 +480,14 @@ endfunction
 
 function! <SID>MakeJump( jump )
 
-	let built =  "b:" .
-		\ <SID>StrPad( a:jump["bufnr"], " ", 4 ) . 
-		\ matchstr( bufname( a:jump["bufnr"] ), s:tail_file ) .
+"	let built =  "b:" .
+"		\ <SID>StrPad( a:jump["bufnr"], " ", 4 ) . 
+"		\ matchstr( bufname( a:jump["bufnr"] ), s:tail_file ) .
+"		\ getbufvar( a:jump["bufnr"], "jBufs_overlay_amend" )
+"	return built
+
+	return matchstr( bufname( a:jump["bufnr"] ), s:tail_file ) .
 		\ getbufvar( a:jump["bufnr"], "jBufs_overlay_amend" )
-	return built
 
 endfunction
 
@@ -1182,7 +1185,8 @@ function! <SID>CycleTwoLetters( letters )
 			echo "At mark: " . letter
 		endif
 "		normal m'
-		call setpos( ".", pos ) | execute "normal z\<enter>"
+"		call setpos( ".", pos ) | execute "normal z\<enter>"
+		call setpos( ".", pos ) | normal zz
 	else
 		echo "Marking letter \"" . letter . "\" here: " . getline(".")
 		execute "mark " . letter
@@ -1281,7 +1285,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 "	ChangeList
 	map { g;
 	map } g,
-	
+
 
 	map <C-S-Left>	:previous<CR>
 	map <C-S-Right>	:next<CR>
@@ -1304,6 +1308,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <S-Down> :call <SID>PopupJumps()<CR>
 	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
 
+
 	for a in range(1, 9)
 		
 		execute "map j" . a . " " . 
@@ -1322,8 +1327,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	let keys = 
 		\ [
 			\ "<S-Home>", "<S-End>", "<S-PageUp>", "<S-PageDown>",
-			\ "<C-S-Home>", "<C-S-End>", "<C-S-PageUp>", "<C-S-PageDown>",
-			\ "<M-S-Home>", "<M-S-End>", "<M-S-PageUp>", "<M-S-PageDown>" 
+			\ "<C-S-Home>", "<C-S-End>", "<C-S-PageUp>", "<C-S-PageDown>" 
 		\ ]
 
 
@@ -1335,18 +1339,16 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 		execute "map " . keys[ a_plus_three ] . 
 			\ " :call <SID>ShortcutToNthPertinentJump( " . ( a_plus_three + 1 ). ", " . types[ 0 ] . ")<CR>"
-
-		execute "map " . keys[ a + 7 ] . 
-			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 1 ] . ")<CR>"
 	endfor
+
+	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
+	map <Del> :call <SID>ShortcutToNthPertinentJump(1, "Workspaces")<CR>
+	map <S-kDel> :call <SID>ShortcutToNthPertinentJump(2, "Workspaces")<CR>
 
 	map <C-Home> :call <SID>CycleTwoLetters( [ "l", "v" ] )<CR>
 	map <C-End> :call <SID>CycleTwoLetters( [ "R", "W" ] )<CR>
 	map <C-S-Up> :call <SID>CycleTwoLetters( [ "D", "V" ] )<CR>
 	map <C-kDel> :call <SID>RemoveLastTwoLettersCycle()<CR>
-
-	map <M-S-kDel> :call <SID>ViInitialWorkspace()<CR>
-	map <S-kDel> :call <SID>ViInitialWorkspace()<CR>
 
 	map ;J :call <SID>SharpSplits("J")<CR>
 	map ;K :call <SID>SharpSplits("K")<CR>
@@ -1491,6 +1493,8 @@ function! <SID>HiLight()
 	execute "highlight DiaryDivisorDate ctermbg=" . choose_separator_color . " ctermfg=" . date_color
 	execute "highlight DiaryDivisor ctermbg=" . choose_separator_color . " ctermfg=" . choose_separator_color
 	execute "highlight CallingAttention ctermbg=" . choose_separator_color . " ctermfg=197"
+	highlight MyLightGray ctermfg=242
+	highlight MyLightGrayForText ctermfg=246
 	highlight MyActivities ctermfg=177
 	highlight CompanyActivities ctermfg=165
 	highlight BeAware ctermfg=219
@@ -1747,10 +1751,12 @@ function! <SID>PopupConfigThenCreate( content, name, type )
 	let highlight = "Extension"
 	let title = "jBufs"
 	if a:type > 0
-		let line += 12
+		let line += 14
 		let highlight = "FileNamePrefix"
 		let title = "jBufs Workspaces"
 	endif
+
+	let highlight = "MyActivities"
 
 	call <SID>PopupCreate
 	\ ( 
@@ -1762,8 +1768,10 @@ function! <SID>PopupConfigThenCreate( content, name, type )
 			\ line: line,
 			\ col: 999,
 			\ highlight: highlight,
-			\ border: [3, 3, 3, 3],
-			\ padding: [1, 1, 1, 1],
+			\ thumbhighlight: "Visual",
+			\ borderhighlight: ["MyLightGray"],
+			\ border: [1, 1, 1, 1],
+			\ padding: [2, 3, 2, 3],
 			\ maxheight: 8,
 			\ minheight: 8
 		\ },
@@ -1784,14 +1792,35 @@ function! <SID>BuildJBufs( type )
 
 	endif
 
+	return <SID>JBufsViewAndRaw( jumps, a:type )
+
+endfunction
+
+function! <SID>JBufsViewAndRaw( jumps, type )
+
 	let jumps_improved = []
+
 	let counter = 1
-	for jump in jumps
-		call add( jumps_improved, counter . "/" . <SID>MakeJump( jump ) )
+	for jump in a:jumps
+		call add( jumps_improved, <SID>JBufsView{a:type}( counter, jump ) )
 		let counter += 1
 	endfor
 
-	return  [ jumps_improved, jumps ]
+	return  [ jumps_improved, a:jumps ]
+
+endfunction
+
+function! <SID>JBufsViewWorkspaces( counter, jump )
+
+	return a:counter . "  " . <SID>MakeJump( a:jump )
+
+endfunction
+
+function! <SID>JBufsViewTraditional( counter, jump )
+
+	let key = s:traditional_keybinds[ ( a:counter - 1 ) % s:len_traditional_keybinds ]
+
+	return key . ":" . a:counter . "  " .  <SID>MakeJump( a:jump )
 
 endfunction
 
@@ -1822,6 +1851,8 @@ let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
+let s:traditional_keybinds = [ "ho", "en", "pu", "pd" ]
+let s:len_traditional_keybinds = len( s:traditional_keybinds )
 
 
 let s:add_as_bufvar = '__\\#{.\+$'

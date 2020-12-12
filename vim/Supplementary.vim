@@ -15,6 +15,8 @@ function! <SID>MyMakeAbbreviations()
 	iab mdep <dependency><CR><Tab>
 			\<groupId></groupId><CR><artifactId></artifactId><CR>
 			\<version></version><CR><BS></dependency>
+
+	iab holdT var holdThis = this;
 	"CODE
 	iab ac appendChild();<Left><Left>
 	iab ae addEventListener<CR>(<CR><Tab>"",<CR>);<kHome><Del><Up><kEnd><CR>
