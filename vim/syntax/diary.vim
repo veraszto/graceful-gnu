@@ -20,7 +20,7 @@ syn match MyActivities /^>\s\w.*/
 syn match CompanyActivities /^>>\s\w.*/
 syn match BeAware /^\*\s\?\w.*/
 syn match DiaryDivisor /*\{100}/
-syn match DiaryDivisorDate /\s\d\{2}\s\w\{3}\s\d\+\s/ 
+syn match DiaryDivisorDate /\s\(\d\{2}\s\w\{3}\s\d\+\s\|\w\{3}\s\d\{2}\s\)/ 
 syn match CallingAttention /^\s\+\(\u\+\s*\)\+\s\+/
 "syn match TabLineFill /\w\{3}\s\d\{2}.\+/ contains=ModeMsg
 "syn match EndOfBuffer /^.*$/ 

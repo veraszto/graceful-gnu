@@ -309,12 +309,12 @@ bindsym Mod1+Next $alt.pgdown
 #bindcode Ctrl+86 $docker1
 #bindcode Ctrl+129 $docker2
 
-bindsym Mod4+Delete workspace WithDeveloperTools 
-bindsym Mod4+End workspace DeveloperTools
-bindsym Mod4+Insert workspace MainNonTerminals
-bindsym Mod4+Home workspace Reading
-bindsym Mod4+Prior workspace Company
-bindsym Mod4+Next workspace Beyond
+bindsym Mod4+Insert workspace LeftTop
+bindsym Mod4+Delete workspace LeftMiddle
+bindsym Mod4+End workspace LeftBottom
+bindsym Mod4+Home workspace RightTop
+bindsym Mod4+Prior workspace RightMiddle
+bindsym Mod4+Next workspace RightBottom
 
 #bindsym Ctrl+KP_Divide workspace MainNonTerminals
 #bindsym Ctrl+KP_Multiply workspace Reading
