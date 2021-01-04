@@ -36,7 +36,7 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
 
-#xwayland enable
+#xwayland disable
 
 #
 # Example configuration:
@@ -70,13 +70,19 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 #       middle_emulation enabled
 #   }
 #
-input * 
+
+
+input *
 {
-	xkb_layout "br,us"
+#	xkb_layout "br,us"
+	xkb_file $HOME/git/GracefulGNU/profile/mycustom.xkb
 	repeat_delay 200
 	repeat_rate 60
 	xkb_numlock enabled 
+#	xkb_options "grp:menu_switch,caps:hyper"
 }
+
+#exec xmodmap -e "keycode 38 = e E"
 
 
 # You can get the names of your inputs by running: swaymsg -t get_inputs

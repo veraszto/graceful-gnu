@@ -111,6 +111,8 @@ function! <SID>AutoCommands()
 
 	autocmd mine BufReadPost * normal g'"zz
 
+"	autocmd mine BufRead *.workspaces iabc 
+
 	autocmd mine BufRead *.yaml set expandtab | set tabstop=2
 	
 	autocmd mine BufRead * call <SID>SetDict( )
@@ -118,7 +120,6 @@ function! <SID>AutoCommands()
 	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
 	call <SID>AutoCommandsOverlay( 0 ) 
-
 
 endfunction
 
