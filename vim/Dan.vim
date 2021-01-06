@@ -487,7 +487,18 @@ function! <SID>MakeJump( jump )
 "		\ getbufvar( a:jump["bufnr"], "jBufs_overlay_amend" )
 "	return built
 
-	return matchstr( bufname( a:jump["bufnr"] ), s:tail_file ) .
+	let bufname = bufname( a:jump["bufnr"] )
+
+	let tailed = matchstr( bufname , s:tail_with_upto_two_dirs )
+
+	let cwd = getcwd()
+
+	if ( ( cwd . "/" . tailed ) == ( cwd . "/" . bufname ) )
+		let hold = "@ " . tailed
+		let tailed = hold
+	endif
+
+	return  tailed .
 		\ getbufvar( a:jump["bufnr"], "jBufs_overlay_amend" )
 
 endfunction
@@ -1695,6 +1706,16 @@ function! <SID>PopupExists( name )
 endfunction
 
 
+function! <SID>AddAtCwd( jumps )
+
+	call extend
+	\ ( 
+			\ a:jumps[0], 
+			\ [ "", getcwd() . " @" ]
+	\ )
+
+endfunction
+
 
 function! <SID>RefreshingOverlays( type )
 
@@ -1716,6 +1737,8 @@ function! <SID>RefreshingOverlays( type )
 	let len_popup = len( popup_exists )
 
 	let jumps = <SID>BuildJBufs( this_type )
+
+	call <SID>AddAtCwd( jumps )
 
 	if  len_popup == 0
 
@@ -1752,7 +1775,7 @@ function! <SID>PopupConfigThenCreate( content, name, type )
 	let highlight = "Extension"
 	let title = "jBufs"
 	if a:type > 0
-		let line += 14
+		let line += 19
 		let highlight = "FileNamePrefix"
 		let title = "jBufs Workspaces"
 	endif
@@ -1773,8 +1796,8 @@ function! <SID>PopupConfigThenCreate( content, name, type )
 			\ borderhighlight: ["MyLightGray"],
 			\ border: [1, 1, 1, 1],
 			\ padding: [2, 3, 2, 3],
-			\ maxheight: 8,
-			\ minheight: 8
+			\ maxheight: 13,
+			\ minheight: 13
 		\ },
 		\ a:name 
 	\ )
@@ -1804,10 +1827,21 @@ function! <SID>JBufsViewAndRaw( jumps, type )
 	let counter = 1
 	for jump in a:jumps
 		call add( jumps_improved, <SID>JBufsView{a:type}( counter, jump ) )
+		if counter >= 8
+			break
+		endif
 		let counter += 1
 	endfor
 
-	return  [ jumps_improved, a:jumps ]
+	return  
+	\ [ 
+		\ extend
+		\ ( 
+			\ [ "@ " . bufname(), ""], 
+			\ jumps_improved 
+		\ ), 
+		\ a:jumps 
+	\ ]
 
 endfunction
 
@@ -1820,8 +1854,9 @@ endfunction
 function! <SID>JBufsViewTraditional( counter, jump )
 
 	let key = s:traditional_keybinds[ ( a:counter - 1 ) % s:len_traditional_keybinds ]
-
-	return key . ":" . a:counter . "  " .  <SID>MakeJump( a:jump )
+	let prefix = a:counter . "/" . key
+	let padded = <SID>StrPad( prefix, " ", 10 )
+	return  padded .  <SID>MakeJump( a:jump )
 
 endfunction
 
@@ -1844,6 +1879,7 @@ let s:popup_marks_dir = "~/git/MyStuff/vim/popup.shortcuts"
 let s:base_path = expand("~") . "/git/GracefulGNU/" 
 let s:bridge_file = "/tmp/bridge"
 let s:tail_file = '[._[:alnum:]-]\+$'
+let s:tail_with_upto_two_dirs = '\([^/]\+/\)\{,2}[^/]\+$'
 let s:file_extension = '\.[^./\\]\+$'
 let s:workspaces_pattern = '\.workspaces$'
 " The order of the array contents below matters
@@ -1852,7 +1888,7 @@ let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
-let s:traditional_keybinds = [ "ho", "en", "pu", "pd" ]
+let s:traditional_keybinds = [ "Home", "End", "pgUp", "pgDown" ]
 let s:len_traditional_keybinds = len( s:traditional_keybinds )
 
 
