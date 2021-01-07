@@ -1833,11 +1833,18 @@ function! <SID>JBufsViewAndRaw( jumps, type )
 		let counter += 1
 	endfor
 
+	let bufname = bufname()
+	if bufname =~ '^/'
+		let current = matchstr( bufname, s:tail_with_upto_two_dirs )
+	else
+		let current = "@ " . bufname
+	endif
+
 	return  
 	\ [ 
 		\ extend
 		\ ( 
-			\ [ "@ " . bufname(), ""], 
+			\ [ current, "" ], 
 			\ jumps_improved 
 		\ ), 
 		\ a:jumps 
