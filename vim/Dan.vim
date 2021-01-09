@@ -1167,10 +1167,10 @@ function! <SID>CycleTwoLetters( letters )
 
 	let joined_letters = join( a:letters, "")
 
-	if joined_letters =~ '^\l\{2}'
-		let add_to_joined = joined_letters . "_" . bufnr()
-		let joined_letters = add_to_joined
-	endif
+"	if joined_letters =~ '^\l\{2}'
+"		let add_to_joined = joined_letters . "_" . bufnr()
+"		let joined_letters = add_to_joined
+"	endif
 
 	if ! exists("s:counter_cycle_bufs_" . joined_letters )
 		let s:counter_cycle_bufs_{joined_letters} = 0
@@ -1182,6 +1182,19 @@ function! <SID>CycleTwoLetters( letters )
 	let letter = a:letters[ index ]
 	
 	let pos = getpos( "'" . letter )
+
+	if v:count > 0
+		let save_index = index 
+		let s:counter_cycle_bufs_{joined_letters} -= 1
+		let index = s:counter_cycle_bufs_{joined_letters} % len( a:letters )
+		execute "delmark " . a:letters[ index ]
+		echo a:letters[ index ] . " has just been deleted"
+		if v:count > 1
+			execute "delmark " . a:letters[ save_index ]
+			echo a:letters[ save_index ] . " has just been deleted"			
+		endif
+		return
+	endif
 
 	if pos[1] > 0
 
@@ -1196,7 +1209,7 @@ function! <SID>CycleTwoLetters( letters )
 		else
 			echo "At mark: " . letter
 		endif
-"		normal m'
+		normal m'
 "		call setpos( ".", pos ) | execute "normal z\<enter>"
 		call setpos( ".", pos ) | normal zz
 	else
@@ -1357,10 +1370,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <Del> :call <SID>ShortcutToNthPertinentJump(1, "Workspaces")<CR>
 	map <S-kDel> :call <SID>ShortcutToNthPertinentJump(2, "Workspaces")<CR>
 
-	map <C-Home> :call <SID>CycleTwoLetters( [ "l", "v" ] )<CR>
-	map <C-End> :call <SID>CycleTwoLetters( [ "R", "W" ] )<CR>
-	map <C-S-Up> :call <SID>CycleTwoLetters( [ "D", "V" ] )<CR>
-	map <C-kDel> :call <SID>RemoveLastTwoLettersCycle()<CR>
+	map <C-Home> <Cmd>call <SID>CycleTwoLetters( [ "L", "V" ] )<CR>
+	map <C-End> <Cmd>call <SID>CycleTwoLetters( [ "R", "W" ] )<CR>
+	map <C-kDel> <Cmd>call <SID>CycleTwoLetters( [ "D", "G" ] )<CR>
+"	noremap <Tab> <Cmd>call <SID>CycleTwoLetters( [ "C", "O" ] )<CR>
 
 	map ;J :call <SID>SharpSplits("J")<CR>
 	map ;K :call <SID>SharpSplits("K")<CR>
@@ -1402,7 +1415,18 @@ function! <SID>MakeMappings() "\Sample of a mark
 	noremap <expr> ;i ":vi " . getcwd() . "/"
 	noremap <expr> ;I ":vi " . expand("%")
 
+	map <F2> <Cmd>call <SID>WrapperHideAndShowPopups()<CR>
+
 	echo "Maps done!"
+
+
+endfunction
+
+function! <SID>WrapperHideAndShowPopups()
+
+	for a in s:types_of_overlays
+		call <SID>HideAndShowPopups( ["mustnotmatch"], a )
+	endfor
 
 endfunction
 
@@ -1666,17 +1690,19 @@ function! <SID>GetWinnrFromOverlayKey( key )
 
 endfunction
 
-function! <SID>HideAndShowPopups( name )
+function! <SID>HideAndShowPopups( name, this_type )
 
 	let tabname = <SID>BuildOverlayTabName()
 	let str_name = join( a:name, "" )
 
 
 	for key in keys( s:popup_winids[ tabname ] )
+		
+		if match( key, a:this_type ) < 0
+			continue
+		endif
 
-		let key_winnr = <SID>GetWinnrFromOverlayKey( key )
-
-		if str_name == key || key_winnr == winnr()
+		if str_name == key 
 			call popup_show( s:popup_winids[ tabname ][ key ][ 0 ] )
 		else
 			call popup_hide( s:popup_winids[ tabname ][ key ][ 0 ] )
@@ -1722,7 +1748,7 @@ function! <SID>RefreshingOverlays( type )
 "	echo "Type:" . a:type
 "	echo s:popup_winids
 
-	let types = [ "Traditional", "Workspaces" ]
+	let types = s:types_of_overlays
 
 	if ! exists("types[" . a:type . "]")
 		return
@@ -1750,7 +1776,7 @@ function! <SID>RefreshingOverlays( type )
 
 	endif
 
-	call <SID>HideAndShowPopups( name )
+	call <SID>HideAndShowPopups( name, this_type )
 
 	let increase = a:type + 1
 	call <SID>RefreshingOverlays( increase )
@@ -1902,6 +1928,8 @@ let s:len_traditional_keybinds = len( s:traditional_keybinds )
 let s:add_as_bufvar = '__\\#{.\+$'
 let s:add_as_bufvar_missing_bar = '\(\\\)\@<!#.*{.\+$'
 let s:cmd_buf_pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
+
+let s:types_of_overlays = [ "Traditional", "Workspaces" ]
 
 echo "Dan.vim has just been loaded"
 
