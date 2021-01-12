@@ -1280,7 +1280,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	map <Bar> :bprevious<CR>
 	map Z :bnext<CR>
-	map <Del> :echo "Please use \"x\" or \"X\" instead of <Del\>"<CR>
 
 
 "	Commenting and uncommenting
@@ -1367,7 +1366,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	endfor
 
 	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
-	map <Del> :call <SID>ShortcutToNthPertinentJump(1, "Workspaces")<CR>
+	nmap <Del> :call <SID>ShortcutToNthPertinentJump(1, "Workspaces")<CR>
 	map <S-kDel> :call <SID>ShortcutToNthPertinentJump(2, "Workspaces")<CR>
 
 	map <C-Home> <Cmd>call <SID>CycleTwoLetters( [ "L", "V" ] )<CR>

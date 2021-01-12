@@ -93,6 +93,13 @@ input *
 # Basics:
 #
     # start a terminal
+	bindsym $mod+Shift+m exec \
+	$HOME/git/GracefulGNU/BashScripts/build.workspace/Start.GnomeTerminal.Tmux.sh
+
+#	bindsym $mod+Shift+t exec \
+#	$HOME/git/GracefulGNU/BashScripts/build.workspace/Start.GnomeTerminal.Tmux.sh fedora-toolbox-33
+
+
 	bindsym $mod+Return exec gnome-terminal
 	bindsym $mod+Shift+Return exec google-chrome
 	bindsym $mod+Shift+n exec nautilus
@@ -261,9 +268,56 @@ bar
 default_border none
 
 set $tmux.main Main
+set $tmux.toolbox Toolbox
 #set $workspace0 workspace MainNonTerminals
 set $workspace0 workspace 0
+set $workspace1 workspace 1
 set $tmux.select.window.pane $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.main
+
+set $tmux.select.window.pane.toolbox \
+$HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
+
+
+set $mod3.insert 
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 0 0
+}
+
+set $mod3.delete 
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 0 1
+}
+set $mod3.home 
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 2 0
+}
+set $mod3.end 
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 1 0
+}
+set $mod3.pgup 
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 2 1
+}
+set $mod3.pgdown 
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 1 1
+}
+
+
+
+
+######################################
+
+
+
+
 
 set $alt.insert 
 {
@@ -301,6 +355,19 @@ set $alt.pgdown
 	exec $tmux.select.window.pane 1 1
 }
 
+########################################
+
+bindsym Mod4+Insert $mod3.insert
+bindsym Mod4+Delete $mod3.delete
+
+bindsym Mod4+Home $mod3.home
+bindsym Mod4+End $mod3.end
+
+bindsym Mod4+Prior $mod3.pgup
+bindsym Mod4+Next $mod3.pgdown
+
+#########################################
+
 
 bindsym Mod1+Insert $alt.insert
 bindsym Mod1+Delete $alt.delete
@@ -311,16 +378,17 @@ bindsym Mod1+End $alt.end
 bindsym Mod1+Prior $alt.pgup
 bindsym Mod1+Next $alt.pgdown
 
+#########################################
 
 #bindcode Ctrl+86 $docker1
 #bindcode Ctrl+129 $docker2
 
-bindsym Mod4+Insert workspace LeftTop
-bindsym Mod4+Delete workspace LeftMiddle
-bindsym Mod4+End workspace LeftBottom
-bindsym Mod4+Home workspace RightTop
-bindsym Mod4+Prior workspace RightMiddle
-bindsym Mod4+Next workspace RightBottom
+bindsym Mod3+Insert workspace LeftTop
+bindsym Mod3+Delete workspace LeftMiddle
+bindsym Mod3+End workspace LeftBottom
+bindsym Mod3+Home workspace RightTop
+bindsym Mod3+Prior workspace RightMiddle
+bindsym Mod3+Next workspace RightBottom
 
 #bindsym Ctrl+KP_Divide workspace MainNonTerminals
 #bindsym Ctrl+KP_Multiply workspace Reading

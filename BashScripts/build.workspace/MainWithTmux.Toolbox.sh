@@ -1,9 +1,9 @@
 #!/bin/bash
 
-mySessionTmux=${1:-Main}
+mySessionTmux=${1:-Toolbox}
 
 tmux \
-	-f $HOME/git/GracefulGNU/tmux/main.conf \
+	-f $HOME/git/GracefulGNU/tmux/toolbox.conf \
 	-L $mySessionTmux \
 	new-session -s $mySessionTmux \; \
 	rename-window "ReadCalmly" \; \
@@ -13,8 +13,6 @@ tmux \
 	new-window -n "Input" \; \
 	split-window \; \
 	split-window \; \
-	split-window \; \
-	new-window -n "Docker" \; \
 	split-window 
 
 
