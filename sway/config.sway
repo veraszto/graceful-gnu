@@ -82,6 +82,9 @@ input *
 #	xkb_options "grp:menu_switch,caps:hyper"
 }
 
+
+set $toolbox fedora-toolbox-33
+
 #exec xmodmap -e "keycode 38 = e E"
 
 
@@ -101,7 +104,15 @@ input *
 
 
 	bindsym $mod+Return exec gnome-terminal
-	bindsym $mod+Shift+Return exec google-chrome
+
+	bindsym $mod+Shift+Return exec \
+		podman container start $toolbox && \
+		podman container exec \
+		--user $USER \
+		--env DISPLAY --env XDG_RUNTIME_DIR \
+		$toolbox \
+		google-chrome --enable-features="UseOzonePlatform" --ozone-platform="wayland" \
+
 	bindsym $mod+Shift+n exec nautilus
 	bindsym $mod+Shift+f exec firefox
 
@@ -310,7 +321,17 @@ set $mod3.pgdown
 	exec $tmux.select.window.pane.toolbox 1 1
 }
 
+set $mod3.shift.home
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 2 2
+}
 
+set $mod3.shift.end
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 2 3
+}
 
 
 ######################################
@@ -355,28 +376,58 @@ set $alt.pgdown
 	exec $tmux.select.window.pane 1 1
 }
 
+set $alt.shift.home
+{
+	$workspace0, \
+	exec $tmux.select.window.pane 2 2
+}
+
+set $alt.shift.end
+{
+	$workspace0, \
+	exec $tmux.select.window.pane 2 3
+}
+
+set $alt.shift.pgup
+{
+	$workspace0, \
+	exec $tmux.select.window.pane 3 0
+}
+
+set $alt.shift.pgdown
+{
+	$workspace0, \
+	exec $tmux.select.window.pane 3 1
+}
+
 ########################################
 
 bindsym Mod4+Insert $mod3.insert
 bindsym Mod4+Delete $mod3.delete
-
 bindsym Mod4+Home $mod3.home
 bindsym Mod4+End $mod3.end
-
 bindsym Mod4+Prior $mod3.pgup
 bindsym Mod4+Next $mod3.pgdown
+
+
+bindsym Shift+Mod4+Home $mod3.shift.home
+bindsym Shift+Mod4+End $mod3.shift.end
 
 #########################################
 
 
 bindsym Mod1+Insert $alt.insert
 bindsym Mod1+Delete $alt.delete
-
 bindsym Mod1+Home $alt.home
 bindsym Mod1+End $alt.end
-
 bindsym Mod1+Prior $alt.pgup
 bindsym Mod1+Next $alt.pgdown
+
+
+bindsym Shift+Mod1+Home $alt.shift.home
+bindsym Shift+Mod1+End $alt.shift.end
+bindsym Shift+Mod1+Prior $alt.shift.pgup
+bindsym Shift+Mod1+Next $alt.shift.pgdown
 
 #########################################
 

@@ -157,6 +157,8 @@ function! <SID>TurnOnOffOverlays( on_off )
 	else
 
 		call <SID>AutoCommandsOverlay( 0 )
+		let s:overlay_allowed_to_show = v:true
+		call <SID>RefreshingOverlays( 0 )
 		echo "Overlays are turned ON"
 	endif
 
@@ -1183,16 +1185,7 @@ function! <SID>CycleTwoLetters( letters )
 	
 	let pos = getpos( "'" . letter )
 
-	if v:count > 0
-		let save_index = index 
-		let s:counter_cycle_bufs_{joined_letters} -= 1
-		let index = s:counter_cycle_bufs_{joined_letters} % len( a:letters )
-		execute "delmark " . a:letters[ index ]
-		echo a:letters[ index ] . " has just been deleted"
-		if v:count > 1
-			execute "delmark " . a:letters[ save_index ]
-			echo a:letters[ save_index ] . " has just been deleted"			
-		endif
+	if <SID>MarksAutoCyclingErasing( index, joined_letters, a:letters ) == 1
 		return
 	endif
 
@@ -1222,6 +1215,49 @@ function! <SID>CycleTwoLetters( letters )
 	endif
 
 	let s:last_two_letters_cycle = a:letters	
+
+endfunction
+
+function! <SID>MarksAutoCyclingErasing( index, joined_letters, letters )
+
+	if v:count == 0
+		return v:false
+	endif
+
+	let save_index = a:index 
+	let s:counter_cycle_bufs_{a:joined_letters} -= 1
+	let prev_index = s:counter_cycle_bufs_{a:joined_letters} % len( a:letters )
+
+	if v:count > 2
+
+		echo "Erasing all"
+		for a in s:elligible_auto_global_marks_letters
+			execute "delm " . a
+			echo "Erased " . a
+		endfor
+		return 1
+
+	endif
+
+	execute "delmark " . a:letters[ prev_index ]
+	echo a:letters[ prev_index ] . " has just been deleted"
+
+	if v:count > 1
+		execute "delmark " . a:letters[ save_index ]
+		echo a:letters[ save_index ] . " has just been deleted"			
+	endif
+	return 1
+
+
+endfunction
+
+function! <SID>WrapperCycleThroughLetters( start, amount )
+
+	let select = []
+	for a in range( a:start, a:start + a:amount - 1 )
+		call add( select, s:elligible_auto_global_marks_letters[ a ] )
+	endfor
+	call <SID>CycleTwoLetters( select )
 
 endfunction
 
@@ -1369,9 +1405,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 	nmap <Del> :call <SID>ShortcutToNthPertinentJump(1, "Workspaces")<CR>
 	map <S-kDel> :call <SID>ShortcutToNthPertinentJump(2, "Workspaces")<CR>
 
-	map <C-Home> <Cmd>call <SID>CycleTwoLetters( [ "L", "V" ] )<CR>
-	map <C-End> <Cmd>call <SID>CycleTwoLetters( [ "R", "W" ] )<CR>
-	map <C-kDel> <Cmd>call <SID>CycleTwoLetters( [ "D", "G" ] )<CR>
+	map <C-Home> <Cmd>call <SID>WrapperCycleThroughLetters( 0, 2 )<CR>
+	map <C-End> <Cmd>call <SID>WrapperCycleThroughLetters( 2, 2 )<CR>
+	map <C-kDel> <Cmd>call <SID>WrapperCycleThroughLetters( 4, 2 )<CR>
 "	noremap <Tab> <Cmd>call <SID>CycleTwoLetters( [ "C", "O" ] )<CR>
 
 	map ;J :call <SID>SharpSplits("J")<CR>
@@ -1423,9 +1459,17 @@ endfunction
 
 function! <SID>WrapperHideAndShowPopups()
 
-	for a in s:types_of_overlays
-		call <SID>HideAndShowPopups( ["mustnotmatch"], a )
-	endfor
+	let s:overlay_allowed_to_show = ! s:overlay_allowed_to_show
+
+	if s:overlay_allowed_to_show == 0
+		for a in s:types_of_overlays
+			call <SID>HideAndShowPopups( ["mustnotmatch"], a )
+		endfor
+	else
+		for a in s:types_of_overlays
+			call <SID>HideAndShowPopups( <SID>BuildOverlayNameArray( a ), a )
+		endfor
+	endif
 
 endfunction
 
@@ -1691,6 +1735,15 @@ endfunction
 
 function! <SID>HideAndShowPopups( name, this_type )
 
+	if s:popup_winids == {}
+		
+		echo "Overlays are turned off for the type:" . a:this_type . ", " .
+			\ "turn them on using the normal command [  ;O1  ]," .
+			\ "semicolon, letter O uppercased and number one"
+		return
+
+	endif
+
 	let tabname = <SID>BuildOverlayTabName()
 	let str_name = join( a:name, "" )
 
@@ -1701,7 +1754,7 @@ function! <SID>HideAndShowPopups( name, this_type )
 			continue
 		endif
 
-		if str_name == key 
+		if str_name == key && s:overlay_allowed_to_show == v:true
 			call popup_show( s:popup_winids[ tabname ][ key ][ 0 ] )
 		else
 			call popup_hide( s:popup_winids[ tabname ][ key ][ 0 ] )
@@ -1922,6 +1975,7 @@ let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
 let s:traditional_keybinds = [ "Home", "End", "pgUp", "pgDown" ]
 let s:len_traditional_keybinds = len( s:traditional_keybinds )
+let s:elligible_auto_global_marks_letters = [ "L", "V", "R", "W", "D", "G" ]
 
 
 let s:add_as_bufvar = '__\\#{.\+$'
@@ -1929,6 +1983,8 @@ let s:add_as_bufvar_missing_bar = '\(\\\)\@<!#.*{.\+$'
 let s:cmd_buf_pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
 
 let s:types_of_overlays = [ "Traditional", "Workspaces" ]
+
+let s:overlay_allowed_to_show = v:true
 
 echo "Dan.vim has just been loaded"
 
@@ -1941,221 +1997,6 @@ if exists("s:this_has_been_loaded") == v:false
 	call <SID>SayHello(["Hello are you good?", "What are you up to today?", "Great!"])
 "	call <SID>SayHello("Hello!")
 endif
-
-
-"Parked code from here below on, that have not been used lately, superseeded
-"********************************************************************************************************************************************
-
-" Acceptable to mark
-let s:acceptable_to_mark = 
-\[
-	\'\(\(\s\|\t\)*\)\@<=\\\([-[:alnum:]_.,?!]\+[[:space:]]\{,2}\)\{1,}'
-\]
-
-func! <SID>PopupAdd()
-
-	let b:popup_is_dirty = v:true
-	let file = <SID>PopupTargetFile()
-	try
-		call writefile( b:marks, file[2] )
-	catch
-		echo "Popup: could not write to file " . file[2] . ", " . v:exception
-	endtry
-
-endfunction
-
-function! <SID>MarksNavigationCheckContainer()
-
-	if ! exists("b:marks")
-		let b:marks = []
-	endif
-	if ! exists("b:current_mark")
-		let b:current_mark = 0
-	endif
-
-endfunction
-
-function! <SID>SaveMark()
-
-	call <SID>MarksNavigationCheckContainer()	
-
-	let line = getline(".")
-	let counter = 0
-	let length = len(b:marks)	
-	let tell = "This line has been saved: "
-	while exists("s:acceptable_to_mark[" . counter . "]")
-		let match = matchstr(line, s:acceptable_to_mark[counter])
-		if len(match) > 0
-			call insert(b:marks, match)
-			call <SID>PopupAdd()
-			let tell .= match
-			break
-		endif
-		let counter += 1
-	endw
-	if len(b:marks) == length
-		echo "This line " . line . " was asserted not to be desirable"
-		return
-	endif
-	echo tell
-
-endfunction
-
-function! <SID>SlideThroughMarks(direction)
-	
-	call <SID>MarksNavigationCheckContainer()	
-	if 
-		\ a:direction =~? '^right$' &&
-		\ b:current_mark < (len(b:marks) - 1)
-			let b:current_mark += 1
-	elseif
-		\ a:direction =~? '^left$' &&
-		\ b:current_mark > 0 
-
-			let b:current_mark -= 1
-	endif
-	let fixed_width = 28
-	for i in range(-1, 1)
-
-		let index = b:current_mark + i
-
-		let pure_content = get(b:marks, index, -1)
-
-		let content = 
-			\matchstr(pure_content, '[[:alnum:]_.]\+')
-
-		if pure_content == -1
-			let content = "<EmptySlot>"
-		endif
-
-		let remainder = (fixed_width - strlen(content)) / 2
-
-		let padded_content = 
-			\repeat(" ", remainder) .
-			\index . ")" . content . 
-			\repeat(" ", remainder)
-		
-		if index < 0
-			let unaccessible = "Unaccessible"
-			let remainder = (fixed_width - strlen(unaccessible)) / 2
-			let padded_content = 
-				\repeat(" ", remainder) .
-				\"-)" . unaccessible . 
-				\repeat(" ", remainder)
-		endif
-		
-		if i == 0
-			echohl PmenuSel
-		elseif index > 0 && pure_content >= 0
-			echohl None
-		else
-			echohl EndOfBuffer
-		endif
-
-		echon padded_content
-		echohl None
-
-	endfor
-
-endfunction
-
-function! <SID>WrapperOfStatusLine()
-
-	execute "set statusline=" .
-		\ "[%{mode()}]" .
-		\ "%{" . <SID>GetSNR() . "ShowType()}%m[%P]" .
-		\ "%{" . <SID>GetSNR() . "BuildStatusLine()}" .
-		\ "%{b:status_line_assets[0]}" .
-		\ "%#TabLineSel#%{b:status_line_assets[1]}%*" .
-		\ "%{b:status_line_assets[2]}" .
-		\ "%<"
-
-endfunction
-
-"function! <SID>BoosterNavigation()
-"	call <SID>WrapperOfStatusLine()
-"endfunction 
-
-function! <SID>BuildStatusLine()
-	let left = []
-	let right = []
-	let current = []
-"	let w:surroundings = []
-	let side_change = 0
-	for w in range(1, winnr("$"))
-		let name = bufname(winbufnr(w))
-"		let stripped = substitute(name, '^.*/\|\.\w\+$', "", "g")
-		let stripped = "   " . matchstr( name, '[^/]\+/\?[[:alnum:]_.-]\+\(\.\?\w\+\)$' ) . "   "
-"		if  strlen(stripped) == 0 || matchstr(name, '\(\.\)\@<=\w\+$') != matchstr(bufname("%"), '\(\.\)\@<=\w\+$')
-"			continue
-"		endif
-		if w == winnr()
-			let side_change = 1
-			call add(current, stripped)
-		else
-			if side_change == 0
-				call add(left, stripped)
-			else
-				call add(right, stripped)
-			endif
-		endif
-	endfor
-
-	let b:status_line_assets = [join(left, "|"), "|" . join(current, "") . "|", join(right, "|")]
-
-	return ""
-
-endfunction
-
-"\Commit to mark
-function! <SID>CommitToMark() 
-
-	call <SID>MarksNavigationCheckContainer()	
-
-	if v:count1 == 1 && v:count == 0
-		let say = "Going through arrows navigating"
-	else
-		let b:current_mark = v:count
-		let say = "Going through input v:count and v:count1, whose are " . v:count . " and " . v:count1
-	endif
-
-	let matter = get(b:marks, b:current_mark, -1)
-
-	if matter == -1
-		echo "Out of bounds mark"
-		return
-	endif
-
-	let s = <SID>MakeSearch( matter )
-
-	normal j
-	if s != 0
-		execute "normal z\<Enter>\<End>"
-		let say .= " reaching " . matter
-	else
-		let say .= ", however, " . matter . " has not been found"
-	endif
-	echo say
-
-endfunction
-
-"\MakeSearch
-function! <SID>MakeSearch(matter)
-	let s = search
-	\(
-		\<SID>MakeEscape(a:matter), 
-		\"s"
-	\)
-	return s
-endfunction
-
-
-
-
-
-
-
-
 
 
 
