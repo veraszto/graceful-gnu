@@ -492,6 +492,15 @@ function! <SID>MakeJump( jump )
 	let bufname = bufname( a:jump["bufnr"] )
 
 	let tailed = matchstr( bufname , s:tail_with_upto_two_dirs )
+	
+	if len( tailed ) == 0
+		let tailed = "(?)" . bufname
+	endif
+
+	if isdirectory( bufname )
+		let hold = tailed
+		let tailed  = "(DIR)" . hold
+	endif
 
 	let cwd = getcwd()
 
@@ -499,6 +508,7 @@ function! <SID>MakeJump( jump )
 		let hold = "@ " . tailed
 		let tailed = hold
 	endif
+
 
 	return  tailed .
 		\ getbufvar( a:jump["bufnr"], "jBufs_overlay_amend" )
@@ -1366,7 +1376,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <S-Left> :call <SID>PopupMarksShow()<CR>
 	map <S-Right> :call <SID>PopupBuffers()<CR>
 	map <S-Down> :call <SID>PopupJumps()<CR>
-	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
+"	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
+
+	map <C-S-Down> <Cmd>call <SID>LocalMarksAutoJumping( 13487, "down" )<SID><CR>
+	map <C-S-Up> <Cmd>call <SID>LocalMarksAutoJumping( 9750, "up"  )<SID><CR>
 
 
 	for a in range(1, 9)
@@ -1959,6 +1972,50 @@ function! <SID>UpdateOverlay( which, content, type )
 
 endfunction
 
+function! <SID>LocalMarksAutoJumping( iteration_count, go )
+
+	if a:iteration_count >= 5000
+		let copy_iteration_count = len( s:elligible_auto_cycle_local_marks_letters )
+	else
+		let copy_iteration_count = a:iteration_count
+	endif
+
+
+	if ! exists("b:local_marks_auto_jumping")
+		let b:local_marks_auto_jumping = 0
+	endif
+
+	if a:iteration_count <= 0
+		echo "No local marks found!"
+		return
+	endif
+
+	let iteration_count_partner = copy_iteration_count - 1
+
+	if a:go =~ '^up$'
+		let b:local_marks_auto_jumping += 1
+	else
+		let b:local_marks_auto_jumping -= 1
+	endif
+
+	let letter = 
+		\ s:elligible_auto_cycle_local_marks_letters
+		\[ 
+			\ b:local_marks_auto_jumping % len( s:elligible_auto_cycle_local_marks_letters ) 
+		\]
+
+	if line( "'" . letter ) > 0
+"		execute "normal '" . letter
+"		echo "At mark: " . letter
+		return
+	endif
+
+"	echo iteration_count_partner
+
+	call <SID>LocalMarksAutoJumping( iteration_count_partner, a:go )
+
+endfunction
+
 
 let s:popup_marks_dir = "~/git/MyStuff/vim/popup.shortcuts"
 let s:base_path = expand("~") . "/git/GracefulGNU/" 
@@ -1976,6 +2033,8 @@ let s:search_by_basic_regex = '^\[search\]'
 let s:traditional_keybinds = [ "Home", "End", "pgUp", "pgDown" ]
 let s:len_traditional_keybinds = len( s:traditional_keybinds )
 let s:elligible_auto_global_marks_letters = [ "L", "V", "R", "W", "D", "G" ]
+let s:elligible_auto_cycle_local_marks_letters = 
+	\ ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h", "l", "z", "x", "c", "v", "b", "n", "m"]
 
 
 let s:add_as_bufvar = '__\\#{.\+$'
