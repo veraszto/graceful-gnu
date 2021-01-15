@@ -717,6 +717,11 @@ function! <SID>GetRoofDir()
 endfunction
 
 function! <SID>SearchOrAddBufferAtThisLine( )
+
+	if match( buffer_name(), s:workspaces_pattern ) < 0
+		echo "This is not a Workspace file"
+		return
+	endif
 	
 	let should_search = match
 	\ ( 
@@ -1378,8 +1383,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <S-Down> :call <SID>PopupJumps()<CR>
 "	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
 
-	map <C-S-Down> <Cmd>call <SID>LocalMarksAutoJumping( 13487, "down" )<SID><CR>
-	map <C-S-Up> <Cmd>call <SID>LocalMarksAutoJumping( 9750, "up"  )<SID><CR>
+	map <C-S-Down> <Cmd>call <SID>LocalMarksAutoJumping( 13487, "down" )<CR>
+	map <C-S-Up> <Cmd>call <SID>LocalMarksAutoJumping( 9750, "up"  )<CR>
 
 
 	for a in range(1, 9)
@@ -1559,8 +1564,8 @@ function! <SID>HiLight()
 	
 	let purple = 55
 	let status_line_background = 237
-	let choose_separator_color = 237
-	let date_color = 99
+	let choose_separator_color = 237 
+	let date_color = 21
 
 	let highlights =
 	\[
@@ -1582,7 +1587,7 @@ function! <SID>HiLight()
 "	highlight Comment ctermfg=244
 
 	
-	execute "highlight DiaryDivisorDate ctermbg=" . choose_separator_color . " ctermfg=" . date_color
+	execute "highlight DiaryDivisorDate ctermbg=197 ctermfg=" . date_color
 	execute "highlight DiaryDivisor ctermbg=" . choose_separator_color . " ctermfg=" . choose_separator_color
 	execute "highlight CallingAttention ctermbg=" . choose_separator_color . " ctermfg=197"
 	highlight MyLightGray ctermfg=242
@@ -1590,7 +1595,7 @@ function! <SID>HiLight()
 	highlight MyActivities ctermfg=177
 	highlight CompanyActivities ctermfg=165
 	highlight BeAware ctermfg=219
-	highlight SubItemHelpers ctermfg=202
+	highlight link SubItemHelpers MyDone
 	highlight MyDone ctermfg=46
 	highlight MyStarted ctermfg=75
 	highlight MyContinue ctermfg=75
@@ -2004,9 +2009,11 @@ function! <SID>LocalMarksAutoJumping( iteration_count, go )
 			\ b:local_marks_auto_jumping % len( s:elligible_auto_cycle_local_marks_letters ) 
 		\]
 
-	if line( "'" . letter ) > 0
-"		execute "normal '" . letter
-"		echo "At mark: " . letter
+	let mark_pos = getpos( "'" . letter )
+
+	if mark_pos[ 1 ] > 0
+		echo "At mark: " . letter . ") " . getline( mark_pos[ 1 ] ) 
+		call setpos( ".", mark_pos )
 		return
 	endif
 
@@ -2034,7 +2041,7 @@ let s:traditional_keybinds = [ "Home", "End", "pgUp", "pgDown" ]
 let s:len_traditional_keybinds = len( s:traditional_keybinds )
 let s:elligible_auto_global_marks_letters = [ "L", "V", "R", "W", "D", "G" ]
 let s:elligible_auto_cycle_local_marks_letters = 
-	\ ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h", "l", "z", "x", "c", "v", "b", "n", "m"]
+	\ ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h", "j", "k", "l", "z", "x", "c", "v", "b", "n", "m"]
 
 
 let s:add_as_bufvar = '__\\#{.\+$'
