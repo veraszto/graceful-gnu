@@ -2012,8 +2012,9 @@ function! <SID>LocalMarksAutoJumping( iteration_count, go )
 	let mark_pos = getpos( "'" . letter )
 
 	if mark_pos[ 1 ] > 0
-		echo "At mark: " . letter . ") " . getline( mark_pos[ 1 ] ) 
 		call setpos( ".", mark_pos )
+		redraw
+		echo "At mark: " . letter . ") " . getline( mark_pos[ 1 ] ) 
 		return
 	endif
 
