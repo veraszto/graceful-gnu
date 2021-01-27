@@ -1291,6 +1291,29 @@ function! <SID>RemoveLastTwoLettersCycle()
  
 endfunction
 
+function! <SID>MarkNext()
+
+	let counter = 0
+	let length = len( s:elligible_auto_cycle_local_marks_letters )
+	while 1
+
+		let try_this = s:elligible_auto_cycle_local_marks_letters[ counter % length ]
+		let pos = getpos("'" . try_this )
+		if pos[1] == 0
+			execute "mark " . try_this
+			redraw
+			echo "Marked " . try_this
+			break
+		endif
+		if counter >= length
+			echo "All marks are set!"
+			break
+		endif
+		let counter += 1
+
+	endwhile
+endfunction
+
 
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
@@ -1348,7 +1371,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;mt :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "Sets" )<CR>
 	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
 	map ;mc :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "AutoCommands" )<CR>
-
 
 
 "	map ;ms :call <SID>SaveMark()<CR>
@@ -1438,6 +1460,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map P :set paste! <Bar> 
 			\ if &paste == 0 <Bar> echo "Paste mode is OFF" 
 			\ <Bar> else <Bar> echo "Paste mode is ON" <Bar> endif <CR>
+
+	map <F3> <Cmd>call <SID>MarkNext()<CR>
 
 	map <Space> :call <SID>SearchOrAddBufferAtThisLine()<CR>
 	map ;hi :call <SID>HiLight()<CR>
@@ -2009,12 +2033,14 @@ function! <SID>LocalMarksAutoJumping( iteration_count, go )
 			\ b:local_marks_auto_jumping % len( s:elligible_auto_cycle_local_marks_letters ) 
 		\]
 
+	normal m'
 	let mark_pos = getpos( "'" . letter )
 
 	if mark_pos[ 1 ] > 0
 		call setpos( ".", mark_pos )
 		redraw
 		echo "At mark: " . letter . ") " . getline( mark_pos[ 1 ] ) 
+		normal zz
 		return
 	endif
 
