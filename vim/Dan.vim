@@ -409,6 +409,8 @@ endfunction
 
 function! <SID>ChooseBestPlaceToGetJumps( limit, type )
 
+	return <SID>CollectPertinentJumps( a:limit, a:type )
+
 	let name = <SID>BuildOverlayNameArray( a:type )
 
 	let popup_exists = <SID>PopupExists( name )
@@ -1828,10 +1830,12 @@ endfunction
 
 function! <SID>AddAtCwd( jumps )
 
+	let current = matchstr( bufname(), s:tail_with_upto_two_dirs )
+
 	call extend
 	\ ( 
 			\ a:jumps[0], 
-			\ [ "", getcwd() . " @" ]
+			\ [ "", current , matchstr( getcwd(), s:tail_with_upto_two_dirs ) ]
 	\ )
 
 endfunction
@@ -1954,21 +1958,15 @@ function! <SID>JBufsViewAndRaw( jumps, type )
 	endfor
 
 	let bufname = bufname()
-	if bufname =~ '^/'
-		let current = matchstr( bufname, s:tail_with_upto_two_dirs )
-	else
-		let current = "@ " . bufname
-	endif
+	
+"	if bufname =~ '^/'
+"		let current = matchstr( bufname, s:tail_with_upto_two_dirs )
+"	else
+"		let current = "@ " . bufname
+"	endif
+"
 
-	return  
-	\ [ 
-		\ extend
-		\ ( 
-			\ [ current, "" ], 
-			\ jumps_improved 
-		\ ), 
-		\ a:jumps 
-	\ ]
+	return [ jumps_improved, a:jumps ]
 
 endfunction
 
@@ -1980,10 +1978,16 @@ endfunction
 
 function! <SID>JBufsViewTraditional( counter, jump )
 
-	let key = s:traditional_keybinds[ ( a:counter - 1 ) % s:len_traditional_keybinds ]
-	let prefix = a:counter . "/" . key
-	let padded = <SID>StrPad( prefix, " ", 10 )
-	return  padded .  <SID>MakeJump( a:jump )
+"	let key = s:traditional_keybinds[ ( a:counter - 1 ) % s:len_traditional_keybinds ]
+"	let prefix = a:counter . "/" . key
+"	let padded = <SID>StrPad( prefix, " ", 10 )
+
+	let divisor = ""
+	if a:counter == 5
+		let divisor = "- "
+	endif
+
+	return  divisor .  <SID>MakeJump( a:jump )
 
 endfunction
 
@@ -2075,7 +2079,8 @@ let s:add_as_bufvar = '__\\#{.\+$'
 let s:add_as_bufvar_missing_bar = '\(\\\)\@<!#.*{.\+$'
 let s:cmd_buf_pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
 
-let s:types_of_overlays = [ "Traditional", "Workspaces" ]
+"let s:types_of_overlays = [ "Traditional", "Workspaces" ]
+let s:types_of_overlays = [ "Traditional" ]
 
 let s:overlay_allowed_to_show = v:true
 
