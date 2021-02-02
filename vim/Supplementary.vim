@@ -103,6 +103,7 @@ function! <SID>MyMakeAbbreviations()
 	iab fs font-size:small;
 	iab fst font-style:normal;
 	iab fw font-weight:normal;
+	iab flw flex-wrap:wrap;
 	iab ght right:0;
 	iab he height:2em;<Left>
 	iab hp height:100%;

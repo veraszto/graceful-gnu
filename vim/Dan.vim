@@ -68,7 +68,7 @@ function! <SID>LastDir( matter )
 endfunction
 
 function! <SID>BuildStatusLine2()
-	return "%mbuffer: %#SameAsExtensionToStatusLine#%n%* / %#SameAsExtensionToStatusLine#%t%*" . 
+	return "%m%#SameAsExtensionToStatusLine#%n%*)%#SameAsExtensionToStatusLine#%F%*" . 
 		\ " / %#SameAsExtensionToStatusLine#%{". s:GetSNR() ."getStamp()}%*%=(%c/%l/%L) byte:%B"
 endfunction
 
@@ -1632,7 +1632,7 @@ function! <SID>HiLight()
 	highligh MySeparator ctermfg=234 ctermbg=234
 	highligh Bars ctermfg=99 
 	highligh Extension ctermfg=198 
-	execute "highligh SameAsExtensionToStatusLine ctermfg=198 ctermbg=" . status_line_background
+	execute "highligh SameAsExtensionToStatusLine ctermfg=250 ctermbg=" . status_line_background
 "	highligh WeAreHere ctermfg=63
 	highligh WeAreHere ctermfg=39
 	highligh link SearchFromInside WeAreHere
