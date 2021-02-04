@@ -1397,7 +1397,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;bu :bu 
 	map ;ch :changes<CR>
 	map ;cj :clearjumps<CR>
-	map ;cp :call <SID>CopyRegisterToFileAndClipboard("t")<CR>
+	map ;cp :call <SID>CopyRegisterToFileAndClipboard()<CR>
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call <SID>RefreshAll()<CR>
 	map ;em :call <SID>EditMarksFile()<CR>
@@ -1475,6 +1475,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;lf :call <SID>LocalCDAtThisFile()<CR>
 	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
 	map ;pw :pwd<CR>
+	map ;pb :call <SID>PasteFromBridge()<CR>
 	map ;pt :call <SID>GetThisFilePopupMark()<CR>
 	map ;q :quit<CR><C-W>_
 	map ;r :reg<CR>
@@ -1498,6 +1499,12 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	echo "Maps done!"
 
+
+endfunction
+
+function! <SID>PasteFromBridge()
+
+	execute "read " . s:bridge_file
 
 endfunction
 
@@ -1711,9 +1718,9 @@ function! <SID>MakeAbbreviations()
 
 endfunction
 
-function! <SID>CopyRegisterToFileAndClipboard(register)
+function! <SID>CopyRegisterToFileAndClipboard( )
 
-	execute "let tmp = @" . a:register
+	let tmp = @" 
 	let escaped = shellescape(tmp, 1)
 	silent execute "!echo " . escaped  . " | dd of=" . s:bridge_file
 "	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
