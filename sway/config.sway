@@ -105,14 +105,6 @@ set $toolbox fedora-toolbox-33
 
 	bindsym $mod+Return exec gnome-terminal
 
-	bindsym $mod+Shift+g exec \
-		podman container start $toolbox && \
-		podman container exec \
-		--user $USER \
-		--env DISPLAY --env XDG_RUNTIME_DIR \
-		$toolbox \
-		google-chrome --enable-features="UseOzonePlatform" --ozone-platform="wayland" \
-
 	bindsym $mod+Shift+n exec nautilus
 	bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox
 

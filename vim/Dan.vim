@@ -69,7 +69,7 @@ endfunction
 
 function! <SID>BuildStatusLine2()
 	return "%m%#SameAsExtensionToStatusLine#%n%*)%#SameAsExtensionToStatusLine#%F%*" . 
-		\ " / %#SameAsExtensionToStatusLine#%{". s:GetSNR() ."getStamp()}%*%=(%c/%l/%L) byte:%B"
+		\ " / %#SameAsExtensionToStatusLine#%{". s:GetSNR() ."getStamp()}%*%=(%c/%l/%L) byte:%B, %b"
 endfunction
 
 
@@ -692,6 +692,11 @@ endfunction
 function! <SID>LocalCDAtFirstRoof()
 
 	let to_lcd = <SID>GetRoofDir()
+
+	if to_lcd < 0
+		return
+	endif
+
 	execute "lcd " . to_lcd
 	echo "Current lcd is now " . to_lcd
 
@@ -699,50 +704,93 @@ endfunction
 
 function! <SID>GetRoofDir()
 
-	let current_dir = getcwd() . "/"
+	let current_dir = getcwd()
 	let line_base = search( s:we_are_here, "bnW")
 	if line_base == 0
 		let dir = current_dir 
 		echo "The '" . s:we_are_here . "' to set base dir was not found, using: " . dir
 	else
-		let dir = getline( line_base + 1 )
+		let dir = trim( getline( line_base + 1 ) )
 	endif
 
-	if match( dir, '/$' ) < 0
-		echo dir . " does not seem to be a valid dir, remember to finish with a \"/\" ok?"
-				\ "By now current dir(". current_dir .") is being used"
-		return current_dir 
+	let expanded = expand( dir )
+	if isdirectory(  expanded )
+		return expanded
 	endif
 
-	return trim( dir ) 
+	redraw | echo dir . " is not a directory, please checkout your [we are here] referenced dir"
+	
+	return -1
 
 endfunction
 
-function! <SID>SearchOrAddBufferAtThisLine( )
+function! <SID>SpacebarActionAtWorkspaces( )
 
 	if match( buffer_name(), s:workspaces_pattern ) < 0
 		echo "This is not a Workspace file"
 		return
 	endif
-	
-	let should_search = match
-	\ ( 
-		\ getline( line(".") - 1 ),
-		\ s:search_by_basic_regex 
-	\ )
 
-	if should_search < 0
-		call <SID>AddBufferAtThisLine( )
-	else
-		call <SID>ItsASearch(  )
+	let line_number = line(".")
+	let this_line_content_raw = getline( line_number )
+	let this_line_content = trim( this_line_content_raw )
+
+	if ( len( this_line_content ) <= 0 )
+		echo "Line empty"
+		return
 	endif
+
+	let line_above = getline( line_number - 1 )
+	let msg = line_above
+
+	let build_func_name = matchstr( line_above, '\(\[\)\@<=.\+\(\]\)\@=' )
+
+	if len( build_func_name ) <= 0
+		call <SID>SpaceBarAction( line_number, this_line_content_raw )
+		return
+	endif
+
+	let func_name = 
+			\ expand("<SID>") . "SpaceBarAction_" . 
+			\ substitute( tolower(build_func_name), '\s', "", "g")
+
+	if ! exists( "*" . func_name )
+		echo "There is not an action regarding " . build_func_name
+		return
+	endif
+
+	let Func = function(func_name)
+
+	call Func( line_number, this_line_content ) 
 
 endfunction
 
-function! <SID>ItsASearch( )
+function! <SID>SpaceBarAction_maketree( line_number, line )
 
-	let this_line = getline(".")
+	let toTree = "tree " . a:line . " " . <SID>GetRoofDir()
+	let tree = systemlist( toTree )
+	call remove( tree, 0 )
+	call remove( tree, len( tree ) - 1 )
+	if len( tree ) > 200
+		echo "The tree returned is huge, please refine better using the make tree parameters or scoping [we are here]"
+		return
+	endif
+	let append = append( line(".") + 2, tree )
+	if append > 0
+		echo "Please make room of at least two lines after the [make tree] parameters"
+	endif
+	
+endfunction
+
+function! <SID>SpaceBarAction_search( line_number, line )
+
+	let this_line = a:line
 	let roof = expand( <SID>GetRoofDir() )
+
+	if roof < 0
+		return
+	endif
+
 	let build_find = 
 			\ "find " 
 			\ . roof . 
@@ -900,16 +948,81 @@ function! <SID>MatchedAndAllRemoved( matter, cycle )
 
 endfunction
 
-function! <SID>AddBufferAtThisLine( )
+function! <SID>SpaceBarAction_wearehere( line_number, line )
 
-	let this_line = trim( getline(".") )
-	if len( trim( this_line ) ) == 0
-		echo "Could not edit this empty line"
+	call <SID>LocalCDAtFirstRoof()
+
+endfunction
+
+function! <SID>SpaceBarAction( line_number, line )
+
+	let this_line = a:line
+	let dir = <SID>GetRoofDir()
+
+	if dir < 0
 		return
 	endif
-	let dir = <SID>GetRoofDir()
-	let built = dir . this_line
+
+	let tree_prefix = matchstr( this_line, s:tree_special_chars )
+	let len_tree_prefix = strchars( tree_prefix )
+	if len_tree_prefix > 0
+		call <SID>BuFromGNUTree( a:line_number, a:line, len_tree_prefix, dir )
+		return
+	endif
+	let built = dir . trim( this_line )
 	return <SID>SpecialBu( built )
+
+endfunction
+
+function! <SID>BuFromGNUTree( line_number, line, len_tree_prefix, roof_dir )
+
+	let this_level = a:len_tree_prefix
+	let counter = 0
+	let dirs = []
+	while 1
+
+		let going_up = getline( a:line_number - counter)
+		let len_level = strchars( matchstr( going_up, s:tree_special_chars ) )
+		if len_level <= 0 || counter >= 100
+			echo "Reached tree top"
+			break
+		endif
+"		echo len_level . "|" . this_level . ", " . going_up
+		if len_level >= this_level
+			let counter += 1
+			continue
+		else
+"			echo len_level
+			let this_level = len_level
+			let add_dir = substitute( going_up, s:tree_special_chars, "", "gi")
+			call add( dirs, add_dir )
+		endif
+
+		let counter += 1
+
+	endwhile
+
+	let target_file = substitute( a:line, s:tree_special_chars, "", "gi" )
+
+	let len_dirs = len( dirs )
+
+	if len_dirs == 0
+		call <SID>SpecialBu( a:roof_dir .  target_file )
+		return
+	endif	
+	
+	let counter = len_dirs - 1
+
+	let wrap = [ a:roof_dir ]
+
+	while counter >= 0
+		call add( wrap, get( dirs, counter ))
+		let counter -= 1
+	endwhile
+
+	call add( wrap, target_file )
+	
+	call <SID>SpecialBu( join( wrap, "/" ) )
 
 endfunction
 
@@ -1080,6 +1193,10 @@ function! <SID>WorkspacesFilesToBuffer()
 		let curly_groups_found += 1
 		
 		let roof = <SID>GetRoofDir()
+
+		if roof < 0
+			return {}
+		endif
 
 		let content_line_number = open + 1
 		let content_line_content = getline( content_line_number )
@@ -1303,8 +1420,7 @@ function! <SID>MarkNext()
 		let pos = getpos("'" . try_this )
 		if pos[1] == 0
 			execute "mark " . try_this
-			redraw
-			echo "Marked " . try_this
+			redraw | echo "Marked " . try_this
 			break
 		endif
 		if counter >= length
@@ -1411,18 +1527,18 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map <C-S-Up> <Cmd>call <SID>LocalMarksAutoJumping( 9750, "up"  )<CR>
 
 
-	for a in range(1, 9)
-		
-		execute "map j" . a . " " . 
-			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
-		execute "map w" . a . " " . 
-			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
-		execute "inoremap j" . a . " " . 
-			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
-		execute "inoremap w" . a . " " . 
-			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
-
-	endfor
+"	for a in range(1, 9)		
+"
+"		execute "map j" . a . " " . 
+"			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
+"		execute "map w" . a . " " . 
+"			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
+"		execute "inoremap j" . a . " " . 
+"			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
+"		execute "inoremap w" . a . " " . 
+"			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
+"
+"	endfor
 
 	let types = [ "\"Traditional\"", "\"Workspaces\"" ]
 
@@ -1465,7 +1581,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	map <F3> <Cmd>call <SID>MarkNext()<CR>
 
-	map <Space> :call <SID>SearchOrAddBufferAtThisLine()<CR>
+	map <Space> :call <SID>SpacebarActionAtWorkspaces()<CR>
 	map ;hi :call <SID>HiLight()<CR>
 	map ;hn :new<CR><C-W>_
 	map ;ju :jumps<CR>
@@ -1629,6 +1745,7 @@ function! <SID>HiLight()
 	highlight CompanyActivities ctermfg=165
 	highlight BeAware ctermfg=219
 	highlight link SubItemHelpers MyDone
+	highlight TreeSticks ctermfg=241
 	highlight MyDone ctermfg=46
 	highlight MyStarted ctermfg=75
 	highlight MyContinue ctermfg=75
@@ -2081,6 +2198,8 @@ let s:elligible_auto_global_marks_letters = [ "L", "V", "R", "W", "D", "G" ]
 let s:elligible_auto_cycle_local_marks_letters = 
 	\ ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h", "j", "k", "l", "z", "x", "c", "v", "b", "n", "m"]
 
+let s:tree_special_chars = '^\(\%u2500\|\%u2502\|\%u251C\|\%u2514\|\%xA0\|[[:space:]]\)\+'
+let s:tree_len_each_level = 4
 
 let s:add_as_bufvar = '__\\#{.\+$'
 let s:add_as_bufvar_missing_bar = '\(\\\)\@<!#.*{.\+$'
