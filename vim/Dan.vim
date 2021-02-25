@@ -724,10 +724,29 @@ function! <SID>GetRoofDir()
 
 endfunction
 
+function! <SID>GoAfterAWorkSpace()
+
+	let counter = winnr("$")
+
+	while counter > 0
+		
+		let buf_name = bufname( winbufnr( counter ) )
+		if match( buf_name, s:workspaces_pattern ) > -1
+			execute counter . "wincmd w"
+			return
+		endif
+		let counter -= 1
+
+	endwhile
+
+	echo "An active workspace buffer is currently no present at this tab"
+
+endfunction
+
 function! <SID>SpacebarActionAtWorkspaces( )
 
 	if match( buffer_name(), s:workspaces_pattern ) < 0
-		echo "This is not a Workspace file"
+		call <SID>GoAfterAWorkSpace()
 		return
 	endif
 
@@ -771,11 +790,11 @@ function! <SID>SpaceBarAction_maketree( line_number, line )
 	let tree = systemlist( toTree )
 	call remove( tree, 0 )
 	call remove( tree, len( tree ) - 1 )
-	if len( tree ) > 200
-		echo "The tree returned is huge, please refine better using the make tree parameters or scoping [we are here]"
-		return
-	endif
-	let append = append( line(".") + 2, tree )
+"	if len( tree ) > 900
+"		echo "The tree returned is huge, please refine better using the make tree parameters or scoping [we are here]"
+"		return
+"	endif
+	let append = append( line(".") + 1, tree )
 	if append > 0
 		echo "Please make room of at least two lines after the [make tree] parameters"
 	endif
@@ -905,6 +924,11 @@ function! <SID>SpecialBu( this_bu )
 		return
 	endif
 
+	if isdirectory( built )
+		echo built . " is a directory, please select a file"
+		return
+	endif
+
 	echon "argadd this: " . built 
 
 	argglobal
@@ -983,7 +1007,7 @@ function! <SID>BuFromGNUTree( line_number, line, len_tree_prefix, roof_dir )
 
 		let going_up = getline( a:line_number - counter)
 		let len_level = strchars( matchstr( going_up, s:tree_special_chars ) )
-		if len_level <= 0 || counter >= 100
+		if len_level <= 0
 			echo "Reached tree top"
 			break
 		endif
@@ -1021,8 +1045,34 @@ function! <SID>BuFromGNUTree( line_number, line, len_tree_prefix, roof_dir )
 	endwhile
 
 	call add( wrap, target_file )
-	
-	call <SID>SpecialBu( join( wrap, "/" ) )
+
+	let joined_target = join( wrap, "/" )
+
+	if filereadable( joined_target )
+		execute "split " . joined_target 
+	else
+		echo joined_target . " not readable"
+	endif
+
+endfunction
+
+
+function! <SID>WriteBasicStructure()
+
+	call append
+	\ (
+		\ line("."),
+		\ [
+	 		\ "[we are here]",
+			\ expand("~/"),
+			\ "",
+			\ "[search]",
+			\ "-i \"\"",
+			\ "",
+			\ "[make tree]",
+			\ "-x -I node_modules --filelimit 10", "", ""
+		\ ]
+	\ )
 
 endfunction
 
@@ -1580,6 +1630,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 			\ <Bar> else <Bar> echo "Paste mode is ON" <Bar> endif <CR>
 
 	map <F3> <Cmd>call <SID>MarkNext()<CR>
+	map <F4> <Cmd>call <SID>WriteBasicStructure()<CR>
 
 	map <Space> :call <SID>SpacebarActionAtWorkspaces()<CR>
 	map ;hi :call <SID>HiLight()<CR>
