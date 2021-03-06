@@ -1631,6 +1631,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	map <F3> <Cmd>call <SID>MarkNext()<CR>
 	map <F4> <Cmd>call <SID>WriteBasicStructure()<CR>
+	map <F5> <Cmd>echo search( '\(<\\|>\\|=\)\{7}' )<CR>
+
+"	=======
 
 	map <Space> :call <SID>SpacebarActionAtWorkspaces()<CR>
 	map ;hi :call <SID>HiLight()<CR>
