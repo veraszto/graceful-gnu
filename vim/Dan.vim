@@ -715,7 +715,7 @@ function! <SID>GetRoofDir()
 
 	let expanded = expand( dir )
 	if isdirectory(  expanded )
-		return expanded
+		return expanded . "/"
 	endif
 
 	redraw | echo dir . " is not a directory, please checkout your [we are here] referenced dir"
@@ -739,7 +739,11 @@ function! <SID>GoAfterAWorkSpace()
 
 	endwhile
 
-	echo "An active workspace buffer is currently no present at this tab"
+	split
+	wincmd J
+	call <SID>ShortcutToNthPertinentJump(1, "Workspaces")
+
+"	echo "An active workspace buffer is currently no present at this tab"
 
 endfunction
 
@@ -936,7 +940,7 @@ function! <SID>SpecialBu( this_bu )
 	if argc() > 0
 		argd *
 	endif
-	execute "argadd " . built
+	execute "argadd " . escape( built, '#%' )
 	let first_file = argv()[0]
 	wa
 	let to_execute = "buffer " . pattern_prefix . first_file 
@@ -1049,7 +1053,7 @@ function! <SID>BuFromGNUTree( line_number, line, len_tree_prefix, roof_dir )
 	let joined_target = join( wrap, "/" )
 
 	if filereadable( joined_target )
-		execute "split " . joined_target 
+		execute "vi " . joined_target 
 	else
 		echo joined_target . " not readable"
 	endif
