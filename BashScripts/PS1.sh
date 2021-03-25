@@ -54,6 +54,8 @@ home="\360\237\217\240"
 #horse="@"
 horse="\xF0\x9F\x90\xB4"
 horse="\360\237\220\264"
+toolbox="\xf0\x9f\xa7\xb0"
+toolbox="\360\237\247\260"
 
 function echoEscaped
 {

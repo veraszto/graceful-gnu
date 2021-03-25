@@ -66,6 +66,7 @@ function! <SID>MyMakeAbbreviations()
 	iab boxsi box-sizing:border-box;<Left>
 	iab bp background-position:left top;<Left>
 	iab bpx border:1px solid Crimson;
+	iab bcl border-color:red;
 	iab bre background-repeat:no-repeat;<Left>
 	iab bs background-size:;<Left>
 	iab btlr border-top-left-radius:.5em;
