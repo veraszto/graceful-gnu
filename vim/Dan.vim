@@ -113,7 +113,7 @@ function! <SID>AutoCommands()
 
 "	autocmd mine BufRead *.workspaces iabc 
 
-	autocmd mine BufRead *.yaml set expandtab | set tabstop=2
+	autocmd mine BufRead *.yaml,*.yml setlocal expandtab | setlocal tabstop=2
 	
 	autocmd mine BufRead * call <SID>SetDict( )
 	
