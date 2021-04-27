@@ -1097,6 +1097,7 @@ function! <SID>BuFromGNUTree( line_number, line, len_tree_prefix, roof_dir )
 	let joined_target = join( wrap, "/" )
 
 	if filereadable( joined_target )
+		wa
 		execute "vi " . joined_target 
 	else
 		echo joined_target . " not readable"
@@ -1611,7 +1612,8 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;bu :bu 
 	map ;ch :changes<CR>
 	map ;cj :clearjumps<CR>
-	map ;cp :call <SID>CopyRegisterToFileAndClipboard()<CR>
+	map <F1> :call <SID>CopyRegisterToFileAndClipboard()<CR>
+	map [1;2P :call <SID>PasteFromClipboard()<CR>
 	map ;< <C-W>H<C-W>\|
 	map ;ea :call <SID>RefreshAll()<CR>
 	map ;em :call <SID>EditMarksFile()<CR>
@@ -1690,10 +1692,10 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;hs :split<CR><C-W>_
 	map ;ks :keepjumps /
 	map ;lc :lcd 
+	map ;lb :call <SID>ShowBuffersOfThisTab()<CR>
 	map ;lf :call <SID>LocalCDAtThisFile()<CR>
 	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
 	map ;pw :pwd<CR>
-	map ;pb :call <SID>PasteFromBridge()<CR>
 	map ;pt :call <SID>GetThisFilePopupMark()<CR>
 	map ;q :quit<CR><C-W>_
 	map ;r :reg<CR>
@@ -1720,11 +1722,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 endfunction
 
-function! <SID>PasteFromBridge()
-
-	execute "read " . s:bridge_file
-
-endfunction
 
 function! <SID>WrapperHideAndShowPopups()
 
@@ -1940,13 +1937,21 @@ endfunction
 function! <SID>CopyRegisterToFileAndClipboard( )
 
 	let tmp = @" 
-	let escaped = shellescape(tmp, 1)
-	silent execute "!echo " . escaped  . " | dd of=" . s:bridge_file
-"	silent execute "!echo " . escaped  . " | xclip -selection clipboard"
-	execute "!echo " . escaped  . " | wl-copy"
+	let escaped = shellescape( tmp )
+	call system( "echo " . escaped . " > " . s:bridge_file )
+	call system( s:clipboard_commands[ 0 ] . " " . escaped )
 	redraw!
+	echo "Copied \"... " . trim( matchstr( tmp, '.\{20}' ) ) . " ...\" to main clipboard"
 
 endfunction
+
+
+function! <SID>PasteFromClipboard( )
+"	set paste
+	execute "read !" . s:clipboard_commands[ 1 ]
+"	set paste&
+endfunction
+
 
 function! <SID>SayHello( msg )
 
@@ -1964,6 +1969,9 @@ function! <SID>SayHello( msg )
 		\)
 
 endfunction
+
+
+
 
 function! <SID>BuildOverlayTabName()
 
@@ -2281,6 +2289,26 @@ function! <SID>LocalMarksAutoJumping( iteration_count, go )
 endfunction
 
 
+function! <SID>ShowBuffersOfThisTab()
+
+	let list = []
+
+	call add( list, "lcd " . getcwd() )
+
+	for a in tabpagebuflist()
+		call add( list, "split " . bufname( a ) )
+	endfor
+
+	let joined = shellescape( join( list, "\n" ) )
+
+	call system("echo " . joined . " > /tmp/stacks.loaders")
+
+	echo "Done!"
+	echo joined
+
+endfunction
+
+
 let s:popup_marks_dir = "~/git/MyStuff/vim/popup.shortcuts"
 let s:base_path = expand("~") . "/git/GracefulGNU/" 
 let s:bridge_file = "/tmp/bridge"
@@ -2311,6 +2339,9 @@ let s:cmd_buf_pattern = '\(\s\|\t\)*+\(/\|\d\).\{-}\s\+'
 let s:types_of_overlays = [ "Traditional" ]
 
 let s:overlay_allowed_to_show = v:true
+
+"Could be xclip when on a X display server
+let s:clipboard_commands = [ "wl-copy", "wl-paste" ]
 
 echo "Dan.vim has just been loaded"
 
