@@ -265,7 +265,7 @@ mode "resize" {
 #        background #323232
 #        inactive_workspace #32323200 #32323200 #5c5c5c
 #    }
-##	workspace_buttons no
+#	workspace_buttons yes
 #}
 
 default_border none
@@ -427,11 +427,11 @@ bindsym Shift+Mod1+Next $alt.shift.pgdown
 #bindcode Ctrl+129 $docker2
 
 bindsym Mod3+Insert workspace LeftTop
-bindsym Mod3+Delete workspace LeftMiddle
-bindsym Mod3+End workspace LeftBottom
+bindsym Mod3+Delete workspace LeftBottom
+bindsym Mod3+End workspace RightBottom
 bindsym Mod3+Home workspace RightTop
-bindsym Mod3+Prior workspace RightMiddle
-bindsym Mod3+Next workspace RightBottom
+bindsym Mod3+Prior workspace RightTopCorner
+bindsym Mod3+Next workspace RightBottomCorner
 
 #bindsym Ctrl+KP_Divide workspace MainNonTerminals
 #bindsym Ctrl+KP_Multiply workspace Reading

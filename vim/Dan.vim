@@ -113,7 +113,7 @@ function! <SID>AutoCommands()
 
 "	autocmd mine BufRead *.workspaces iabc 
 
-	autocmd mine BufRead *.yaml,*.yml setlocal expandtab | setlocal tabstop=2
+	autocmd mine BufRead *.yaml,*.yml setlocal expandtab | setlocal tabstop=2 | echo "Its a YAML!"
 	
 	autocmd mine BufRead * call <SID>SetDict( )
 	
@@ -527,6 +527,7 @@ function! <SID>PopupBuffers()
 	endtry
 	let counter = 0
 	for buffer in buffers
+
 		if len( get( buffer, "name") ) == 0 ||
 			\ get( buffer, "listed" ) == 0
 
@@ -790,10 +791,16 @@ endfunction
 
 function! <SID>SpaceBarAction_maketree( line_number, line )
 
-	let toTree = "tree " . a:line . " " . <SID>GetRoofDir()
+	let should_draw = <SID>TreeHasAlreadyBeenDrawed( a:line_number )
+	if should_draw == 1
+		return
+	endif
+
+	let toTree = "tree -a " . a:line . " " . <SID>GetRoofDir()
 	let tree = systemlist( toTree )
 	call remove( tree, 0 )
-	call remove( tree, len( tree ) - 1 )
+	let len_tree = len( tree )
+	call remove( tree, len_tree - 2, len_tree - 1 )
 "	if len( tree ) > 900
 "		echo "The tree returned is huge, please refine better using the make tree parameters or scoping [we are here]"
 "		return
@@ -803,6 +810,43 @@ function! <SID>SpaceBarAction_maketree( line_number, line )
 		echo "Please make room of at least two lines after the [make tree] parameters"
 	endif
 	
+endfunction
+
+function! <SID>TreeHasAlreadyBeenDrawed( line_number )
+
+	let next_line = a:line_number + 1
+
+	let sequence_amount = 0
+
+	while next_line <= line("$")
+
+		let line = trim( getline( next_line ) )
+
+		if match( line, s:tree_special_chars ) >= 0
+
+			let sequence_amount += 1
+
+		elseif sequence_amount > 0 || len( line ) > 0
+
+			break
+
+		endif
+
+		let next_line += 1
+
+	endwhile
+
+	if sequence_amount <= 0
+		return 0
+	endif
+
+	let to_erase = next_line - ( sequence_amount )
+	call setpos( ".", [ 0, to_erase, 1, 0 ] )
+	execute "normal " . ( sequence_amount ) . "dd"
+	call setpos( ".", [ 0, a:line_number, 1, 0 ] )
+"	echo sequence_amount
+	return 1
+
 endfunction
 
 function! <SID>SpaceBarAction_search( line_number, line )
@@ -1068,13 +1112,13 @@ function! <SID>WriteBasicStructure()
 		\ line("."),
 		\ [
 	 		\ "[we are here]",
-			\ expand("~/"),
+			\ expand("~/git"),
 			\ "",
 			\ "[search]",
 			\ "-i \"\"",
 			\ "",
 			\ "[make tree]",
-			\ "-x -I node_modules --filelimit 10", "", ""
+			\ "-x -I \"node_modules|.git\" --filelimit 50", "", ""
 		\ ]
 	\ )
 
