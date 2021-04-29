@@ -1941,7 +1941,7 @@ function! <SID>CopyRegisterToFileAndClipboard( )
 	call system( "echo " . escaped . " > " . s:bridge_file )
 	call system( s:clipboard_commands[ 0 ] . " " . escaped )
 	redraw!
-	echo "Copied \"... " . trim( matchstr( tmp, '.\{20}' ) ) . " ...\" to main clipboard"
+	echo "Copied \"... " . trim( matchstr( tmp, '.\{1,20}' ) ) . " ...\" to main clipboard"
 
 endfunction
 
