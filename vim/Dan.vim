@@ -1949,6 +1949,7 @@ endfunction
 function! <SID>PasteFromClipboard( )
 "	set paste
 	execute "read !" . s:clipboard_commands[ 1 ]
+"	let @c = 
 "	set paste&
 endfunction
 
@@ -2301,7 +2302,7 @@ function! <SID>ShowBuffersOfThisTab()
 
 	let joined = shellescape( join( list, "\n" ) )
 
-	call system("echo " . joined . " > /tmp/stacks.loaders")
+	call system("echo " . joined . " > /tmp/stacks.loaders.vim")
 
 	echo "Done!"
 	echo joined
