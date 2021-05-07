@@ -1692,7 +1692,14 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;hs :split<CR><C-W>_
 	map ;ks :keepjumps /
 	map ;lc :lcd 
-	map ;lb :call <SID>ShowBuffersOfThisTab()<CR>
+
+	map <silent> <F6> :call <SID>SaveBuffersOfThisTab()<CR>
+	execute "map <silent> <S-F6> :call <SID>SaveLoader( \"" . s:loaders_dirs[ 1 ] . "\")<CR>"
+	execute "map <silent> <C-S-F6> :call <SID>LoadLoader( \"" . s:loaders_dirs[ 1 ] . "\")<CR>"
+	map <silent> <F7> :call <SID>SaveBuffersOfThisTab()<CR>
+	execute "map <silent> <S-F7> :call <SID>SaveLoader( \"" . s:loaders_dirs[ 0 ] . "\")<CR>"
+	execute "map <silent> <C-S-F7> :call <SID>LoadLoader( \"" . s:loaders_dirs[ 0 ] . "\")<CR>"
+
 	map ;lf :call <SID>LocalCDAtThisFile()<CR>
 	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
 	map ;pw :pwd<CR>
@@ -2290,36 +2297,138 @@ function! <SID>LocalMarksAutoJumping( iteration_count, go )
 endfunction
 
 
-function! <SID>ShowBuffersOfThisTab()
+function! <SID>GenerateVimScriptToLoadBuffersOfATab( which )
 
 	let list = []
+	let counter = 0
+	let options = [ "vi", "split" ]
+	call add( list, "cd " . getcwd() )
+	let buffers = reverse( tabpagebuflist( a:which ) )
+	for a in buffers 
 
-	call add( list, "lcd " . getcwd() )
+		let index = counter
+		if counter > 0
+			let index = 1
+		endif
 
-	for a in tabpagebuflist()
-		call add( list, "split " . bufname( a ) )
+		let bufname = bufname( a )
+
+		if trim( bufname ) =~ '^$'
+			continue
+		endif
+
+		call add( list, options[ index ]  . " " .  bufname )
+		let counter += 1
+
 	endfor
 
-	let joined = shellescape( join( list, "\n" ) )
+	return list
 
-	call system("echo " . joined . " > /tmp/stacks.loaders.vim")
+endfunction
 
-	echo "Done!"
-	echo joined
+function! <SID>SaveLoader( path )
+
+	let last_tab = tabpagenr( "$" )
+	let commands = []
+
+	for a in range( 1, last_tab )
+		call extend( commands,  <SID>GenerateVimScriptToLoadBuffersOfATab( a ) )
+		call extend( commands, [ "tabnew" ])
+	endfor
+
+	call remove( commands, len( commands ) - 1 )
+
+	call <SID>WriteToFile( commands, a:path )
+
+	echo "Saved loader to " . a:path
+
+
+endfunction
+
+function! <SID>LoadLoader( path )
+
+	let last_tab = tabpagenr( "$" )
+
+	try
+		wa
+	catch
+		echo "Please save your files before loading the workspace " . a:path
+		return
+	endtry
+
+	while last_tab > 1
+
+		try
+			tabclose
+		catch
+			echo "Could not close tab " . tabpagenr() . ", before loading workspace " . a:path
+			return
+		endtry
+
+		let last_tab = tabpagenr( "$" )
+
+	endwhile
+
+	let last_window = winnr( "$" )
+
+	while last_window > 1
+		try
+			close
+		catch
+			echo "Could not close win " . winnr() . ", before loading workspace " . a:path
+			return
+		endtry
+		let last_window = winnr( "$" )
+	endwhile
+
+	new
+	wincmd j
+	close
+
+	try
+		execute "source " . a:path
+	catch
+		echo "Could not source " . a:path . ", v:exception: " . v:exception
+	endtry
+		
+endfunction
+
+function! <SID>SaveBuffersOfThisTab()
+
+	let this_buffers = <SID>GenerateVimScriptToLoadBuffersOfATab( tabpagenr() )
+	call <SID>WriteToFile
+	\ ( 
+		\ this_buffers,  
+		\ s:tmp_vim_script_buffers_loader
+	\ )
+
+	echo "Saved:\n" . join( this_buffers, "\n" ) . "\nto " . s:tmp_vim_script_buffers_loader
 
 endfunction
 
 
-let s:popup_marks_dir = "~/git/MyStuff/vim/popup.shortcuts"
+
+
+"Custom Vars
+
+
+let s:popup_marks_dir = $MY_STUFF . "/vim/popup.shortcuts"
 let s:base_path = expand("~") . "/git/GracefulGNU/" 
 let s:bridge_file = "/tmp/bridge"
+"Could be xclip when on a X display server
+let s:clipboard_commands = [ "wl-copy", "wl-paste" ]
+let s:initial_workspace = $MY_STUFF . "/vim/workspaces/all.workspaces"
+let s:loaders_dirs = [ $MY_STUFF . "/vim/loaders/top.vim", $MY_STUFF . "/vim/loaders/middle.vim" ]
+
+"##########################
+
+
 let s:tail_file = '[._[:alnum:]-]\+$'
 let s:tail_with_upto_two_dirs = '\([^/]\+/\)\{,2}[^/]\+$'
 let s:file_extension = '\.[^./\\]\+$'
 let s:workspaces_pattern = '\.workspaces$'
 " The order of the array contents below matters
 let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcut$' ]
-let s:initial_workspace = "~/git/MyStuff/vim/workspaces/all.workspaces"
 let s:max_file_search = 36
 let s:we_are_here = '^\[\(we.are.here\|base\)\]'
 let s:search_by_basic_regex = '^\[search\]'
@@ -2341,8 +2450,10 @@ let s:types_of_overlays = [ "Traditional" ]
 
 let s:overlay_allowed_to_show = v:true
 
-"Could be xclip when on a X display server
-let s:clipboard_commands = [ "wl-copy", "wl-paste" ]
+
+let s:tmp_vim_script_buffers_loader = "/tmp/buffers.loader.vim"
+
+let paths_to_loader = $MY_GIT_HOME
 
 echo "Dan.vim has just been loaded"
 
@@ -2352,9 +2463,17 @@ if exists("s:this_has_been_loaded") == v:false
 	let s:last_win_tab = [0, 0]
 	echo "As its the first time for this instance, then we call StartUp"
 	call <SID>StartUp()
-	call <SID>SayHello(["Hello are you good?", "What are you up to today?", "Great!"])
+	call <SID>SayHello( ["Hello are you good?", "What are you up to today?", "Great!"] )
 "	call <SID>SayHello("Hello!")
 endif
+
+
+
+
+
+
+
+
 
 
 

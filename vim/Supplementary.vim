@@ -12,6 +12,11 @@ function! <SID>MyMakeAbbreviations()
 	iab sout setTimeout<CR>(<CR><Tab>function( ev )<CR>{<CR>}, <CR>);<Home><Del>
 	iab linkrel <link rel="icon" type="image/png" href="images/common/link_rel_icon.png?2" />
 
+	iab <expr> bufName matchstr( expand("%:t"), '.\{-}\(\.\)\@=' )
+
+	iab htmlbasic <!doctype html>
+		\ <CR><html><CR><head><CR></head><CR><body><CR></body><CR></html>
+
 	iab mdep <dependency><CR><Tab>
 			\<groupId></groupId><CR><artifactId></artifactId><CR>
 			\<version></version><CR><BS></dependency>
@@ -179,7 +184,7 @@ endfunction
 
 function! <SID>MyMaps()
 
-	map ;;y :echo "runtime Supplementary.vim and call MyStartUp" <Bar> runtime Supplementary.vim <Bar> call <SID>MyStartUp()<CR>
+	map ;;y :echo "runtime Supplementary.vim and call MyStartUp" <Bar> runtime Supplementary.vim<CR>
 
 endfunction
 
