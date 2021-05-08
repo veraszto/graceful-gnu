@@ -2302,7 +2302,13 @@ function! <SID>GenerateVimScriptToLoadBuffersOfATab( which )
 	let list = []
 	let counter = 0
 	let options = [ "vi", "split" ]
-	call add( list, "cd " . getcwd() )
+	let way_to_goback = [ "cd", "lcd", "tcd" ]
+	let this_dir = getcwd( )
+	let has_local_dir = haslocaldir( )
+	let save = way_to_goback[ has_local_dir ] . " " . this_dir
+
+	call add( list, <SID>BaseDirToSaveLoader() )
+
 	let buffers = reverse( tabpagebuflist( a:which ) )
 	for a in buffers 
 
@@ -2321,6 +2327,8 @@ function! <SID>GenerateVimScriptToLoadBuffersOfATab( which )
 		let counter += 1
 
 	endfor
+	
+	execute save
 
 	return list
 
@@ -2328,12 +2336,27 @@ endfunction
 
 function! <SID>SaveLoader( path )
 
+	let can_continue = confirm 
+		\ ( 
+			\ "Press 'y' or 'Y' to SAVE the current buffs environment to " . a:path . 
+				\ " or ESC to not",
+			\ "Yes", -1
+		\ )
+
+	if can_continue < 1
+		return
+	endif
+
+
 	let last_tab = tabpagenr( "$" )
 	let commands = []
 
 	for a in range( 1, last_tab )
-		call extend( commands,  <SID>GenerateVimScriptToLoadBuffersOfATab( a ) )
+		
+		let for_this_tab = <SID>GenerateVimScriptToLoadBuffersOfATab( a )
+		call extend( commands,   for_this_tab )
 		call extend( commands, [ "tabnew" ])
+
 	endfor
 
 	call remove( commands, len( commands ) - 1 )
@@ -2345,7 +2368,26 @@ function! <SID>SaveLoader( path )
 
 endfunction
 
+function! <SID>BaseDirToSaveLoader()
+
+	let dir = "cd"
+	execute dir
+	return dir
+
+endfunction
+
 function! <SID>LoadLoader( path )
+
+	let can_continue = confirm 
+		\ ( 
+			\ "Press 'y' or 'Y' to LOAD buffs environment from " . a:path .
+				\ " or ESC to not",
+			\ "Yes", -1
+		\ )
+
+	if can_continue < 1
+		return
+	endif
 
 	let last_tab = tabpagenr( "$" )
 
@@ -2387,6 +2429,7 @@ function! <SID>LoadLoader( path )
 
 	try
 		execute "source " . a:path
+		echo "Loaded from " . a:path
 	catch
 		echo "Could not source " . a:path . ", v:exception: " . v:exception
 	endtry
@@ -2450,10 +2493,7 @@ let s:types_of_overlays = [ "Traditional" ]
 
 let s:overlay_allowed_to_show = v:true
 
-
 let s:tmp_vim_script_buffers_loader = "/tmp/buffers.loader.vim"
-
-let paths_to_loader = $MY_GIT_HOME
 
 echo "Dan.vim has just been loaded"
 
