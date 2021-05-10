@@ -1113,7 +1113,7 @@ function! <SID>WriteBasicStructure()
 		\ line("."),
 		\ [
 	 		\ "[we are here]",
-			\ expand("~/git"),
+			\ expand( s:basic_structure_initial_dir ),
 			\ "",
 			\ "[search]",
 			\ "-i \"\"",
@@ -1693,12 +1693,9 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;ks :keepjumps /
 	map ;lc :lcd 
 
-	map <silent> <F6> :call <SID>SaveBuffersOfThisTab()<CR>
-	execute "map <silent> <S-F6> :call <SID>SaveLoader( \"" . s:loaders_dirs[ 1 ] . "\")<CR>"
-	execute "map <silent> <C-S-F6> :call <SID>LoadLoader( \"" . s:loaders_dirs[ 1 ] . "\")<CR>"
-	map <silent> <F7> :call <SID>SaveBuffersOfThisTab()<CR>
-	execute "map <silent> <S-F7> :call <SID>SaveLoader( \"" . s:loaders_dirs[ 0 ] . "\")<CR>"
-	execute "map <silent> <C-S-F7> :call <SID>LoadLoader( \"" . s:loaders_dirs[ 0 ] . "\")<CR>"
+	map <silent> <F6> :call <SID>LoadLoader( )<CR>
+	map <silent> <F7> :call <SID>SaveLoader( )<CR>
+	map <silent> <S-F7> :call <SID>SaveBuffersOfThisTab()<CR>
 
 	map ;lf :call <SID>LocalCDAtThisFile()<CR>
 	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
@@ -2104,7 +2101,7 @@ function! <SID>RefreshingOverlays( type )
 
 	let jumps = <SID>BuildJBufs( this_type )
 
-	call <SID>AddAtCwd( jumps )
+"	call <SID>AddAtCwd( jumps )
 
 	if  len_popup == 0
 
@@ -2307,7 +2304,8 @@ function! <SID>GenerateVimScriptToLoadBuffersOfATab( which )
 	let has_local_dir = haslocaldir( )
 	let save = way_to_goback[ has_local_dir ] . " " . this_dir
 
-	call add( list, <SID>BaseDirToSaveLoader() )
+	call add( list, "try" )
+	call add( list, "\t" . <SID>BaseDirToSaveLoader() )
 
 	let buffers = reverse( tabpagebuflist( a:which ) )
 	for a in buffers 
@@ -2323,10 +2321,12 @@ function! <SID>GenerateVimScriptToLoadBuffersOfATab( which )
 			continue
 		endif
 
-		call add( list, options[ index ]  . " " .  bufname )
+		call add( list, "\t" . options[ index ]  . " " .  bufname )
 		let counter += 1
 
 	endfor
+	
+	call add( list, "catch | echo \"Could not load buffers: \" . v:exception | endtry" )
 	
 	execute save
 
@@ -2334,18 +2334,71 @@ function! <SID>GenerateVimScriptToLoadBuffersOfATab( which )
 
 endfunction
 
-function! <SID>SaveLoader( path )
+function! <SID>ReadDirs( which )
+	
+	try
+		let files = readdir( a:which )
+	catch
+		throw "Could not readdir: " . a:which
+	endtry
 
-	let can_continue = confirm 
+	return files
+
+endfunction
+
+function! <SID>SaveLoader( )
+
+	try
+		let suggestions = <SID>ReadDirs( s:loaders_dir )
+	catch
+		echo v:exception
+		return
+	endtry
+
+	if len( suggestions ) <= 0
+		let suggestions = []
+	endif
+
+	let cropped = []
+	for a in suggestions
+		call add( cropped, matchstr( a, '^.\{-}\(\.\)\@=' ))
+	endfor
+
+	echohl MyActivities 
+
+	echo "Please type a new name " .
+		\ "or at least a name match of an existing entry " .
+		\ "listed below(if any) to overwrite, to " .
+		\ "save the current active buffers."
+	echohl WarningMsg
+	echo "SAVE to:"
+
+	echohl MyDone 
+
+	let input = input
 		\ ( 
-			\ "Press 'y' or 'Y' to SAVE the current buffs environment to " . a:path . 
-				\ " or ESC to not",
-			\ "Yes", -1
+			\ join( cropped, "\n" ) . "\n"
 		\ )
 
-	if can_continue < 1
+	let trimmed_input = trim( input )
+
+	echohl MyActivities 
+
+	if len( trimmed_input ) <= 0
+		echo "Could not save to a empty name"
+		echohl None
 		return
 	endif
+
+	let save_or_overwrite = "Saving"
+	let match = match( cropped, input )
+	if match > -1
+		let save_or_overwrite = "Overwritting"
+		let input = cropped[ match ]
+		let trimmed_input = trim( input )
+	endif
+
+	echo "\n" . save_or_overwrite . " -> " . input
 
 
 	let last_tab = tabpagenr( "$" )
@@ -2361,10 +2414,13 @@ function! <SID>SaveLoader( path )
 
 	call remove( commands, len( commands ) - 1 )
 
-	call <SID>WriteToFile( commands, a:path )
+	let file_name = s:loaders_dir . "/" . trimmed_input . ".vim"
 
-	echo "Saved loader to " . a:path
+	call <SID>WriteToFile( commands,  file_name )
 
+	echo "Saved loader to " . file_name
+
+	echohl none
 
 endfunction
 
@@ -2376,63 +2432,83 @@ function! <SID>BaseDirToSaveLoader()
 
 endfunction
 
-function! <SID>LoadLoader( path )
+function! <SID>LoadLoader( )
 
-	let can_continue = confirm 
-		\ ( 
-			\ "Press 'y' or 'Y' to LOAD buffs environment from " . a:path .
-				\ " or ESC to not",
-			\ "Yes", -1
-		\ )
+	try
+		let suggestions = <SID>ReadDirs( s:loaders_dir )
+	catch
+		echo v:exception
+		return
+	endtry
 
-	if can_continue < 1
+	if len( suggestions ) <= 0
+		echo "There is not a buffers stack loader to load"
 		return
 	endif
 
-	let last_tab = tabpagenr( "$" )
+	let cropped = []
+	for a in suggestions
+		call add( cropped, matchstr( a, '^.\{-}\(\.\)\@=' ))
+	endfor
 
+	echohl MyActivities 
+
+	echo "Please type a name " .
+		\ "or at least a name match of an existing entry " .
+		\ "listed below to load a saved stack of buffers."
+	echohl WarningMsg
+	echo "LOAD from:"
+
+	echohl MyDone 
+
+	let input = input
+		\ ( 
+			\ join( cropped, "\n" ) . "\n"
+		\ )
+
+	let trimmed_input = trim( input )
+
+	echohl MyActivities 
+
+	if len( trimmed_input ) <= 0
+		echo "Could not load from an empty name"
+		echohl None
+		return
+	endif
+
+	let match = match( cropped, input )
+	if match > -1
+		let input = cropped[ match ]
+		let trimmed_input = trim( input )
+	endif
+
+
+	let file_name = s:loaders_dir . "/" . trimmed_input . ".vim"
+
+	if filereadable( file_name ) == 0
+		echo "\nThe file " . file_name . " is not readable"
+		return
+	endif
+
+	let initial_tabpage_number = tabpagenr()
+	tabnew
 	try
-		wa
+		execute "source " . file_name
+		echo "Loaded from " . file_name
 	catch
-		echo "Please save your files before loading the workspace " . a:path
+		echo "Could not source " . file_name . ", v:exception: " . v:exception
 		return
 	endtry
 
-	while last_tab > 1
+	let initial_tab_buffers = tabpagebuflist( initial_tabpage_number )
 
+	if len( initial_tab_buffers ) <= 1 &&
+		\ bufname( initial_tab_buffers[ 0 ] ) =~ '^$'
 		try
-			tabclose
+			execute initial_tabpage_number . "tabclose"
 		catch
-			echo "Could not close tab " . tabpagenr() . ", before loading workspace " . a:path
-			return
 		endtry
-
-		let last_tab = tabpagenr( "$" )
-
-	endwhile
-
-	let last_window = winnr( "$" )
-
-	while last_window > 1
-		try
-			close
-		catch
-			echo "Could not close win " . winnr() . ", before loading workspace " . a:path
-			return
-		endtry
-		let last_window = winnr( "$" )
-	endwhile
-
-	new
-	wincmd j
-	close
-
-	try
-		execute "source " . a:path
-		echo "Loaded from " . a:path
-	catch
-		echo "Could not source " . a:path . ", v:exception: " . v:exception
-	endtry
+	endif
 		
 endfunction
 
@@ -2461,7 +2537,8 @@ let s:bridge_file = "/tmp/bridge"
 "Could be xclip when on a X display server
 let s:clipboard_commands = [ "wl-copy", "wl-paste" ]
 let s:initial_workspace = $MY_STUFF . "/vim/workspaces/all.workspaces"
-let s:loaders_dirs = [ $MY_STUFF . "/vim/loaders/top.vim", $MY_STUFF . "/vim/loaders/middle.vim" ]
+let s:loaders_dir = $MY_STUFF . "/vim/loaders"
+let s:basic_structure_initial_dir = expand("~/git")
 
 "##########################
 
