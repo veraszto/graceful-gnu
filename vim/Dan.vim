@@ -2361,7 +2361,7 @@ function! <SID>SaveLoader( )
 
 	let cropped = []
 	for a in suggestions
-		call add( cropped, matchstr( a, '^.\{-}\(\.\)\@=' ))
+		call add( cropped, matchstr( a, '^.\+\(\.\)\@=' ))
 	endfor
 
 	echohl MyActivities 
@@ -2448,7 +2448,7 @@ function! <SID>LoadLoader( )
 
 	let cropped = []
 	for a in suggestions
-		call add( cropped, matchstr( a, '^.\{-}\(\.\)\@=' ))
+		call add( cropped, matchstr( a, '^.\+\(\.\)\@=' ))
 	endfor
 
 	echohl MyActivities 
