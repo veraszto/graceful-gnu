@@ -9,8 +9,10 @@ function! <SID>MyMakeAbbreviations()
 
 	"Special
 	iab cla class="hello"<Esc>bve
-	iab sout setTimeout<CR>(<CR><Tab>function( ev )<CR>{<CR>}, <CR>);<Home><Del>
+	iab stt setTimeout<CR>(<CR><Tab>function( ev )<CR>{<CR>}, <CR>);<Home><Del>
 	iab linkrel <link rel="icon" type="image/png" href="images/common/link_rel_icon.png?2" />
+
+	iab sout System.out.println("")<Left><Left>
 
 	iab <expr> bufName matchstr( expand("%:t"), '.\{-}\(\.\)\@=' )
 

@@ -55,9 +55,9 @@ function! <SID>ShowType()
 	return "[CODE]"
 endfunction
 
-function! <SID>ExtractExtension(from)
+function! <SID>ExtractExtension( from )
 
-	return 	trim( matchstr(a:from, s:file_extension ) )
+	return 	trim( matchstr( a:from, s:file_extension ) )
 
 endfunction
 
@@ -1681,7 +1681,12 @@ function! <SID>MakeMappings() "\Sample of a mark
 
 	map <F3> <Cmd>call <SID>MarkNext()<CR>
 	map <F4> <Cmd>call <SID>WriteBasicStructure()<CR>
-	map <F5> <Cmd>echo search( '\(<\\|>\\|=\)\{7}' )<CR>
+	map <F5> <Cmd>echo search( '\(<\\|>\\|=\)\{6,}' )<CR>
+	
+	map <silent> <F6> :call <SID>LoadLoader( )<CR>
+	map <silent> <S-F6> :try \| %bd \| catch \| echo "Tryied to unload all buffers" \| endtry<CR>
+	map <silent> <F7> :call <SID>SaveLoader( )<CR>
+	map <silent> <S-F7> :call <SID>SaveBuffersOfThisTab()<CR>
 
 "	=======
 
@@ -1693,9 +1698,6 @@ function! <SID>MakeMappings() "\Sample of a mark
 	map ;ks :keepjumps /
 	map ;lc :lcd 
 
-	map <silent> <F6> :call <SID>LoadLoader( )<CR>
-	map <silent> <F7> :call <SID>SaveLoader( )<CR>
-	map <silent> <S-F7> :call <SID>SaveBuffersOfThisTab()<CR>
 
 	map ;lf :call <SID>LocalCDAtThisFile()<CR>
 	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
@@ -1860,14 +1862,16 @@ function! <SID>HiLight()
 	highligh Bars ctermfg=99 
 	highligh Extension ctermfg=198 
 	execute "highligh SameAsExtensionToStatusLine ctermfg=250 ctermbg=" . status_line_background
-"	highligh WeAreHere ctermfg=63
-	highligh WeAreHere ctermfg=39
+	highligh WeAreHere cterm=underline,bold ctermfg=46
 	highligh link SearchFromInside WeAreHere
 	highligh Regex ctermfg=196
 	highligh RegexWithIn ctermfg=141
 	highligh Any ctermfg=57
 	highligh Dirs ctermfg=111
 	highligh FileNamePrefix ctermfg=201
+	
+	highligh DirsSaliented cterm=underline ctermfg=111
+	highligh BarsSaliented cterm=underline ctermfg=99 
 
 "	highligh link WorkspacesMetaData FileNamePrefix
 "	highligh link WorkspacesMetaDataEnclosure Any 
@@ -1875,8 +1879,8 @@ function! <SID>HiLight()
 "	highligh link WorkspacesCurlyBraces Extension
 
 	highligh WorkspacesMetaDataEnclosure ctermfg=45
-	highligh WorkspacesMetaDataContainer ctermfg=81 
-	highligh WorkspacesMetaData ctermfg=84
+	highligh WorkspacesMetaDataContainer ctermfg=81
+	highligh WorkspacesMetaData ctermfg=84 
 	highligh WorkspacesCurlyBraces ctermfg=45
 
 "	highlight! link Comment Extension
@@ -2361,7 +2365,7 @@ function! <SID>SaveLoader( )
 
 	let cropped = []
 	for a in suggestions
-		call add( cropped, matchstr( a, '^.\+\(\.\)\@=' ))
+		call add( cropped, matchstr( a, s:file_extension_less ))
 	endfor
 
 	echohl MyActivities 
@@ -2448,7 +2452,7 @@ function! <SID>LoadLoader( )
 
 	let cropped = []
 	for a in suggestions
-		call add( cropped, matchstr( a, '^.\+\(\.\)\@=' ))
+		call add( cropped, matchstr( a, s:file_extension_less ))
 	endfor
 
 	echohl MyActivities 
@@ -2546,6 +2550,7 @@ let s:basic_structure_initial_dir = expand("~/git")
 let s:tail_file = '[._[:alnum:]-]\+$'
 let s:tail_with_upto_two_dirs = '\([^/]\+/\)\{,2}[^/]\+$'
 let s:file_extension = '\.[^./\\]\+$'
+let s:file_extension_less = '^.\+\(\.\)\@='
 let s:workspaces_pattern = '\.workspaces$'
 " The order of the array contents below matters
 let s:exclude_from_jbufs = [ s:workspaces_pattern, '\.shortcut$' ]
