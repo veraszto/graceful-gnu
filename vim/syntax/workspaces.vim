@@ -15,13 +15,13 @@ syn match WorkspacesCurlyBraces /^\s*\({\|}\)\s*$/
 
 
 syn match Dirs /.\{-}\//me=e-1 contains=TreeSticks
-syn match DirsSaliented /.\{-}\//me=e-1
+syn match DirsSaliented /.\{-}\//me=e-1 contained
 syn match TreeSticks /\%u2500\|\%u2502\|\%u251C\|\%u2514/
 
 syn match FileNamePrefix /[[:alnum:]-_]\{-}\.\([^/]\+$\)\@=/ contains=Extension
 syn match Extension /\.[^./]\{-}$/ contained
 syn match Bars /\// 
-syn match BarsSaliented /\// 
+syn match BarsSaliented /\// contained
 
 syn match Salient /.\+/ contained
 

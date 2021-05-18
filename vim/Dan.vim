@@ -842,7 +842,7 @@ function! <SID>TreeHasAlreadyBeenDrawed( line_number )
 
 	let to_erase = next_line - ( sequence_amount )
 	call setpos( ".", [ 0, to_erase, 1, 0 ] )
-	execute "normal " . ( sequence_amount ) . "dd"
+	execute "normal " . ( sequence_amount ) . "\"_dd"
 	call setpos( ".", [ 0, a:line_number, 1, 0 ] )
 "	echo sequence_amount
 	return 1
