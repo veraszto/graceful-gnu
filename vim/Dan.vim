@@ -117,7 +117,7 @@ function! <SID>AutoCommands()
 	
 	autocmd mine BufRead * call <SID>SetDict( )
 	
-	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
+"	autocmd mine CompleteDonePre * call <SID>InsMenuSelected()
 
 	call <SID>AutoCommandsOverlay( 0 ) 
 
@@ -1551,7 +1551,7 @@ function! <SID>MakeMappings() "\Sample of a mark
 	imap jj <C-X><C-N>
 	imap jn <C-X><C-N>
 "	iskeyword is put back at AutoCommand
-	imap jp <Esc>:set iskeyword=21-125<CR>a<C-X><C-K>
+"	imap jp <Esc>:set iskeyword=21-125<CR>a<C-X><C-K>
 	imap jk <C-X><C-K>
 	imap jv <C-X><C-V>
 	imap jf <Esc>:call <SID>LocalCDAtFirstRoof()<CR>a<C-X><C-F>
@@ -1946,7 +1946,8 @@ function! <SID>CopyRegisterToFileAndClipboard( )
 
 	let tmp = @" 
 	let escaped = shellescape( tmp )
-	call system( "echo " . escaped . " > " . s:bridge_file )
+	call <SID>WriteToFile( [ escaped ], s:bridge_file )
+"	call system( "echo " . escaped . " > " . s:bridge_file )
 	call system( s:clipboard_commands[ 0 ] . " " . escaped )
 	redraw!
 	echo "Copied \"... " . trim( matchstr( tmp, '.\{1,20}' ) ) . " ...\" to main clipboard"
