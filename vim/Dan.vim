@@ -2542,7 +2542,7 @@ let s:bridge_file = "/tmp/bridge"
 "Could be xclip when on a X display server
 let s:clipboard_commands = [ "wl-copy", "wl-paste" ]
 let s:initial_workspace = $MY_STUFF . "/vim/workspaces/all.workspaces"
-let s:loaders_dir = $MY_STUFF . "/vim/loaders"
+let s:loaders_dir = $MY_STUFF . "/vim/loaders/trending"
 let s:basic_structure_initial_dir = expand("~/git")
 
 "##########################
