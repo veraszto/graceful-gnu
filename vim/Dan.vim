@@ -190,45 +190,12 @@ endfunction
 "\Sets
 function! <SID>Sets()
 
-	set updatecount=0
-	set autoindent	
-	set smartindent
-	set title
-	set tabstop=4	
-	set shiftwidth=0 "So takes the value of 'ts'
-	set scrolloff=5
-	set noloadplugins
-	set nohlsearch
-	set number
-	set noshowmode
-	set nocompatible
-	set noincsearch
-	set autoread
-	set showcmd
-	set showtabline=2
-	set laststatus=2
-	set wmh=0
-	set wmw=0
-	set winheight=999
-	execute "set tabline=%!" . s:GetSNR() . "BuildTabLine2()"
-"	set tabline=%!<SID>BuildTabLine2()
-	execute "set statusline=%!" . s:GetSNR() . "BuildStatusLine2()"
-	set backspace=2
-	set wrap
-	set comments=""
-	"Add minus sign
-	set iskeyword+=-
-	set shortmess+=A
-"	set mouse=""
-"	set ttymouse=""
-	filetype indent off
-	filetype plugin off
-	syntax on
+	runtime! sets/**/*.vim
+
 endfunction
 
 function! s:GetSNR()
 	let snr = matchstr( expand("<sfile>"), '.SNR.\d\+')
-"	echo snr
 	return snr . "_"
 endfunction
 
@@ -239,9 +206,7 @@ function! <SID>StartUp()
 	call <SID>HiLight()
 	call <SID>MakeAbbreviations()
 	call <SID>MakeMappings()
-"	call <SID>SetDict()
 	echo "StartUp has been called"
-	$tabnew | $tabnew | tabfirst
 
 endfunction
 
@@ -1535,196 +1500,7 @@ endfunction
 "\MakeMappings
 function! <SID>MakeMappings() "\Sample of a mark
 
-"	Avoid clearing other mappings beyond this function
-"	echo "Maps will be cleared now"
-"	mapclear
-"	imapclear
-	mapclear <buffer>
-	imapclear <buffer>
-
-"	map ;L :call <SID>Afunction()<CR>
-	
-"	Avoiding insert/replace toggle
-	inoremap <Insert> <Esc>a
-
-"	Easing autocomplete
-	imap jj <C-X><C-N>
-	imap jn <C-X><C-N>
-"	iskeyword is put back at AutoCommand
-"	imap jp <Esc>:set iskeyword=21-125<CR>a<C-X><C-K>
-	imap jk <C-X><C-K>
-	imap jv <C-X><C-V>
-	imap jf <Esc>:call <SID>LocalCDAtFirstRoof()<CR>a<C-X><C-F>
-
-"   Window Navigation
-	map <silent> <C-Up> :call <SID>MoveTo("up")<CR>
-	map <silent> <C-Down> :call <SID>MoveTo("down")<CR>
-	map <C-Left> <C-W>h
-	map <C-Right> <C-W>l
-	imap <silent> <C-Up> <Esc>:call <SID>MoveTo("up")<CR>a
-	imap <silent> <C-Down> <Esc>:call <SID>MoveTo("down")<CR>a
-	imap <C-Left> <Esc><C-W>hi
-	imap <C-Right> <Esc><C-W>li
-
-"	Buffer Navigation
-	map <S-Tab> :up <Bar> :e#<CR>
-
-	map <Bar> :bprevious<CR>
-	map Z :bnext<CR>
-
-
-"	Commenting and uncommenting
-	map cc :s/^/\/\//<CR>
-	map ccc :s/^/\/*/<CR>:s/$/*\//<CR>
-	map cccc :s/\(\w\\|<\)\@=/<!--/<CR>:s/$/-->/<CR>
-"	map cd :s/\/\*\\|\/\/\\|\*\/\\|<!--\\|-->\\|^\(\s\\|\t\)*#//g<CR>
-	map cd :execute ':s/\/\*\\|\*\/\\|<!--\\|-->\\|^\(\s\\|\t\)*\/\///g'<CR>
-
-
-"	Instant reloads
-	map ;;g :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "StartUp" )<CR>
-	map ;ma :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeAbbreviations" )<CR>
-	map ;mm :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "MakeMappings" )<CR>
-	map ;mt :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "Sets" )<CR>
-	map ;mh :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "HiLight" )<CR>
-	map ;mc :runtime Dan.vim <Bar> :call <SID>AfterRuntimeAndDo( "AutoCommands" )<CR>
-
-
-"	map ;ms :call <SID>SaveMark()<CR>
-
-"	Easy save
-	imap 	<S-Up> <Esc>:wa<CR>
-	map 	<S-Up> :wa<CR>
-
-"	ChangeList
-	map { g;
-	map } g,
-
-
-	map <C-S-Left>	:previous<CR>
-	map <C-S-Right>	:next<CR>
-	inoremap jh 	<Esc>:call <SID>PopupMarksShow()<CR>a
-
-"	Shortcuts
-
-	map ;a :ab<CR>
-	map ;bl :ls<CR>
-	map ;bu :bu 
-	map ;ch :changes<CR>
-	map ;cj :clearjumps<CR>
-	map <F1> :call <SID>CopyRegisterToFileAndClipboard()<CR>
-	map [1;2P :call <SID>PasteFromClipboard()<CR>
-	map ;< <C-W>H<C-W>\|
-	map ;ea :call <SID>RefreshAll()<CR>
-	map ;em :call <SID>EditMarksFile()<CR>
-
-	map <S-Left> :call <SID>PopupMarksShow()<CR>
-	map <S-Right> :call <SID>PopupBuffers()<CR>
-	map <S-Down> :call <SID>PopupJumps()<CR>
-"	map <C-S-Down> :call <SID>PopupWorkspaces()<CR>
-
-	map <C-S-Down> <Cmd>call <SID>LocalMarksAutoJumping( 13487, "down" )<CR>
-	map <C-S-Up> <Cmd>call <SID>LocalMarksAutoJumping( 9750, "up"  )<CR>
-
-
-"	for a in range(1, 9)		
-"
-"		execute "map j" . a . " " . 
-"			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
-"		execute "map w" . a . " " . 
-"			\ ":call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
-"		execute "inoremap j" . a . " " . 
-"			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Traditional\" )<CR>"
-"		execute "inoremap w" . a . " " . 
-"			\ "<Esc>:call <SID>ShortcutToNthPertinentJump( " . a . ", \"Workspaces\" )<CR>"
-"
-"	endfor
-
-	let types = [ "\"Traditional\"", "\"Workspaces\"" ]
-
-	let keys = 
-		\ [
-			\ "<S-Home>", "<S-End>", "<S-PageUp>", "<S-PageDown>",
-			\ "<C-S-Home>", "<C-S-End>", "<C-S-PageUp>", "<C-S-PageDown>" 
-		\ ]
-
-
-	for a in range(1, 4)
-		execute "map " . keys[ a - 1 ] . 
-			\ " :call <SID>ShortcutToNthPertinentJump( " . a . ", " . types[ 0 ] . ")<CR>"
-
-		let a_plus_three = a + 3
-
-		execute "map " . keys[ a_plus_three ] . 
-			\ " :call <SID>ShortcutToNthPertinentJump( " . ( a_plus_three + 1 ). ", " . types[ 0 ] . ")<CR>"
-	endfor
-
-	map <C-S-kDel> :call <SID>ViInitialWorkspace()<CR>
-	nmap <Del> :call <SID>ShortcutToNthPertinentJump(1, "Workspaces")<CR>
-	map <S-kDel> :call <SID>ShortcutToNthPertinentJump(2, "Workspaces")<CR>
-
-	map <C-Home> <Cmd>call <SID>WrapperCycleThroughLetters( 0, 2 )<CR>
-	map <C-End> <Cmd>call <SID>WrapperCycleThroughLetters( 2, 2 )<CR>
-	map <C-kDel> <Cmd>call <SID>WrapperCycleThroughLetters( 4, 2 )<CR>
-"	noremap <Tab> <Cmd>call <SID>CycleTwoLetters( [ "C", "O" ] )<CR>
-
-	map ;J :call <SID>SharpSplits("J")<CR>
-	map ;K :call <SID>SharpSplits("K")<CR>
-
-	map B :bu<Space>
-	map E :e<CR>
-	map V EG
-
-	map P :set paste! <Bar> 
-			\ if &paste == 0 <Bar> echo "Paste mode is OFF" 
-			\ <Bar> else <Bar> echo "Paste mode is ON" <Bar> endif <CR>
-
-	map <F3> <Cmd>call <SID>MarkNext()<CR>
-	map <F4> <Cmd>call <SID>WriteBasicStructure()<CR>
-	map <F5> <Cmd>echo search( '\(<\\|>\\|=\)\{6,}' )<CR>
-	
-	map <silent> <F6> :call <SID>LoadLoader( )<CR>
-	map <silent> <S-F6> :try \| %bd \| catch \| echo "Tryied to unload all buffers" \| endtry<CR>
-	map <silent> <F7> :call <SID>SaveLoader( )<CR>
-	map <silent> <S-F7> :call <SID>SaveBuffersOfThisTab()<CR>
-
-"	=======
-
-	map <Space> :call <SID>SpacebarActionAtWorkspaces()<CR>
-	map ;hi :call <SID>HiLight()<CR>
-	map ;hn :new<CR><C-W>_
-	map ;ju :jumps<CR>
-	map ;hs :split<CR><C-W>_
-	map ;ks :keepjumps /
-	map ;lc :lcd 
-
-
-	map ;lf :call <SID>LocalCDAtThisFile()<CR>
-	map ;u :call <SID>LocalCDAtFirstRoof()<CR>
-	map ;pw :pwd<CR>
-	map ;pt :call <SID>GetThisFilePopupMark()<CR>
-	map ;q :quit<CR><C-W>_
-	map ;r :reg<CR>
-	map ;sm :marks<CR>
-	map ;std :call <SID>StampThisTypeToStatusLine()<CR>
-	map ;stc :try <Bar> unlet w:stamp_name <Bar> catch <Bar> echo "Already unstamped" <Bar> endtry<CR>
-	map ;, :tabm0<CR>
-	map ;t :tabnew \| clearjumps \| call <SID>ViInitialWorkspace()<CR>
-	map ;vn :vertical new<CR><C-W>\|
-	map ;vs :vertical split<CR><C-W>\|
-	map ;so :call <SID>SourceCurrent_ifVim()<CR>
-	map ;sc :call <SID>ShowMeColors()<CR>
-	map ;o :call <SID>OpenWorkspace()<CR>
-	map ;O0 :call <SID>TurnOnOffOverlays( 0 )<CR>
-	map ;O1 :call <SID>TurnOnOffOverlays( 1 )<CR>
-	map ;OO :call <SID>ShowPopups()<CR>
-	noremap <expr> ;i ":vi " . getcwd() . "/"
-	noremap <expr> ;I ":vi " . expand("%")
-
-	map <F2> <Cmd>call <SID>WrapperHideAndShowPopups()<CR>
-
-	echo "Maps done!"
-
+	runtime! maps/**/*.vim	
 
 endfunction
 
@@ -1814,101 +1590,10 @@ endfunction
 
 function! <SID>HiLight()	
 
-	"Some colors customizations here
-	
-	let purple = 55
-	let status_line_background = 237
-	let choose_separator_color = 237 
-	let date_color = 21
-
-	let highlights =
-	\[
-		\ [ "StatusLine", status_line_background, 213, "NONE" ],
-		\ [ "StatusLineNC", status_line_background, 40, "NONE" ],
-		\ [ "VertSplit", 16, 16, "NONE" ],
-		\ [ "Visual", purple, 207, "NONE" ],
-		\ [ "TabLineSel", 235, 189, "NONE" ],
-		\ [ "TabLineFill", 240, 189, "NONE" ]
-	\]
-
-	colorscheme default
-
-	highlight clear
-
-"	call <SID>ClearHighlights( highlights )
-"	highlight Special ctermfg=98
-"	highlight PreProc ctermfg=98
-"	highlight Comment ctermfg=244
-
-	
-	execute "highlight DiaryDivisorDate ctermbg=197 ctermfg=" . date_color
-	execute "highlight DiaryDivisor ctermbg=" . choose_separator_color . " ctermfg=" . choose_separator_color
-	execute "highlight CallingAttention ctermbg=" . choose_separator_color . " ctermfg=197"
-	highlight MyLightGray ctermfg=242
-	highlight MyLightGrayForText ctermfg=246
-	highlight MyActivities ctermfg=177
-	highlight CompanyActivities ctermfg=165
-	highlight BeAware ctermfg=219
-	highlight link SubItemHelpers MyDone
-	highlight TreeSticks ctermfg=241
-	highlight MyDone ctermfg=46
-	highlight MyStarted ctermfg=75
-	highlight MyContinue ctermfg=75
-	highlight MyContinued ctermfg=87
-	
-	highligh MyCategory ctermfg=201 ctermbg=234
-	highligh MySubCategory ctermfg=198 ctermbg=234
-	highligh MySeparator ctermfg=234 ctermbg=234
-	highligh Bars ctermfg=99 
-	highligh Extension ctermfg=198 
-	execute "highligh SameAsExtensionToStatusLine ctermfg=250 ctermbg=" . status_line_background
-	highligh WeAreHere cterm=underline,bold ctermfg=46
-	highligh link SearchFromInside WeAreHere
-	highligh Regex ctermfg=196
-	highligh RegexWithIn ctermfg=141
-	highligh Any ctermfg=57
-	highligh Dirs ctermfg=111
-	highligh FileNamePrefix ctermfg=201
-	
-	highligh DirsSaliented cterm=underline ctermfg=111
-	highligh BarsSaliented cterm=underline ctermfg=99 
-
-"	highligh link WorkspacesMetaData FileNamePrefix
-"	highligh link WorkspacesMetaDataEnclosure Any 
-"	highligh link WorkspacesMetaDataContainer FileNamePrefix
-"	highligh link WorkspacesCurlyBraces Extension
-
-	highligh WorkspacesMetaDataEnclosure ctermfg=45
-	highligh WorkspacesMetaDataContainer ctermfg=81
-	highligh WorkspacesMetaData ctermfg=84 
-	highligh WorkspacesCurlyBraces ctermfg=45
-
-"	highlight! link Comment Extension
-
-	call <SID>MakeMarksPopupHiLight()
-"	highlight default Pmenu 
-"	highlight default PmenuSel
-
-	for a in highlights
-		call <SID>MakeHighlight( get(a, 0), get(a, 1), get(a, 2), get( a, 3 ) )	
-	endfor
-
+	runtime! highlight/**/*.vim
 
 endfunction
 
-function! <SID>MakeMarksPopupHiLight()
-	highlight Pmenu ctermbg=24 ctermfg=214
-	highlight PmenuSel ctermbg=red ctermfg=24
-endfunction
-
-function! <SID>MakeBuffersPopupHiLight()
-	highlight Pmenu ctermbg=8 ctermfg=213
-	highlight PmenuSel ctermbg=black ctermfg=213
-endfunction
-
-function! <SID>MakeHighlight( highlight, ctermbg, ctermfg, cterm )
-	execute "highlight " . a:highlight . " ctermbg=" . a:ctermbg . " ctermfg=" . a:ctermfg . " cterm=" . a:cterm
-endfunction
 
 function! <SID>ClearHighlights( list )
 
@@ -1955,11 +1640,16 @@ function! <SID>CopyRegisterToFileAndClipboard( )
 endfunction
 
 
-function! <SID>PasteFromClipboard( )
-"	set paste
-	execute "read !" . s:clipboard_commands[ 1 ]
-"	let @c = 
-"	set paste&
+function! <SID>PasteFromClipboard( only_to_main_register )
+
+	let from_regular_clipboard = systemlist( s:clipboard_commands[ 1 ] )
+
+	if a:only_to_main_register == v:false
+		call append( line("."), from_regular_clipboard )
+	else
+		let @" = join( from_regular_clipboard, "\n" )
+	endif
+
 endfunction
 
 
@@ -2535,18 +2225,21 @@ endfunction
 
 "Custom Vars
 
+runtime! base.vars/**/*.vim
 
-let s:popup_marks_dir = $MY_STUFF . "/vim/popup.shortcuts"
-let s:base_path = expand("~") . "/git/GracefulGNU/" 
-let s:bridge_file = "/tmp/bridge"
-"Could be xclip when on a X display server
-let s:clipboard_commands = [ "wl-copy", "wl-paste" ]
-let s:initial_workspace = $MY_STUFF . "/vim/workspaces/all.workspaces"
-let s:loaders_dir = $MY_STUFF . "/vim/loaders/trending"
-let s:basic_structure_initial_dir = expand("~/git")
+execute "let s:base_vars = " . g:Danvim_current_being_sourced . "BaseVars()"
+
+for key in keys(s:base_vars)
+
+	let set_var = "let s:" . key . " = " . string( s:base_vars[ key ] )
+	execute set_var
+
+endfor
+
 
 "##########################
 
+let g:Danvim_SID = expand("<SID>")
 
 let s:tail_file = '[._[:alnum:]-]\+$'
 let s:tail_with_upto_two_dirs = '\([^/]\+/\)\{,2}[^/]\+$'
