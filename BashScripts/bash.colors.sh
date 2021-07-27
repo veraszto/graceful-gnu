@@ -12,5 +12,5 @@
 
 for a in {0..255}
 do
-	echo -e "\e[48;5;${a}m $a) Hello how are you?"		
+	echo -e "\e[48;5;${a}m $a) Hello how are you?\e[0m"
 done

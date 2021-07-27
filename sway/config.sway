@@ -99,6 +99,9 @@ set $toolbox fedora-toolbox-33
 	bindsym $mod+Shift+m exec \
 	$HOME/git/GracefulGNU/BashScripts/build.workspace/Start.GnomeTerminal.Tmux.sh
 
+	bindsym $mod+c exec \
+	/bin/bash --login -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
+
 #	bindsym $mod+Shift+t exec \
 #	$HOME/git/GracefulGNU/BashScripts/build.workspace/Start.GnomeTerminal.Tmux.sh fedora-toolbox-33
 
