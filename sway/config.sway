@@ -83,7 +83,8 @@ input *
 }
 
 
-set $toolbox fedora-toolbox-33
+set $toolbox fedora-toolbox-34
+
 
 #exec xmodmap -e "keycode 38 = e E"
 
@@ -95,15 +96,21 @@ set $toolbox fedora-toolbox-33
 #
 # Basics:
 #
-    # start a terminal
+	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
+		
+
 	bindsym $mod+Shift+m exec \
-	$HOME/git/GracefulGNU/BashScripts/build.workspace/Start.GnomeTerminal.Tmux.sh
+		gnome-terminal -- $HOME/git/GracefulGNU/BashScripts/build.workspace/MainWithTmux.sh
+	
+	bindsym $mod+Shift+t exec \
+		podman container start $toolbox && \
+		gnome-terminal -- podman container exec --user $USER --workdir $HOME --tty  --interactive $toolbox \
+			/bin/bash --login -c '$MY_GRACEFUL_GNU/BashScripts/build.workspace/MainWithTmux.Toolbox.sh'
+#				
 
 	bindsym $mod+c exec \
-	/bin/bash --login -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
+		/bin/bash --login -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
 
-#	bindsym $mod+Shift+t exec \
-#	$HOME/git/GracefulGNU/BashScripts/build.workspace/Start.GnomeTerminal.Tmux.sh fedora-toolbox-33
 
 
 	bindsym $mod+Return exec gnome-terminal
@@ -284,49 +291,63 @@ set $tmux.select.window.pane.toolbox \
 $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
 
 
-set $mod3.insert 
+set $mod4.insert 
 {
 	$workspace1, \
 	exec $tmux.select.window.pane.toolbox 0 0
 }
 
-set $mod3.delete 
+set $mod4.delete 
 {
 	$workspace1, \
 	exec $tmux.select.window.pane.toolbox 0 1
 }
-set $mod3.home 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 2 0
-}
-set $mod3.end 
+set $mod4.home 
 {
 	$workspace1, \
 	exec $tmux.select.window.pane.toolbox 1 0
 }
-set $mod3.pgup 
+#In Vim window, does not change pane
+set $mod4.end 
 {
 	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 2 1
+	exec $tmux.select.window.pane.toolbox 1
 }
-set $mod3.pgdown 
+set $mod4.pgup 
 {
 	$workspace1, \
 	exec $tmux.select.window.pane.toolbox 1 1
 }
-
-set $mod3.shift.home
+set $mod4.pgdown 
 {
 	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 2 2
+	exec $tmux.select.window.pane.toolbox 1 2
 }
 
-set $mod3.shift.end
+set $mod4.shift.home
 {
 	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 2 3
+	exec $tmux.select.window.pane.toolbox 1 3
 }
+
+set $mod4.shift.end
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 1 4
+}
+
+set $mod4.shift.pgup
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 1 5
+}
+
+set $mod4.shift.pgdown
+{
+	$workspace1, \
+	exec $tmux.select.window.pane.toolbox 1 6
+}
+
 
 
 ######################################
@@ -350,63 +371,64 @@ set $alt.delete
 set $alt.home 
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 2 0
+	exec $tmux.select.window.pane 1 0
 }
 
+#In Vim window, does not change pane
 set $alt.end 
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 1 0
+	exec $tmux.select.window.pane 1
 }
 
 set $alt.pgup 
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 2 1
+	exec $tmux.select.window.pane 1 1
 }
 
 set $alt.pgdown
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 1 1
+	exec $tmux.select.window.pane 1 2
 }
 
 set $alt.shift.home
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 2 2
+	exec $tmux.select.window.pane 1 3
 }
 
 set $alt.shift.end
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 2 3
+	exec $tmux.select.window.pane 1 4
 }
 
 set $alt.shift.pgup
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 3 0
+	exec $tmux.select.window.pane 2 0
 }
 
 set $alt.shift.pgdown
 {
 	$workspace0, \
-	exec $tmux.select.window.pane 3 1
+	exec $tmux.select.window.pane 2 1
 }
 
 ########################################
 
-bindsym Mod4+Insert $mod3.insert
-bindsym Mod4+Delete $mod3.delete
-bindsym Mod4+Home $mod3.home
-bindsym Mod4+End $mod3.end
-bindsym Mod4+Prior $mod3.pgup
-bindsym Mod4+Next $mod3.pgdown
-
-
-bindsym Shift+Mod4+Home $mod3.shift.home
-bindsym Shift+Mod4+End $mod3.shift.end
+bindsym Mod4+Insert $mod4.insert
+bindsym Mod4+Delete $mod4.delete
+bindsym Mod4+Home $mod4.home
+bindsym Mod4+End workspace RightBottom
+bindsym Mod4+Prior $mod4.pgup
+bindsym Mod4+Next $mod4.pgdown
+bindsym Shift+Mod4+Home $mod4.shift.home
+bindsym Shift+Mod4+End $mod4.shift.end
+bindsym Shift+Mod4+Prior $mod4.shift.pgup
+bindsym Shift+Mod4+Next $mod4.shift.pgdown
 
 #########################################
 
@@ -414,7 +436,7 @@ bindsym Shift+Mod4+End $mod3.shift.end
 bindsym Mod1+Insert $alt.insert
 bindsym Mod1+Delete $alt.delete
 bindsym Mod1+Home $alt.home
-bindsym Mod1+End $alt.end
+bindsym Mod1+End workspace RightBottom
 bindsym Mod1+Prior $alt.pgup
 bindsym Mod1+Next $alt.pgdown
 
