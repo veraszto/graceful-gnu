@@ -102,9 +102,12 @@ set $toolbox fedora-toolbox-34
 	bindsym $mod+Shift+m exec \
 		gnome-terminal -- $HOME/git/GracefulGNU/BashScripts/build.workspace/MainWithTmux.sh
 	
+	bindsym $mod+Shift+v exec \
+		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU/BashScripts/build.workspace/VimWithTmux.sh'
+	
 	bindsym $mod+Shift+t exec \
 		podman container start $toolbox && \
-		gnome-terminal -- podman container exec --user $USER --workdir $HOME --tty  --interactive $toolbox \
+		gnome-terminal -- podman container exec --env "TERM=xterm-256color" --user $USER --workdir $HOME --tty --interactive $toolbox \
 			/bin/bash --login -c '$MY_GRACEFUL_GNU/BashScripts/build.workspace/MainWithTmux.Toolbox.sh'
 #				
 
