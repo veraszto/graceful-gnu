@@ -97,6 +97,8 @@ set $toolbox fedora-toolbox-34
 # Basics:
 #
 	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
+	bindsym $mod+Insert exec swaynag -t warning -m 'Hello'
+	bindsym $mod+Home exec /bin/bash --login ~/git/GracefulGNU/BashScripts/toggle.four.workspaces.sh
 		
 
 	bindsym $mod+Shift+m exec \
@@ -107,7 +109,9 @@ set $toolbox fedora-toolbox-34
 	
 	bindsym $mod+Shift+t exec \
 		podman container start $toolbox && \
-		gnome-terminal -- podman container exec --env "TERM=xterm-256color" --user $USER --workdir $HOME --tty --interactive $toolbox \
+		gnome-terminal -- podman container exec \
+			--env "WAYLAND_DISPLAY=wayland-1" \
+			--env "TERM=xterm-256color" --user $USER --workdir $HOME --tty --interactive $toolbox \
 			/bin/bash --login -c '$MY_GRACEFUL_GNU/BashScripts/build.workspace/MainWithTmux.Toolbox.sh'
 #				
 
