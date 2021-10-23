@@ -3,9 +3,10 @@
 
 tmuxSep=";"
 
-exec="tmux -f $HOME/git/GracefulGNU/tmux/toolbox.conf -L Vim new-session -s Vim $tmuxSep "
+exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $1 $tmuxSep "
 
-viewports=($MY_TMUX_VIMS_LOADERS)
+viewports=($2)
+echo "${viewports[@]}"
 for a in "${viewports[@]}"
 do
 	buildCommand="vim -S $MY_VIM_LOADERS_DIR/${a,,}.vim"

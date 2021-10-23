@@ -96,24 +96,26 @@ set $toolbox fedora-toolbox-34
 #
 # Basics:
 #
-	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
+#	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
+	bindsym $mod+Shift+y exec 'echo Hello $MY_GRACEFUL_GNU'
 	bindsym $mod+Insert exec swaynag -t warning -m 'Hello'
 	bindsym $mod+Home exec /bin/bash --login ~/git/GracefulGNU/BashScripts/toggle.four.workspaces.sh
-		
+
 
 	bindsym $mod+Shift+m exec \
-		gnome-terminal -- $HOME/git/GracefulGNU/BashScripts/build.workspace/MainWithTmux.sh
-	
+		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.sh'
+
+#	bindsym $mod+Shift+t exec \
+#		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.Toolbox.sh'
+
 	bindsym $mod+Shift+v exec \
-		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU/BashScripts/build.workspace/VimWithTmux.sh'
-	
+		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh VimM "$MY_TMUX_VIMS_LOADERS"'
+
+	bindsym $mod+Shift+i exec \
+		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh VimC "$MY_TMUX_VIMS_LOADERS_ONE_MORE"'
+
 	bindsym $mod+Shift+t exec \
-		podman container start $toolbox && \
-		gnome-terminal -- podman container exec \
-			--env "WAYLAND_DISPLAY=wayland-1" \
-			--env "TERM=xterm-256color" --user $USER --workdir $HOME --tty --interactive $toolbox \
-			/bin/bash --login -c '$MY_GRACEFUL_GNU/BashScripts/build.workspace/MainWithTmux.Toolbox.sh'
-#				
+		gnome-terminal -- /bin/bash --login -c '$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.enter.tmux.sh'
 
 	bindsym $mod+c exec \
 		/bin/bash --login -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
@@ -292,10 +294,14 @@ set $tmux.toolbox Toolbox
 #set $workspace0 workspace MainNonTerminals
 set $workspace0 workspace 0
 set $workspace1 workspace 1
-set $tmux.select.window.pane $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.main
+
+set $bash /bin/bash --login 
+
+set $tmux.select.window.pane \
+$bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.main
 
 set $tmux.select.window.pane.toolbox \
-$HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
+$bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
 
 
 set $mod4.insert 
@@ -314,12 +320,14 @@ set $mod4.home
 	$workspace1, \
 	exec $tmux.select.window.pane.toolbox 1 0
 }
-#In Vim window, does not change pane
+
+#In Vim window, does not change pane, this is overwritten below
 set $mod4.end 
 {
 	$workspace1, \
 	exec $tmux.select.window.pane.toolbox 1
 }
+
 set $mod4.pgup 
 {
 	$workspace1, \
@@ -429,7 +437,7 @@ set $alt.shift.pgdown
 bindsym Mod4+Insert $mod4.insert
 bindsym Mod4+Delete $mod4.delete
 bindsym Mod4+Home $mod4.home
-bindsym Mod4+End workspace RightBottom
+bindsym Mod4+End workspace RightTop
 bindsym Mod4+Prior $mod4.pgup
 bindsym Mod4+Next $mod4.pgdown
 bindsym Shift+Mod4+Home $mod4.shift.home

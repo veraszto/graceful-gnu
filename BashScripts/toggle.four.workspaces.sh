@@ -6,12 +6,12 @@ selected=$(swaymsg -t get_workspaces | grep -i "\"\(name\|visible\)\"" | xargs |
 
 isSelected=$(test -z $selected ; echo $?)
 
-echo "isSelected: $isSelected"
+#echo "isSelected: $isSelected"
 
 if test $isSelected -eq 1
 then
-	swaymsg workspace LeftBottom
 	swaymsg workspace RightBottomCorner
+	swaymsg workspace LeftBottom
 	exit
 fi
 

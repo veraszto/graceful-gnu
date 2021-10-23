@@ -3,8 +3,8 @@
 mySessionTmux=${1:-Main}
 
 tmux \
-	-f $HOME/git/GracefulGNU/tmux/main.conf \
-	-L $mySessionTmux \
+	-f $MY_TMUX_CONF \
+	-S $MY_TMUX_SOCKET \
 	new-session -s $mySessionTmux \; \
 	rename-window "ReadCalmly" \; \
 	split-window \; \
