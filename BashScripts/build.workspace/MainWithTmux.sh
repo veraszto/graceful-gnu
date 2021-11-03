@@ -8,13 +8,12 @@ tmux \
 	new-session -s $mySessionTmux \; \
 	rename-window "ReadCalmly" \; \
 	split-window \; \
+	select-pane -t 0 \; \
+	resize-pane -Z \; \
 	new-window -n "Input" \; \
 	split-window \; \
 	split-window \; \
-	select-layout -E \; \
-	split-window \; \
-	split-window \; \
-	new-window -n "Docker" \; \
-	split-window 
+	select-pane -t 0 \; \
+	resize-pane -Z
 
 

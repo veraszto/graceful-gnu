@@ -74,8 +74,8 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 
 input *
 {
-#	xkb_layout "br,us"
-	xkb_file $HOME/git/GracefulGNU/profile/mycustom.xkb
+	xkb_layout "br,us"
+#	xkb_file $HOME/git/GracefulGNU/profile/mycustom.xkb
 	repeat_delay 200
 	repeat_rate 60
 	xkb_numlock enabled 
@@ -85,6 +85,8 @@ input *
 
 set $toolbox fedora-toolbox-34
 
+
+set $bash /bin/bash --login 
 
 #exec xmodmap -e "keycode 38 = e E"
 
@@ -97,28 +99,28 @@ set $toolbox fedora-toolbox-34
 # Basics:
 #
 #	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
-	bindsym $mod+Shift+y exec 'echo Hello $MY_GRACEFUL_GNU'
+	bindsym Control_R+y exec 'echo Hello $MY_GRACEFUL_GNU'
 	bindsym $mod+Insert exec swaynag -t warning -m 'Hello'
 	bindsym $mod+Home exec /bin/bash --login ~/git/GracefulGNU/BashScripts/toggle.four.workspaces.sh
 
 
-	bindsym $mod+Shift+m exec \
-		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.sh'
+	bindsym $mod+Shift+m layout tabbed, \
+		exec gnome-terminal --title "Main" -- $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.sh'
 
 #	bindsym $mod+Shift+t exec \
 #		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.Toolbox.sh'
 
-	bindsym $mod+Shift+v exec \
-		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh VimM "$MY_TMUX_VIMS_LOADERS"'
+	bindsym $mod+Shift+v layout tabbed, \
+		exec $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh "$MY_TMUX_VIMS_INITIAL_LOADERS"'
 
 	bindsym $mod+Shift+i exec \
-		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh VimC "$MY_TMUX_VIMS_LOADERS_ONE_MORE"'
+		$bash -c '$MY_STUFF_BASH_SCRIPTS/tmux.vims.launchers/${MY_TMUX_VIMS_NEXT_LOADERS}.sh'
 
-	bindsym $mod+Shift+t exec \
-		gnome-terminal -- /bin/bash --login -c '$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.enter.tmux.sh'
+	bindsym $mod+Shift+t layout tabbed, \
+		exec gnome-terminal --title "MainToolbox" -- $bash -c '$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.enter.tmux.sh'
 
 	bindsym $mod+c exec \
-		/bin/bash --login -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
+		$bash -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
 
 
 
@@ -282,10 +284,18 @@ mode "resize" {
 #	{
 #        statusline #ffffff
 #        background #323232
-#        inactive_workspace #32323200 #32323200 #5c5c5c
+#        inactive_workspace #323232 #323232 #5c5c5c
 #    }
 #	workspace_buttons yes
 #}
+
+
+titlebar_border_thickness 0
+titlebar_padding 6 0
+client.focused #777777 #646464 #ffffff
+client.focused_inactive #555555 #555555 #b3b3b3
+client.unfocused #333333 #333333 #b3b3b3
+
 
 default_border none
 
@@ -295,7 +305,6 @@ set $tmux.toolbox Toolbox
 set $workspace0 workspace 0
 set $workspace1 workspace 1
 
-set $bash /bin/bash --login 
 
 set $tmux.select.window.pane \
 $bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.main
@@ -304,256 +313,261 @@ set $tmux.select.window.pane.toolbox \
 $bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
 
 
-set $mod4.insert 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 0 0
-}
+bindsym Mod4+Insert workspace LeftTop
+bindsym Mod4+Delete workspace LeftBottom
+#bindsym Mod4+End workspace RightBottom
+#bindsym Mod4+Home workspace RightTop
+bindsym Mod4+Prior workspace RightTopCorner
+bindsym Mod4+Next workspace RightBottomCorner
 
-set $mod4.delete 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 0 1
-}
-set $mod4.home 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 0
-}
+bindsym Mod1+Insert workspace 1 ; [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:0'
+bindsym Mod1+Delete workspace 1 ; [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
+bindsym Mod1+Home workspace 1 ; [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:1'
+bindsym Mod1+End workspace 0
+bindsym Mod1+Prior workspace 1 ; [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
+#bindsym Mod1+Next $alt.pgdown
 
-#In Vim window, does not change pane, this is overwritten below
-set $mod4.end 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1
-}
-
-set $mod4.pgup 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 1
-}
-set $mod4.pgdown 
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 2
-}
-
-set $mod4.shift.home
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 3
-}
-
-set $mod4.shift.end
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 4
-}
-
-set $mod4.shift.pgup
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 5
-}
-
-set $mod4.shift.pgdown
-{
-	$workspace1, \
-	exec $tmux.select.window.pane.toolbox 1 6
-}
-
-
-
-######################################
-
-
-
-
-
-set $alt.insert 
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 0 0
-}
-
-set $alt.delete 
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 0 1
-}
-
-set $alt.home 
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 1 0
-}
-
-#In Vim window, does not change pane
-set $alt.end 
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 1
-}
-
-set $alt.pgup 
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 1 1
-}
-
-set $alt.pgdown
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 1 2
-}
-
-set $alt.shift.home
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 1 3
-}
-
-set $alt.shift.end
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 1 4
-}
-
-set $alt.shift.pgup
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 2 0
-}
-
-set $alt.shift.pgdown
-{
-	$workspace0, \
-	exec $tmux.select.window.pane 2 1
-}
-
-########################################
-
-bindsym Mod4+Insert $mod4.insert
-bindsym Mod4+Delete $mod4.delete
-bindsym Mod4+Home $mod4.home
-bindsym Mod4+End workspace RightTop
-bindsym Mod4+Prior $mod4.pgup
-bindsym Mod4+Next $mod4.pgdown
-bindsym Shift+Mod4+Home $mod4.shift.home
-bindsym Shift+Mod4+End $mod4.shift.end
-bindsym Shift+Mod4+Prior $mod4.shift.pgup
-bindsym Shift+Mod4+Next $mod4.shift.pgdown
-
-#########################################
-
-
-bindsym Mod1+Insert $alt.insert
-bindsym Mod1+Delete $alt.delete
-bindsym Mod1+Home $alt.home
-bindsym Mod1+End workspace RightBottom
-bindsym Mod1+Prior $alt.pgup
-bindsym Mod1+Next $alt.pgdown
-
-
-bindsym Shift+Mod1+Home $alt.shift.home
-bindsym Shift+Mod1+End $alt.shift.end
-bindsym Shift+Mod1+Prior $alt.shift.pgup
-bindsym Shift+Mod1+Next $alt.shift.pgdown
-
-#########################################
-
-#bindcode Ctrl+86 $docker1
-#bindcode Ctrl+129 $docker2
-
-bindsym Mod3+Insert workspace LeftTop
-bindsym Mod3+Delete workspace LeftBottom
-bindsym Mod3+End workspace RightBottom
-bindsym Mod3+Home workspace RightTop
-bindsym Mod3+Prior workspace RightTopCorner
-bindsym Mod3+Next workspace RightBottomCorner
-
-#bindsym Ctrl+KP_Divide workspace MainNonTerminals
-#bindsym Ctrl+KP_Multiply workspace Reading
-
-
-#bindcode $mod+0xff55 workspace prev
-#bindcode $mod+0xff56 workspace next
 
 include /etc/sway/config.d/*
 
-
-
-
-
-
-
-#set $main_left Wrapper.MainLeft
-#set $main_right Wrapper.MainRight
-#set $inner.readcalmly Inner.ReadCalmly
-#set $Inner.Misc.Holders Inner.Misc.Holders
-#set $inner.input Inner.Input
-#set $inner.root Inner.Root
-#
-#set $lower.with.shift.left 
-#{
-#	workspace 0, \
-#	exec screen -S $main_right -X select 0, \
-#	exec screen -S $Inner.Misc.Holders -X select 0
-#}
-#
-#set $upper.with.shift.left 
-#{
-#	workspace 0, \
-#	exec screen -S $main_right -X select 0, \
-#	exec screen -S $Inner.Misc.Holders -X select 1
-#}
-#
-#set $lower.left 
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 1;\
-#	exec screen -S $inner.readcalmly -X select 0
-#}
-#
-#set $lower.middle
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 2;\
-#	exec screen -S $inner.input -X select 0
-#}
-#
-#set $lower.right
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 3;\
-#	exec screen -S $inner.root -X select 0
-#}
-#
-#set $upper.left
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 1;\
-#	exec screen -S $inner.readcalmly -X select 1
-#}
-#
-#set $upper.middle
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 2;\
-#	exec screen -S $inner.input -X select 1
-#}
-#
-#set $upper.right
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 3;\
-#	exec screen -S $inner.root -X select 1
-#}
-#
-#set $docker1
-#{
-#	workspace 0;\
-#	exec screen -S $main_right -X select 4
-#}
-#
+# set $mod4.insert 
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 0 0
+# }
+# 
+# set $mod4.delete 
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 0 1
+# }
+# set $mod4.home 
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 0
+# }
+# 
+# #In Vim window, does not change pane, this is overwritten below
+# set $mod4.end 
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1
+# }
+# 
+# set $mod4.pgup 
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 1
+# }
+# set $mod4.pgdown 
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 2
+# }
+# 
+# set $mod4.shift.home
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 3
+# }
+# 
+# set $mod4.shift.end
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 4
+# }
+# 
+# set $mod4.shift.pgup
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 5
+# }
+# 
+# set $mod4.shift.pgdown
+# {
+# 	$workspace1, \
+# 	exec $tmux.select.window.pane.toolbox 1 6
+# }
+# 
+# 
+# 
+# ######################################
+# 
+# 
+# 
+# 
+# 
+# set $alt.insert 
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 0 0
+# }
+# 
+# set $alt.delete 
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 0 1
+# }
+# 
+# set $alt.home 
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 1 0
+# }
+# 
+# #In Vim window, does not change pane
+# set $alt.end 
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 1
+# }
+# 
+# set $alt.pgup 
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 1 1
+# }
+# 
+# set $alt.pgdown
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 1 2
+# }
+# 
+# set $alt.shift.home
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 1 3
+# }
+# 
+# set $alt.shift.end
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 1 4
+# }
+# 
+# set $alt.shift.pgup
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 2 0
+# }
+# 
+# set $alt.shift.pgdown
+# {
+# 	$workspace0, \
+# 	exec $tmux.select.window.pane 2 1
+# }
+# 
+# ########################################
+# 
+# bindsym Mod4+Insert $mod4.insert
+# bindsym Mod4+Delete $mod4.delete
+# bindsym Mod4+Home $mod4.home
+# bindsym Mod4+End workspace RightTop
+# bindsym Mod4+Prior $mod4.pgup
+# bindsym Mod4+Next $mod4.pgdown
+# bindsym Shift+Mod4+Home $mod4.shift.home
+# bindsym Shift+Mod4+End $mod4.shift.end
+# bindsym Shift+Mod4+Prior $mod4.shift.pgup
+# bindsym Shift+Mod4+Next $mod4.shift.pgdown
+# 
+# #########################################
+# 
+# 
+# bindsym Shift+Mod1+Home $alt.shift.home
+# bindsym Shift+Mod1+End $alt.shift.end
+# bindsym Shift+Mod1+Prior $alt.shift.pgup
+# bindsym Shift+Mod1+Next $alt.shift.pgdown
+# 
+# #########################################
+# 
+# #bindcode Ctrl+86 $docker1
+# #bindcode Ctrl+129 $docker2
+# 
+# 
+# 
+# #bindsym Ctrl+KP_Divide workspace MainNonTerminals
+# #bindsym Ctrl+KP_Multiply workspace Reading
+# 
+# 
+# #bindcode $mod+0xff55 workspace prev
+# #bindcode $mod+0xff56 workspace next
+# 
+# 
+# 
+# 
+# #########################################
+# #########################################
+# 
+# 
+# 
+# 
+# #set $main_left Wrapper.MainLeft
+# #set $main_right Wrapper.MainRight
+# #set $inner.readcalmly Inner.ReadCalmly
+# #set $Inner.Misc.Holders Inner.Misc.Holders
+# #set $inner.input Inner.Input
+# #set $inner.root Inner.Root
+# #
+# #set $lower.with.shift.left 
+# #{
+# #	workspace 0, \
+# #	exec screen -S $main_right -X select 0, \
+# #	exec screen -S $Inner.Misc.Holders -X select 0
+# #}
+# #
+# #set $upper.with.shift.left 
+# #{
+# #	workspace 0, \
+# #	exec screen -S $main_right -X select 0, \
+# #	exec screen -S $Inner.Misc.Holders -X select 1
+# #}
+# #
+# #set $lower.left 
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 1;\
+# #	exec screen -S $inner.readcalmly -X select 0
+# #}
+# #
+# #set $lower.middle
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 2;\
+# #	exec screen -S $inner.input -X select 0
+# #}
+# #
+# #set $lower.right
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 3;\
+# #	exec screen -S $inner.root -X select 0
+# #}
+# #
+# #set $upper.left
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 1;\
+# #	exec screen -S $inner.readcalmly -X select 1
+# #}
+# #
+# #set $upper.middle
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 2;\
+# #	exec screen -S $inner.input -X select 1
+# #}
+# #
+# #set $upper.right
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 3;\
+# #	exec screen -S $inner.root -X select 1
+# #}
+# #
+# #set $docker1
+# #{
+# #	workspace 0;\
+# #	exec screen -S $main_right -X select 4
+# #}
+# #
