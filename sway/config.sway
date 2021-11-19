@@ -112,9 +112,10 @@ set $bash /bin/bash --login
 
 	bindsym $mod+Shift+v layout tabbed, \
 		exec $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh "$MY_TMUX_VIMS_INITIAL_LOADERS"'
+	
+	bindsym $mod+Shift+i layout tabbed, \
+		exec $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh "$MY_TMUX_VIMS_NEXT_LOADERS"'
 
-	bindsym $mod+Shift+i exec \
-		$bash -c '$MY_STUFF_BASH_SCRIPTS/tmux.vims.launchers/${MY_TMUX_VIMS_NEXT_LOADERS}.sh'
 
 	bindsym $mod+Shift+t layout tabbed, \
 		exec gnome-terminal --title "MainToolbox" -- $bash -c '$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.enter.tmux.sh'
@@ -291,10 +292,10 @@ mode "resize" {
 
 
 titlebar_border_thickness 0
-titlebar_padding 6 0
-client.focused #777777 #646464 #ffffff
-client.focused_inactive #555555 #555555 #b3b3b3
-client.unfocused #333333 #333333 #b3b3b3
+titlebar_padding 15 3
+client.focused #777777 #222222 #ccccff
+client.focused_inactive #555555 #444444 #888888
+client.unfocused #333333 #333333 #888888
 
 
 default_border none
@@ -315,16 +316,16 @@ $bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
 
 bindsym Mod4+Insert workspace LeftTop
 bindsym Mod4+Delete workspace LeftBottom
-#bindsym Mod4+End workspace RightBottom
-#bindsym Mod4+Home workspace RightTop
+bindsym Mod4+Home workspace 1
+bindsym Mod4+End workspace 0
 bindsym Mod4+Prior workspace RightTopCorner
 bindsym Mod4+Next workspace RightBottomCorner
 
-bindsym Mod1+Insert workspace 1 ; [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:0'
-bindsym Mod1+Delete workspace 1 ; [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
-bindsym Mod1+Home workspace 1 ; [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:1'
+bindsym Mod1+Insert [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:0'
+bindsym Mod1+Delete [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
+bindsym Mod1+Home [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:1'
 bindsym Mod1+End workspace 0
-bindsym Mod1+Prior workspace 1 ; [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
+bindsym Mod1+Prior [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
 #bindsym Mod1+Next $alt.pgdown
 
 

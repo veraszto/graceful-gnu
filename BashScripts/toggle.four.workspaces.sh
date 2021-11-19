@@ -2,7 +2,7 @@
 
 
 selected=$(swaymsg -t get_workspaces | grep -i "\"\(name\|visible\)\"" | xargs | sed -e 's/\s//g' | \
-	grep -io "RightBottom.visible.\(true\|false\)" | grep -io true)
+	grep -io "1.visible.\(true\|false\)" | grep -io true)
 
 isSelected=$(test -z $selected ; echo $?)
 
@@ -16,4 +16,4 @@ then
 fi
 
 swaymsg workspace LeftTop
-swaymsg workspace RightBottom
+swaymsg workspace 1
