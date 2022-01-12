@@ -10,7 +10,9 @@ do
 	echo $project
 	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $project $tmuxSep "
 
-	for file in $(find $vimLoaders -iregex ".*$project\..*" | sort)
+	eligible=$(find $vimLoaders -iregex ".*$project\..*" | sort)
+
+	for file in $eligible 
 	do
 		buildCommand="vim -S $file"
 		wname=$(echo ${file} | sed -e 's/^[^\.]*\.//' | sed -e 's/\.[^\.]\+$//' )
@@ -20,11 +22,16 @@ do
 		hold="$sum"
 	done
 
-	hold="${sum:0:-3} $tmuxSep kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
+	if [ -z "$eligible" ]
+	then
+		sum="new-window -n Hello\! vim $tmuxSep "
+	fi
+
+	hold="${sum}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 
 	run="$exec${hold:0:-3}"
 	unset hold
-	#echo $run
+	echo $run
 	gnome-terminal --title "$project" -- /bin/bash --login -c "$run"
 
 done
