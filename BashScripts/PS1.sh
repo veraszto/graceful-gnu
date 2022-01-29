@@ -123,7 +123,7 @@ function reloadPrompt
 	colors=$(generateFromPack ${lighters[@]})
 	pwd=$(replacePWD $colors)
 
-	if [ $USER = "root" ]
+	if [ "$USER" = "root" ]
 	then	
 		PS1="$(fillTemplate 88)\u${finish}$(echoNonEscaped $horse)${pwd}\\$ "
 	else

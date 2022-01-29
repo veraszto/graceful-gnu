@@ -105,7 +105,11 @@ set $bash /bin/bash --login
 
 
 	bindsym $mod+Shift+m layout tabbed, \
-		exec gnome-terminal --title "Main" -- $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.sh'
+		exec gnome-terminal --title "Main" -- $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.sh'; \
+		exec gnome-terminal --title "Toolbox" -- $bash -c '$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.enter.tmux.sh' ; \
+		exec gnome-terminal --title "BashContext" -- $bash -c 'tmux -f $MY_TMUX_CONF_BASH_CONTEXT -S $MY_TMUX_SOCKET_BASH_CONTEXT new-session -s BashContext' ; \
+		exec gnome-terminal --title "ToolboxBashContext" -- $bash -c \
+'$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.exec.sh "tmux -f $MY_TMUX_CONF_BASH_CONTEXT -S $MY_TMUX_SOCKET_TOOLBOX_BASH_CONTEXT new-session -s BashContextToolbox"'
 
 #	bindsym $mod+Shift+t exec \
 #		gnome-terminal -- /bin/bash --login -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/MainWithTmux.Toolbox.sh'
@@ -117,12 +121,8 @@ set $bash /bin/bash --login
 		exec $bash -c '$MY_GRACEFUL_GNU_BASH_SCRIPTS/build.workspace/VimWithTmux.sh "$MY_TMUX_VIMS_NEXT_LOADERS"'
 
 
-	bindsym $mod+Shift+t layout tabbed, \
-		exec gnome-terminal --title "MainToolbox" -- $bash -c '$MY_STUFF_BASH_SCRIPTS/build.workspace/toolbox.enter.tmux.sh'
-
 	bindsym $mod+c exec \
 		$bash -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
-
 
 
 	bindsym $mod+Return exec gnome-terminal
@@ -322,10 +322,10 @@ bindsym Mod4+Prior workspace RightTopCorner
 bindsym Mod4+Next workspace RightBottomCorner
 
 bindsym Mod1+Insert [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:0'
-bindsym Mod1+Delete [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
+bindsym Mod1+Delete [title="^Toolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
 bindsym Mod1+Home [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:1'
 bindsym Mod1+End workspace 0
-bindsym Mod1+Prior [title="^MainToolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
+bindsym Mod1+Prior [title="^Toolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
 #bindsym Mod1+Next $alt.pgdown
 
 

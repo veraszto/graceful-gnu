@@ -7,14 +7,15 @@ vimLoaders=$(eval echo $MY_VIM_LOADERS_DIR)
 
 for project in $@
 do
-	echo $project
-	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $project $tmuxSep "
+	cleanedProjectName=$(echo $project | sed -e 's/[^-A-Za-z_]//g')
+	echo $cleanedProjectName
+	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $cleanedProjectName $tmuxSep "
 
-	eligible=$(find $vimLoaders -iregex ".*$project\..*" | sort)
+	eligible=$(find $vimLoaders -iregex ".*$cleanedProjectName\..*" | sort)
 
 	for file in $eligible 
 	do
-		buildCommand="vim -S $file"
+		buildCommand="vim -S '$file'"
 		wname=$(echo ${file} | sed -e 's/^[^\.]*\.//' | sed -e 's/\.[^\.]\+$//' )
 		sum="${hold}new-window -n ${wname} $buildCommand  $tmuxSep "
 		#echo "WName: $wname"
@@ -22,12 +23,15 @@ do
 		hold="$sum"
 	done
 
+
 	if [ -z "$eligible" ]
 	then
 		sum="new-window -n Hello\! vim $tmuxSep "
 	fi
 
-	hold="${sum}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
+	addBashContext="new-window -n Bash $MY_BASH_CONTEXT $cleanedProjectName 0 $tmuxSep "
+	addBashContext="${addBashContext}split-window $MY_BASH_CONTEXT $cleanedProjectName 1 $tmuxSep "
+	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep select-window -t 0 $tmuxSep "
 
 	run="$exec${hold:0:-3}"
 	unset hold
