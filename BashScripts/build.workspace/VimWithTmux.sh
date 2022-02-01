@@ -29,13 +29,13 @@ do
 		sum="new-window -n Hello\! vim $tmuxSep "
 	fi
 
-	addBashContext="new-window -n Bash $MY_BASH_CONTEXT $cleanedProjectName 0 $tmuxSep "
-	addBashContext="${addBashContext}split-window $MY_BASH_CONTEXT $cleanedProjectName 1 $tmuxSep "
-	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep select-window -t 0 $tmuxSep "
+	addBashContext="new-window -n Bash $MY_BASH_CONTEXT $cleanedProjectName $tmuxSep "
+	hold="${sum}${addBashContext}"
 
 	run="$exec${hold:0:-3}"
 	unset hold
 	echo $run
+
 	gnome-terminal --title "$project" -- /bin/bash --login -c "$run"
 
 done
