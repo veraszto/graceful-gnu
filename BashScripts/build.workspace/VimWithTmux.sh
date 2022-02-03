@@ -30,7 +30,7 @@ do
 	fi
 
 	addBashContext="new-window -n Bash $MY_BASH_CONTEXT $cleanedProjectName $tmuxSep "
-	hold="${sum}${addBashContext}"
+	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 
 	run="$exec${hold:0:-3}"
 	unset hold
