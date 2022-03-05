@@ -7,7 +7,7 @@ vimLoaders=$(eval echo $MY_VIM_LOADERS_DIR)
 
 for project in $@
 do
-	cleanedProjectName=$(echo $project | sed -e 's/[^-A-Za-z_]//g')
+	cleanedProjectName=$(echo $project | sed -e 's/[^-A-Za-z_0-9]//g')
 	echo $cleanedProjectName
 	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $cleanedProjectName $tmuxSep "
 
