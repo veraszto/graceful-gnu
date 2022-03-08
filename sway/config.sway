@@ -100,7 +100,8 @@ set $bash /bin/bash --login
 #
 #	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
 	bindsym Control_R+y exec 'echo Hello $MY_GRACEFUL_GNU'
-	bindsym $mod+Insert exec swaynag -t warning -m 'Hello'
+#	bindsym $mod+Insert exec swaynag -t warning -m 'Hello'
+	bindsym $mod+Insert exec $bash -c "ls -l ; sleep 5" 
 	bindsym $mod+Home exec /bin/bash --login ~/git/GracefulGNU/BashScripts/toggle.four.workspaces.sh
 
 
@@ -313,19 +314,18 @@ $bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.main
 set $tmux.select.window.pane.toolbox \
 $bash $HOME/git/GracefulGNU/BashScripts/tmux.select.window.pane.sh $tmux.toolbox
 
-
 bindsym Mod4+Insert workspace LeftTop
 bindsym Mod4+Delete workspace LeftBottom
-bindsym Mod4+Home workspace 1
-bindsym Mod4+End workspace 0
+bindsym Mod4+Home workspace VimTop
+bindsym Mod4+End workspace VimBottom
 bindsym Mod4+Prior workspace RightTopCorner
 bindsym Mod4+Next workspace RightBottomCorner
 
-bindsym Mod1+Insert [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:0'
-bindsym Mod1+Delete [title="^Toolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
-bindsym Mod1+Home [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:1'
-bindsym Mod1+End workspace 0
-bindsym Mod1+Prior [title="^Toolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
+bindsym Mod1+Insert $workspace0 ; [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:0'
+bindsym Mod1+Delete $workspace0 ; [title="^Toolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:0'
+bindsym Mod1+Home $workspace0 ; [title="^Main$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET select-window -t Main:1'
+bindsym Mod1+End $workspace0 ; [title="^Toolbox$"] focus ; exec $bash -c 'tmux -S $MY_TMUX_SOCKET_TOOLBOX select-window -t Toolbox:1'
+bindsym Mod1+Prior $workspace0 ; [title="^ToolboxBashContext$"] focus
 #bindsym Mod1+Next $alt.pgdown
 
 
