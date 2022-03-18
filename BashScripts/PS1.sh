@@ -75,12 +75,12 @@ function replacePWD
 	colors_index=0
 
 	pwd=$PWD
-	nohome="${PWD/${HOME}/}"
+	noHome="${PWD/${HOME}/}"
 #	echo $pwd 1>&2
 #	echo $nohome 1>&2
-	if [ "${#nohome}" -gt 0 ]
+	if [ ${#PWD} -gt ${#noHome} ]
 	then
-		pwd=${nohome}
+		pwd=${noHome}
 		echoNonEscaped ${home}
 	elif [ $HOME = $PWD ]
 	then
