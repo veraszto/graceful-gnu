@@ -75,10 +75,10 @@ function replacePWD
 	colors_index=0
 
 	pwd=$PWD
-	nohome=${PWD/${HOME}/}
+	nohome="${PWD/${HOME}/}"
 #	echo $pwd 1>&2
 #	echo $nohome 1>&2
-	if [ ${#nohome} -gt 0 ]
+	if [ "${#nohome}" -gt 0 ]
 	then
 		pwd=${nohome}
 		echoNonEscaped ${home}
@@ -96,11 +96,11 @@ function replacePWD
 	for (( i=0; i<${#pwd}; i++ ))
 	do
 		current=${pwd:$i:1}
-		if [ $current = "/" -a $i -eq 0 ]
+		if [ "$current" = "/" -a $i -eq 0 ]
 		then
 			echoNonEscaped "${!colors_last}${current}"
 			switch=1
-		elif [ $current = "/" ]
+		elif [ "$current" = "/" ]
 		then
 			echoNonEscaped "${finish}${!colors_last}${current}"
 			switch=1
