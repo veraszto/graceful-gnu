@@ -41,7 +41,7 @@ do
 	echo
 	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $sessionName $tmuxSep "
 
-	eligible=$(find $path -iregex ".*.vim" | sort)
+	eligible=$(find $path -iregex ".*\.vim$" | sort)
 
 	for file in $eligible 
 	do
@@ -62,14 +62,15 @@ do
 	fi
 
 	addBashContext="new-window $MY_BASH_CONTEXT $project $tmuxSep "
-	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
+	#hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
+	hold="${sum}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 
 	run="$exec${hold:0:-3}"
 	unset hold
 	echo $run
 	echo
 
-	gnome-terminal --title "$project" -- /bin/bash --login -c "$run"
+	gnome-terminal --maximize --full-screen --title "$project" -- /bin/bash --login -c "$run"
 
 done
 
