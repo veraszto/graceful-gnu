@@ -27,13 +27,13 @@ do
 		echo "There is not a project in there"
 		continue
 	fi
-	sessionName=$(cat $path/config | grep "^name" | sed -e 's/^name[[:space:]]\+//' | head -n1 2> /dev/null)
+	sessionName=$(cat $path/config | grep "^name[[:space:]]" | sed -e 's/^name[[:space:]]\+//' | head -n1 2> /dev/null)
 	if [ $? -gt 0 -o -z "$sessionName" ]
 	then
 		echo "Please add 'name <name>' to $path/config"
 		continue
 	fi
-	gitProjectPath=$(cat $path/config | grep "^path" | sed -e 's/^path[[:space:]]\+//' | head -n1 2> /dev/null)
+	gitProjectPath=$(cat $path/config | grep "^path[[:space:]]" | sed -e 's/^path[[:space:]]\+//' | head -n1 2> /dev/null)
 	if [ $? -gt 0 -o -z "$gitProjectPath" ]
 	then
 		echo "Please add 'path <path>' to $path/config"
