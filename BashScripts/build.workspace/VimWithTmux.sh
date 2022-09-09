@@ -21,28 +21,30 @@ for project in $@
 do
 	path=$(bringPath $project)
 	foundProject=$?
-	echo "Project path:"
-	echo $path
+	echo "Project loader path: $path"
 	if [ $foundProject -gt 0 ]
 	then
 		echo "There is not a project in there"
 		continue
 	fi
-	sessionName=$(cat $path/tmux.session.name 2>/dev/null)
-	if [ $? -gt 0 ]
+	sessionName=$(cat $path/config | grep "^name" | sed -e 's/^name[[:space:]]\+//' | head -n1 2> /dev/null)
+	if [ $? -gt 0 -o -z "$sessionName" ]
 	then
-		echo "Please add tmux.session.name to $path"
+		echo "Please add 'name <name>' to $path/config"
 		continue
 	fi
-	echo "Tmux session:"
-	echo $sessionName
-	echo "Matched prefix:"
-	echo $project
-	echo
+	gitProjectPath=$(cat $path/config | grep "^path" | sed -e 's/^path[[:space:]]\+//' | head -n1 2> /dev/null)
+	if [ $? -gt 0 -o -z "$gitProjectPath" ]
+	then
+		echo "Please add 'path <path>' to $path/config"
+		continue
+	fi
+	echo "Matched prefix: $project"
+	echo "Tmux session: $sessionName"
+	echo "Tmux project path: $gitProjectPath"
+
 	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s $sessionName $tmuxSep "
-
 	eligible=$(find $path -iregex ".*\.vim$" | sort)
-
 	for file in $eligible 
 	do
 		buildCommand="vim -S '$file'"
@@ -64,6 +66,8 @@ do
 	addBashContext="new-window $MY_BASH_CONTEXT $project $tmuxSep "
 	#hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 	hold="${sum}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
+	hold="$hold set-buffer -b ${project}.loader.path $path $tmuxSep "
+	hold="$hold set-buffer -b ${project}.project.path $gitProjectPath $tmuxSep "
 
 	run="$exec${hold:0:-3}"
 	unset hold
