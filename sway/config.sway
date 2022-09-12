@@ -74,12 +74,12 @@ set $menu dmenu_path | dmenu | xargs swaymsg exec --
 
 input *
 {
-	xkb_layout "br,us"
+	xkb_layout br,us
 #	xkb_file $HOME/git/GracefulGNU/profile/mycustom.xkb
 	repeat_delay 200
 	repeat_rate 60
 	xkb_numlock enabled 
-#	xkb_options "grp:menu_switch,caps:hyper"
+#	xkb_options caps:super
 }
 
 
@@ -100,8 +100,8 @@ set $bash /bin/bash --login
 #
 #	bindsym $mod+Shift+y exec /bin/bash --login -c 'echo Hello $MY_GRACEFUL_GNU'
 	bindsym Control_R+y exec 'echo Hello $MY_GRACEFUL_GNU'
-#	bindsym $mod+Insert exec swaynag -t warning -m 'Hello'
-	bindsym $mod+Insert exec $bash -c "ls -l ; sleep 5" 
+	bindsym $mod+Insert exec swaynag -t warning -m 'Hello, launch Tmux directly'
+#	bindsym $mod+Insert exec $bash -c "ls -l ; sleep 5" 
 	bindsym $mod+Home exec /bin/bash --login ~/git/GracefulGNU/BashScripts/toggle.four.workspaces.sh
 
 
@@ -126,10 +126,11 @@ set $bash /bin/bash --login
 		$bash -c $HOME/git/GracefulGNU/BashScripts/transfer.clipboard.sh
 
 
-	bindsym $mod+Return exec gnome-terminal
+	bindsym $mod+Return layout stacking, exec gnome-terminal -- $bash -c 'tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET'
+	bindsym $mod+Shift+Return exec gnome-terminal -- $bash -c 'tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET'
 
-	bindsym $mod+Shift+n exec nautilus
-	bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox
+#	bindsym $mod+Shift+n exec nautilus
+#	bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox
 
 	#bindsym $mod+i exec $HOME/git/MyStuff/BashScripts/build.myworkspace/launcher.sh
 
@@ -171,7 +172,8 @@ set $bash /bin/bash --login
     bindsym $mod+Shift+$left move left
     bindsym $mod+Shift+$down move down
     bindsym $mod+Shift+$up move up
-    bindsym $mod+Shift+$right move right
+	bindsym $mod+Shift+$right move right
+#	bindsym $mod+Shift+l input * xkb_switch_layout 1
     # ditto, with arrow keys
     bindsym $mod+Shift+Left move left
     bindsym $mod+Shift+Down move down
