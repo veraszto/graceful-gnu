@@ -44,7 +44,7 @@ do
 	buildSessionName="new-session $tmuxSep "
 	if [ -n "$sessionName" ]
 	then
-		buildSessionName="new-session -s $sessionName $tmuxSep "
+		buildSessionName="new-session -s \"$sessionName\" $tmuxSep "
 	fi
 
 	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET $buildSessionName"
