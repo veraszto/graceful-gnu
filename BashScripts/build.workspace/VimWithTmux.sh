@@ -2,9 +2,7 @@
 #!/bin/bash
 
 tmuxSep="\;"
-
 vimLoaders=$(eval echo $MY_VIM_LOADERS_DIR)
-
 bringPath()
 {
 	path=$(echo $1 | sed -e "s/\./\//g")	
@@ -37,16 +35,11 @@ do
 	then
 		echo "Please add 'path <path>' to $path/config"
 	fi
+	sessionName=${sessionName}${RANDOM}
 	echo "Matched prefix: $project"
 	echo "Tmux session: $sessionName"
 	echo "Tmux project path: ${gitProjectPath:=~/}"
-
-	buildSessionName="new-session $tmuxSep "
-	if [ -n "$sessionName" ]
-	then
-		buildSessionName="new-session -s \"$sessionName\" $tmuxSep "
-	fi
-
+	buildSessionName="new-session -s \"$sessionName\" $tmuxSep "
 	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET $buildSessionName"
 	eligible=$(find $path -iregex ".*\.vim$" | sort)
 	for file in $eligible 
@@ -57,7 +50,6 @@ do
 		sum="${hold}new-window -n ${wname} $buildCommand  $tmuxSep "
 		echo "WName: $wname"
 		echo "BuildCommand: $buildCommand"
-		echo
 		hold="$sum"
 	done
 
