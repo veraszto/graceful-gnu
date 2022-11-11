@@ -25,22 +25,45 @@ do
 		echo "There is not a project in there"
 		continue
 	fi
-	sessionName=$(cat $path/config 2> /dev/null | grep "^name[[:space:]]" | sed -e 's/^name[[:space:]]\+//' | head -n1 2> /dev/null)
+	sessionName=$(cat $path/config 2> /dev/null | grep "^name[[:space:]]" | sed -e 's/^name[[:space:]]\+//' | tail -n1 2> /dev/null)
 	if [ $? -gt 0 -o -z "$sessionName" ]
 	then
-		echo "Please add 'name <name>' to $path/config"
+		builtSessionName="name "
+		echo "Please add 'name <name>' to $path/config, type it in now I will build it for you!"
+		read buildingSessionName
+		while test -z "$buildingSessionName"; do
+		{
+			echo "Which name would you like to name tmux session? It cannot be empty as well as have no dots:"
+			read buildingSessionName
+		}; done
+		builtSessionName="${builtSessionName}${buildingSessionName}"
+		sessionName=$buildingSessionName
 	fi
-	gitProjectPath=$(cat $path/config  2> /dev/null| grep "^path[[:space:]]" | sed -e 's/^path[[:space:]]\+//' | head -n1 2> /dev/null)
+	gitProjectPath=$(cat $path/config  2> /dev/null| grep "^path[[:space:]]" | sed -e 's/^path[[:space:]]\+//' | tail -n1 2> /dev/null)
 	if [ $? -gt 0 -o -z "$gitProjectPath" ]
 	then
-		echo "Please add 'path <path>' to $path/config"
+		builtProjectPath="path "
+		echo "Please add 'path <path>' to $path/config, type it in now I will build it for you!"
+		read buildingProjectPath
+		while test -z "$buildingProjectPath"; do
+		{
+			echo "What is the path of the project, using it we will automate bashes with context"
+			read buildingProjectPath
+		}; done
+		builtProjectPath="${builtProjectPath}${buildingProjectPath}"
+		gitProjectPath=$buildingProjectPath
+	fi
+	if [ -n "$builtSessionName" ]; then
+		echo -e "$builtSessionName" >> $path/config
+	fi
+	if [ -n "$builtProjectPath" ]; then
+		echo -e "$builtProjectPath" >> $path/config
 	fi
 	sessionName=${sessionName}${RANDOM}
 	echo "Matched prefix: $project"
 	echo "Tmux session: $sessionName"
 	echo "Tmux project path: ${gitProjectPath:=~/}"
-	buildSessionName="new-session -s \"$sessionName\" $tmuxSep "
-	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET $buildSessionName"
+	exec="tmux -f $MY_TMUX_CONF -S $MY_TMUX_SOCKET new-session -s \"$sessionName\" $tmuxSep "
 	eligible=$(find $path -iregex ".*\.vim$" | sort)
 	for file in $eligible 
 	do
@@ -59,9 +82,9 @@ do
 		sum="new-window -n Hello\! vim $tmuxSep "
 	fi
 
-	addBashContext="new-window $MY_BASH_CONTEXT $project $tmuxSep "
-	#hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
-	hold="${sum}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
+	addBashContext="new-window -n \"Holders\" -c \"$gitProjectPath\" $tmuxSep split-window -c \"$gitProjectPath\" $tmuxSep "
+	addBashContext="${addBashContext}new-window -n \"Input\" -c \"$gitProjectPath\" $tmuxSep "
+	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 	hold="$hold set-buffer -b ${project}.loader.path \"$path\" $tmuxSep "
 	hold="$hold set-buffer -b ${project}.project.path \"$gitProjectPath\" $tmuxSep "
 
