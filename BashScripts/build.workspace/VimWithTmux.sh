@@ -81,9 +81,9 @@ do
 	then
 		sum="new-window -n Hello\! vim $tmuxSep "
 	fi
-
-	addBashContext="new-window -n \"Holders\" -c \"$gitProjectPath\" $tmuxSep split-window -c \"$gitProjectPath\" $tmuxSep "
-	addBashContext="${addBashContext}new-window -n \"Input\" -c \"$gitProjectPath\" $tmuxSep "
+	tmuxInitialDir="-c $gitProjectPath"
+	addBashContext="new-window -n \"Holders\"  $tmuxInitialDir $tmuxSep split-window $tmuxInitialDir $tmuxSep "
+	addBashContext="${addBashContext}new-window -n \"Input\" $tmuxInitialDir $tmuxSep "
 	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 	hold="$hold set-buffer -b ${project}.loader.path \"$path\" $tmuxSep "
 	hold="$hold set-buffer -b ${project}.project.path \"$gitProjectPath\" $tmuxSep "
