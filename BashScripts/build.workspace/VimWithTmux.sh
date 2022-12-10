@@ -82,7 +82,7 @@ do
 		sum="new-window -n Hello\! vim $tmuxSep "
 	fi
 	tmuxInitialDir="-c $gitProjectPath"
-	addBashContext="new-window -n \"Holders\"  $tmuxInitialDir $tmuxSep split-window $tmuxInitialDir $tmuxSep "
+	addBashContext="new-window -n \"Holders\"  $tmuxInitialDir $tmuxSep split-window -h $tmuxInitialDir $tmuxSep "
 	addBashContext="${addBashContext}new-window -n \"Input\" $tmuxInitialDir $tmuxSep "
 	hold="${sum}${addBashContext}kill-window -t 0 $tmuxSep move-window -r $tmuxSep "
 	hold="$hold set-buffer -b ${project}.loader.path \"$path\" $tmuxSep "
