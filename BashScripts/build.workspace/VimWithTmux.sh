@@ -80,7 +80,7 @@ do
 	if [ -z "$eligible" ]
 	then
 		sum="new-window -n Hello\! vim $tmuxSep "
-	fi
+fi
 	tmuxInitialDir="-c $gitProjectPath"
 	addBashContext="new-window -n \"Holders\"  $tmuxInitialDir $tmuxSep split-window -h $tmuxInitialDir $tmuxSep "
 	addBashContext="${addBashContext}new-window -n \"Input\" $tmuxInitialDir $tmuxSep "
