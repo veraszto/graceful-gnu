@@ -4,7 +4,7 @@ hasSession=$?
 base='tmux -S $MY_TMUX_SOCKET'
 if test $hasSession -gt 0; then
 	andThen='-f $MY_TMUX_CONF new-session -s myTmuxSession -t myTmuxGroup \; '\
-'splitw "man bash" \; swap-pane -U \; select-layout even-horizontal \; '\
+'splitw "man bash" \; select-layout even-horizontal \; '\
 'new-window \; splitw \; splitw "journalctl --follow" \; splitw "TERM=xterm-256color htop" \; select-layout tiled'
 	built="$base $andThen"
 else
@@ -13,4 +13,8 @@ else
 fi
 echo $built
 gnome-terminal --full-screen -- /bin/bash --login -i -c "$built"
-gnome-terminal --full-screen
+#gnome-terminal --full-screen
+
+
+
+#'splitw "man bash" \; swap-pane -U \; select-layout even-horizontal \; '\
