@@ -1,4 +1,4 @@
-#!/bin/bash  -i
+#!/bin/bash
 tmux -S $MY_TMUX_SOCKET has-session -t myTmux &> /dev/null
 hasSession=$?
 base='tmux -S $MY_TMUX_SOCKET'
@@ -12,9 +12,6 @@ else
 	built="$base $andThen"
 fi
 echo $built
-gnome-terminal --full-screen -- /bin/bash --login -i -c "$built"
+gnome-terminal --full-screen -- /bin/bash -i -c "$built"
 #gnome-terminal --full-screen
-
-
-
 #'splitw "man bash" \; swap-pane -U \; select-layout even-horizontal \; '\
