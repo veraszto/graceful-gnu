@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#xhost
-
 docker run --rm -it \
 --network host \
 --volume /run/user/1000/wayland-0:/run/root/wayland-0 \
