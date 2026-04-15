@@ -2,15 +2,16 @@
 
 xhost +local:docker
 
+echo ${IMAGE_NAME:=veraszto/my-ubuntu}
 echo ${VOLUME_NAME:=my-volume}:${VOLUME_TARGET:=/root/volume}
-
+read
 docker run --rm -it \
 --network host \
 -e DISPLAY=$DISPLAY \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
 --volume $VOLUME_NAME:$VOLUME_TARGET \
 --name my-ubuntu \
-veraszto/my-ubuntu
+$IMAGE_NAME
 exit
 
 #docker run --rm -it \

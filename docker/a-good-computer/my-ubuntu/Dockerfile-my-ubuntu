@@ -1,5 +1,4 @@
 FROM ubuntu:latest
-ENV TERM=xterm-256color
 
 RUN apt-get update && apt-get install -y \
 vim tmux htop locales git gnupg tree wev x11-utils zip \
@@ -19,6 +18,7 @@ RUN ln -s git/bash/inputrc .inputrc
 ARG VOLUME_TARGET=/root/volume
 ENV VOLUME_TARGET=$VOLUME_TARGET
 ARG BASH_HISTORY=$VOLUME_TARGET/bash-history
+ENV USER=root
 RUN mkdir -p $VOLUME_TARGET
 RUN touch $VOLUME_TARGET/hello
 RUN touch $BASH_HISTORY
